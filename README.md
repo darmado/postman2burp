@@ -14,10 +14,11 @@ Postman2Burp bridges the gap between API development and security testing by aut
 - [Postman2Burp](#postman2burp)
   - [📋 Table of Contents](#-table-of-contents)
   - [🎯 Purpose](#-purpose)
-  - [� Use Cases](#-use-cases)
+  - [🔍 Use Cases](#-use-cases)
     - [1. API Security Assessment](#1-api-security-assessment)
     - [2. Custom Proxy Configuration](#2-custom-proxy-configuration)
     - [3. Handling Authentication](#3-handling-authentication)
+    - [4. Configuration File](#4-configuration-file)
   - [📦 Requirements](#-requirements)
   - [🔧 Setup](#-setup)
     - [Quick Setup](#quick-setup)
@@ -60,8 +61,8 @@ $ ./run_postman_to_burp.sh
 Activating virtual environment...
 Running Postman2Burp tool...
 2024-03-04 10:15:23 - INFO - Proxy connection successful at localhost:8080
-2024-03-04 10:15:23 - INFO - Loading collection: ./real_world_postman_collection.json
-2024-03-04 10:15:23 - INFO - Loading environment: ./real_world_environment.json
+2024-03-04 10:15:23 - INFO - Loading collection: ./postman_collection.json
+2024-03-04 10:15:23 - INFO - Loading environment: ./variables.json
 2024-03-04 10:15:23 - INFO - Processing folder: User Management
 2024-03-04 10:15:24 - INFO - Processing request: User Management/Get Users
 2024-03-04 10:15:24 - INFO - Processing request: User Management/Get User by ID
@@ -120,6 +121,43 @@ Summary:
   Failed: 0
 ```
 
+### 4. Configuration File
+
+Store your settings in a `config.json` file to avoid repetitive command-line arguments:
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `proxy_host` | String | Proxy server hostname or IP |
+| `proxy_port` | Integer | Proxy server port |
+| `verify_ssl` | Boolean | Verify SSL certificates |
+| `skip_proxy_check` | Boolean | Skip proxy connection check |
+
+Create a configuration file:
+
+```bash
+# Save current settings to config.json
+$ python postman2burp.py --collection api_collection.json --proxy-host 10.0.0.1 --proxy-port 9090 --save-config
+2024-03-04 10:40:12 - INFO - Configuration saved to /path/to/config.json
+```
+
+Use the configuration file:
+
+```bash
+# Use settings from config.json
+$ python postman2burp.py --collection api_collection.json
+2024-03-04 10:41:30 - INFO - Loaded configuration from /path/to/config.json
+2024-03-04 10:41:30 - INFO - Using proxy: 10.0.0.1:9090
+```
+
+Override specific settings:
+
+```bash
+# Override proxy port from config.json
+$ python postman2burp.py --collection api_collection.json --proxy-port 8888
+2024-03-04 10:42:45 - INFO - Loaded configuration from /path/to/config.json
+2024-03-04 10:42:45 - INFO - Using proxy: 10.0.0.1:8888
+```
+
 ## 📦 Requirements
 
 - Python 3.6+
@@ -167,41 +205,67 @@ chmod +x setup_venv.sh
 
 ### Run Script
 
-```bash
-# Make executable
-chmod +x run_postman_to_burp.sh
+Use the provided shell script for quick execution:
 
-# Run tool
+```bash
+chmod +x run_postman_to_burp.sh
 ./run_postman_to_burp.sh
 ```
 
-The script:
-1. Sets up the environment if needed
-2. Verifies Burp Suite is running
-3. Sends requests from the example collection
+This script:
+- Sets up the Python environment
+- Verifies Burp Suite is running
+- Sends requests from the example collection
 
 ### Manual Usage
 
+| Command | Description |
+|---------|-------------|
+| **Basic Usage** | |
+| `python postman2burp.py --collection FILE` | Process a Postman collection |
+| **Environment Variables** | |
+| `--environment FILE` | Use Postman environment variables |
+| **Proxy Settings** | |
+| `--proxy-host HOST` | Specify proxy hostname/IP |
+| `--proxy-port PORT` | Specify proxy port number |
+| **Output Options** | |
+| `--output FILE` | Save results to JSON file |
+| `--verbose` | Enable detailed logging |
+| **Configuration** | |
+| `--save-config` | Save settings to config.json |
+
+#### Examples
+
+**Basic scan:**
 ```bash
-# Activate environment
+python postman2burp.py --collection api_collection.json
+```
+
+**With environment variables:**
+```bash
+python postman2burp.py --collection api_collection.json --environment variables.json
+```
+
+**Custom proxy settings:**
+```bash
+python postman2burp.py --collection api_collection.json --proxy-host 192.168.1.100 --proxy-port 9090
+```
+
+**Save results and configuration:**
+```bash
+python postman2burp.py --collection api_collection.json --output results.json --save-config
+```
+
+#### Complete Session
+
+```bash
+# 1. Activate environment
 source venv/bin/activate
 
-# Basic usage
-python postman2burp.py --collection /path/to/collection.json
+# 2. Run the tool
+python postman2burp.py --collection api_collection.json --environment variables.json
 
-# With environment variables
-python postman2burp.py --collection /path/to/collection.json --environment /path/to/environment.json
-
-# Custom proxy
-python postman2burp.py --collection /path/to/collection.json --proxy-host 127.0.0.1 --proxy-port 8081
-
-# Save results
-python postman2burp.py --collection /path/to/collection.json --output results.json
-
-# Verbose logging
-python postman2burp.py --collection /path/to/collection.json --verbose
-
-# Deactivate when done
+# 3. Deactivate when done
 deactivate
 ```
 
@@ -211,6 +275,7 @@ deactivate
 usage: postman2burp.py [-h] --collection COLLECTION [--environment ENVIRONMENT]
                        [--proxy-host PROXY_HOST] [--proxy-port PROXY_PORT]
                        [--verify-ssl] [--output OUTPUT] [--verbose]
+                       [--save-config]
 
 options:
   -h, --help            show help message and exit
@@ -219,12 +284,15 @@ options:
   --environment ENVIRONMENT
                         Path to Postman environment JSON file
   --proxy-host PROXY_HOST
-                        Burp proxy host (default: localhost)
+                        Burp proxy host (default from config.json or localhost)
+                        Can include port (e.g., localhost:9090)
   --proxy-port PROXY_PORT
-                        Burp proxy port (default: 8080)
+                        Burp proxy port (default from config.json or 8080)
+                        Ignored if port is specified in --proxy-host
   --verify-ssl          Verify SSL certificates
   --output OUTPUT       Path to save results JSON file
   --verbose             Enable verbose logging
+  --save-config         Save current settings to config.json
 ```
 
 ## ✨ Features
@@ -237,6 +305,7 @@ options:
 | 🔐 Authentication | Handles authentication headers |
 | 📊 Logging | Logs request results |
 | 🔍 Proxy Verification | Verifies proxy before sending requests |
+| ⚙️ Configuration File | Stores settings in config.json |
 
 ## 📈 Testing Workflow
 
@@ -248,8 +317,8 @@ options:
 
 ## 📚 Included Examples
 
-- `real_world_postman_collection.json`: Comprehensive API collection
-- `real_world_environment.json`: Matching environment variables
+- `postman_collection.json`: Comprehensive API collection
+- `variables.json`: Matching environment variables
 
 ## 🔧 Troubleshooting
 

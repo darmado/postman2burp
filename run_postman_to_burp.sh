@@ -28,8 +28,8 @@ if ! command -v python &> /dev/null; then
 fi
 
 # Set variables
-COLLECTION_FILE="./real_world_postman_collection.json"
-ENVIRONMENT_FILE="./real_world_environment.json"
+COLLECTION_FILE="./postman_collection.json"
+ENVIRONMENT_FILE="./variables.json"
 OUTPUT_FILE="./burp_results.json"
 
 # Check if files exist

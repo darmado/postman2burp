@@ -1,0 +1,6 @@
+{
+    "proxy_host": "127.0.0.1",
+    "proxy_port": 8080,
+    "verify_ssl": false,
+    "skip_proxy_check": false
+}

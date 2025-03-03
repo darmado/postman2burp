@@ -1,6 +1,6 @@
 {
 	"id": "a8b9c0d1-e2f3-4a5b-6c7d-8e9f0a1b2c3d",
-	"name": "API Security Testing",
+	"name": "API-SEC-C01",
 	"values": [
 		{
 			"key": "base_url",
@@ -24,6 +24,12 @@
 			"key": "access_token",
 			"value": "",
 			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "auth_token",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+			"type": "secret",
 			"enabled": true
 		},
 		{
@@ -70,6 +76,6 @@
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2023-05-15T14:30:45.000Z",
+	"_postman_exported_at": "2025-03-15T14:30:45.000Z",
 	"_postman_exported_using": "Postman/10.14.5"
 } 

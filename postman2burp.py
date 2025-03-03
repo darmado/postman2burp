@@ -7,7 +7,20 @@ through Burp Suite proxy. This allows for automated scanning of API endpoints
 defined in a Postman collection during penetration testing.
 
 Usage:
-    python postman2burp.py --collection <postman_collection.json> --environment <postman_environment.json> --proxy-host localhost --proxy-port 8080
+    Basic Usage:
+        python postman2burp.py --collection <collection.json>
+    
+    Environment Variables:
+        python postman2burp.py --collection <collection.json> --environment <environment.json>
+    
+    Proxy Settings:
+        python postman2burp.py --collection <collection.json> --proxy-host <host> --proxy-port <port>
+    
+    Output Options:
+        python postman2burp.py --collection <collection.json> --output <results.json> --verbose
+    
+    Configuration:
+        python postman2burp.py --collection <collection.json> --save-config
 
 Requirements:
     - requests
@@ -25,9 +38,41 @@ import urllib3
 import socket
 from typing import Dict, List, Optional, Any
 import requests
+import time
 
 # Disable SSL warnings when using proxy
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Default configuration
+DEFAULT_CONFIG = {
+    "proxy_host": "localhost",
+    "proxy_port": 8080,
+    "verify_ssl": False,
+    "skip_proxy_check": False
+}
+
+# Path to config file
+CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+
+def load_config() -> Dict:
+    """
+    Load configuration from config.json file if it exists,
+    otherwise return default configuration.
+    """
+    config = DEFAULT_CONFIG.copy()
+    
+    try:
+        if os.path.exists(CONFIG_FILE_PATH):
+            with open(CONFIG_FILE_PATH, 'r') as f:
+                file_config = json.load(f)
+                config.update(file_config)
+                logger.info(f"Loaded configuration from {CONFIG_FILE_PATH}")
+        else:
+            logger.info(f"No config file found at {CONFIG_FILE_PATH}, using default settings")
+    except Exception as e:
+        logger.warning(f"Error loading config file: {e}. Using default settings.")
+    
+    return config
 
 # Configure logging
 logging.basicConfig(
@@ -45,9 +90,19 @@ def check_proxy_connection(host: str, port: int) -> bool:
     Returns True if proxy is running, False otherwise.
     """
     try:
+        # Resolve hostname to IP if needed
+        try:
+            # Try to resolve the hostname to handle cases where 'localhost' or other hostnames are used
+            ip_address = socket.gethostbyname(host)
+            logger.debug(f"Resolved {host} to IP: {ip_address}")
+        except socket.gaierror:
+            # If hostname resolution fails, use the original host (might be an IP already)
+            logger.warning(f"Could not resolve hostname {host}, using as-is")
+            ip_address = host
+            
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(2)
-        result = sock.connect_ex((host, port))
+        result = sock.connect_ex((ip_address, port))
         sock.close()
         
         if result == 0:
@@ -71,21 +126,33 @@ class PostmanToBurp:
         self,
         collection_path: str,
         environment_path: Optional[str] = None,
-        proxy_host: str = "localhost",
-        proxy_port: int = 8080,
-        verify_ssl: bool = False,
+        proxy_host: str = None,
+        proxy_port: int = None,
+        verify_ssl: bool = None,
         output_file: Optional[str] = None
     ):
+        # Load config
+        config = load_config()
+        
         self.collection_path = collection_path
         self.environment_path = environment_path
-        self.proxy_host = proxy_host
-        self.proxy_port = proxy_port
-        self.verify_ssl = verify_ssl
+        
+        # Use provided values or fall back to config values
+        self.proxy_host = proxy_host if proxy_host is not None else config["proxy_host"]
+        self.proxy_port = proxy_port if proxy_port is not None else config["proxy_port"]
+        self.verify_ssl = verify_ssl if verify_ssl is not None else config["verify_ssl"]
+        
         self.output_file = output_file
+        
+        # Construct proxy URLs
         self.proxies = {
-            "http": f"http://{proxy_host}:{proxy_port}",
-            "https": f"http://{proxy_host}:{proxy_port}"
+            "http": f"http://{self.proxy_host}:{self.proxy_port}",
+            "https": f"http://{self.proxy_host}:{self.proxy_port}"
         }
+        
+        logger.debug(f"Using proxy settings - Host: {self.proxy_host}, Port: {self.proxy_port}")
+        logger.debug(f"Proxy URLs: {self.proxies}")
+        
         self.environment_variables = {}
         self.collection_variables = {}
         self.results = []
@@ -248,6 +315,7 @@ class PostmanToBurp:
         body = prepared_request["body"]
         
         logger.info(f"Sending {method} request to {url}")
+        logger.debug(f"Using proxy: {self.proxies}")
         
         try:
             response = requests.request(
@@ -275,6 +343,26 @@ class PostmanToBurp:
             logger.info(f"Response: {response.status_code} ({result['response_time']:.2f}s)")
             return result
             
+        except requests.exceptions.ProxyError as e:
+            logger.error(f"Proxy error: {e}")
+            return {
+                "name": prepared_request["name"],
+                "folder": prepared_request["folder"],
+                "method": method,
+                "url": url,
+                "error": f"Proxy error: {str(e)}",
+                "success": False
+            }
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Connection error: {e}")
+            return {
+                "name": prepared_request["name"],
+                "folder": prepared_request["folder"],
+                "method": method,
+                "url": url,
+                "error": f"Connection error: {str(e)}",
+                "success": False
+            }
         except Exception as e:
             logger.error(f"Request failed: {e}")
             return {
@@ -300,7 +388,26 @@ class PostmanToBurp:
         for i, request_data in enumerate(requests, 1):
             logger.info(f"Processing request {i}/{len(requests)}: {request_data['name']}")
             prepared_request = self.prepare_request(request_data)
-            result = self.send_request(prepared_request)
+            
+            # Try the request with retries
+            max_retries = 3
+            retry_count = 0
+            result = None
+            
+            while retry_count < max_retries:
+                result = self.send_request(prepared_request)
+                if result.get("success", False) or "error" not in result:
+                    break
+                
+                retry_count += 1
+                if retry_count < max_retries:
+                    retry_delay = 2 ** retry_count  # Exponential backoff
+                    logger.warning(f"Request failed: {result.get('error')}. Retrying in {retry_delay}s... (Attempt {retry_count+1}/{max_retries})")
+                    time.sleep(retry_delay)
+            
+            if retry_count > 0 and not result.get("success", False):
+                logger.error(f"Request failed after {retry_count} retries: {result.get('error')}")
+            
             self.results.append(result)
             
         # Save results if output file is specified
@@ -313,29 +420,121 @@ class PostmanToBurp:
         logger.info(f"Summary: {success_count}/{len(self.results)} requests successful")
 
 def main():
-    parser = argparse.ArgumentParser(description="Send Postman collection requests through Burp Suite proxy")
-    parser.add_argument("--collection", required=True, help="Path to Postman collection JSON file")
-    parser.add_argument("--environment", help="Path to Postman environment JSON file")
-    parser.add_argument("--proxy-host", default="localhost", help="Burp proxy host (default: localhost)")
-    parser.add_argument("--proxy-port", type=int, default=8080, help="Burp proxy port (default: 8080)")
-    parser.add_argument("--verify-ssl", action="store_true", help="Verify SSL certificates")
-    parser.add_argument("--output", help="Path to save results JSON file")
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
+    # Load config first
+    config = load_config()
+    
+    parser = argparse.ArgumentParser(
+        description="Postman2Burp - Send Postman collection requests through Burp Suite proxy",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  Basic scan:
+    python postman2burp.py --collection api_collection.json
+  
+  With environment variables:
+    python postman2burp.py --collection api_collection.json --environment variables.json
+  
+  Custom proxy settings:
+    python postman2burp.py --collection api_collection.json --proxy-host 192.168.1.100 --proxy-port 9090
+  
+  Save results and configuration:
+    python postman2burp.py --collection api_collection.json --output results.json --save-config
+"""
+    )
+    
+    # Required arguments
+    parser.add_argument("--collection", required=True, 
+                      help="Path to Postman collection JSON file")
+    
+    # Environment options
+    env_group = parser.add_argument_group('Environment Options')
+    env_group.add_argument("--environment", 
+                         help="Path to Postman environment JSON file")
+    
+    # Proxy options
+    proxy_group = parser.add_argument_group('Proxy Options')
+    proxy_group.add_argument("--proxy-host", default=None, 
+                           help="Proxy hostname/IP (default: from config.json or localhost)")
+    proxy_group.add_argument("--proxy-port", type=int, default=None, 
+                           help="Proxy port (default: from config.json or 8080)")
+    proxy_group.add_argument("--verify-ssl", action="store_true", 
+                           help="Verify SSL certificates")
+    proxy_group.add_argument("--skip-proxy-check", action="store_true", 
+                           help="Skip proxy connection check")
+    
+    # Output options
+    output_group = parser.add_argument_group('Output Options')
+    output_group.add_argument("--output", 
+                            help="Save results to JSON file")
+    output_group.add_argument("--verbose", action="store_true", 
+                            help="Enable detailed logging")
+    
+    # Configuration options
+    config_group = parser.add_argument_group('Configuration Options')
+    config_group.add_argument("--save-config", action="store_true", 
+                            help="Save current settings to config.json")
     
     args = parser.parse_args()
     
     if args.verbose:
         logger.setLevel(logging.DEBUG)
     
-    # Check if proxy is running before proceeding
-    if not check_proxy_connection(args.proxy_host, args.proxy_port):
-        sys.exit(1)
+    # Extract host and port if port is included in the proxy host
+    proxy_host = args.proxy_host
+    proxy_port = args.proxy_port
+    
+    if proxy_host and ':' in proxy_host and not proxy_host.startswith('http'):
+        host_parts = proxy_host.split(':')
+        proxy_host = host_parts[0]
+        try:
+            proxy_port = int(host_parts[1])
+            logger.info(f"Using port {proxy_port} from proxy host string")
+        except (IndexError, ValueError):
+            logger.warning(f"Could not extract port from '{proxy_host}', using provided port {proxy_port}")
+    
+    # If proxy settings weren't provided via command line, use config values
+    if proxy_host is None:
+        proxy_host = config["proxy_host"]
+        logger.debug(f"Using proxy host from config: {proxy_host}")
+    
+    if proxy_port is None:
+        proxy_port = config["proxy_port"]
+        logger.debug(f"Using proxy port from config: {proxy_port}")
+    
+    # Determine if we should skip the proxy check
+    skip_proxy_check = args.skip_proxy_check or config.get("skip_proxy_check", False)
+    
+    # Check if proxy is explicitly configured via command line
+    proxy_explicitly_configured = any(arg.startswith('--proxy-host') or arg.startswith('--proxy-port') for arg in sys.argv)
+    
+    # Skip proxy check if explicitly requested or if proxy is explicitly configured
+    if skip_proxy_check or proxy_explicitly_configured:
+        logger.info(f"Skipping proxy connection check (using {proxy_host}:{proxy_port})")
+    else:
+        if not check_proxy_connection(proxy_host, proxy_port):
+            sys.exit(1)
+    
+    # Save config if requested
+    if args.save_config:
+        new_config = {
+            "proxy_host": proxy_host,
+            "proxy_port": proxy_port,
+            "verify_ssl": args.verify_ssl,
+            "skip_proxy_check": skip_proxy_check
+        }
+        
+        try:
+            with open(CONFIG_FILE_PATH, 'w') as f:
+                json.dump(new_config, f, indent=4)
+            logger.info(f"Configuration saved to {CONFIG_FILE_PATH}")
+        except Exception as e:
+            logger.error(f"Failed to save configuration: {e}")
     
     processor = PostmanToBurp(
         collection_path=args.collection,
         environment_path=args.environment,
-        proxy_host=args.proxy_host,
-        proxy_port=args.proxy_port,
+        proxy_host=proxy_host,
+        proxy_port=proxy_port,
         verify_ssl=args.verify_ssl,
         output_file=args.output
     )
