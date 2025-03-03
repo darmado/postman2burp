@@ -26,13 +26,22 @@ fi
 echo "Activating virtual environment..."
 source venv/bin/activate
 
-# Install required packages
-echo "Installing required packages..."
-pip install requests urllib3 python-dotenv
+# Ensure pip is up to date
+echo "Upgrading pip..."
+python -m pip install --upgrade pip
 
-# Create requirements.txt file
-echo "Creating requirements.txt file..."
-pip freeze > requirements.txt
+# Install required packages directly
+echo "Installing required packages..."
+python -m pip install requests urllib3 python-dotenv
+
+# Verify installation
+echo "Verifying installation..."
+if python -c "import requests, urllib3, dotenv" 2>/dev/null; then
+    echo "All required packages are installed successfully."
+else
+    echo "Error: Failed to import required packages. Please check the installation."
+    exit 1
+fi
 
 echo ""
 echo "Setup complete! Virtual environment is ready."
@@ -45,4 +54,4 @@ echo "  source venv/bin/activate"
 echo "  python postman2burp.py --collection example_postman_collection.json"
 echo ""
 echo "To deactivate the virtual environment when finished:"
-echo "  deactivate" 
+echo "  deactivate"

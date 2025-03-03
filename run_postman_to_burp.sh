@@ -15,13 +15,13 @@ fi
 echo "Activating virtual environment..."
 source venv/bin/activate
 
-# Check if Burp Suite is running
-if ! nc -z localhost 8080 &>/dev/null; then
-    echo "Warning: Burp Suite proxy doesn't seem to be running on localhost:8080"
-    echo "Please make sure Burp Suite is running and the proxy is configured."
-    read -p "Continue anyway? (y/n): " continue_anyway
-    if [[ "$continue_anyway" != "y" && "$continue_anyway" != "Y" ]]; then
-        echo "Aborted."
+# Determine which python command to use
+PYTHON_CMD="python"
+if ! command -v python &> /dev/null; then
+    if command -v python3 &> /dev/null; then
+        PYTHON_CMD="python3"
+    else
+        echo "Error: Neither python nor python3 is available. Please install Python."
         deactivate
         exit 1
     fi
@@ -47,7 +47,7 @@ fi
 
 # Run the script
 echo "Running Postman2Burp tool..."
-python postman2burp.py \
+$PYTHON_CMD postman2burp.py \
     --collection "$COLLECTION_FILE" \
     --environment "$ENVIRONMENT_FILE" \
     --output "$OUTPUT_FILE" \
@@ -67,4 +67,4 @@ else
 fi
 
 # Deactivate virtual environment
-deactivate 
+deactivate

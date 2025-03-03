@@ -1,90 +1,81 @@
 # Postman2Burp
 
-Automated tool for sending Postman collection requests through Burp Suite proxy for penetration testing.
+Automates sending Postman collection requests through Burp Suite proxy for API security testing.
 
 ## Purpose
 
-During penetration testing, you often receive a Postman collection that defines the API scope. Instead of manually sending each request through Burp Suite, this tool automates the process by:
+This tool automates API security testing by:
 
-1. Reading a Postman collection JSON file
-2. Parsing all requests (including those in folders)
+1. Reading Postman collection JSON files
+2. Parsing all requests (including nested folders)
 3. Resolving environment variables
-4. Sending each request through Burp Suite proxy
-5. Logging the results
+4. Sending requests through Burp Suite proxy
+5. Logging results
 
 ## Requirements
 
 - Python 3.6+
-- Required Python packages (installed automatically with setup script):
+- Required packages (auto-installed):
   - requests
   - urllib3
   - python-dotenv
 
 ## Setup
 
-### Quick Setup (Recommended)
-
+### Quick Setup
 
 ```bash
-# Make the setup script executable
+# Make executable
 chmod +x setup_venv.sh
 
-# Run the setup script
+# Run setup
 ./setup_venv.sh
 ```
 
 ### Manual Setup
 
-
-1. Create a Python virtual environment:
+1. Create virtual environment:
    ```bash
    python3 -m venv venv
    ```
 
-2. Activate the virtual environment:
+2. Activate environment:
    ```bash
-   # On macOS/Linux
+   # macOS/Linux
    source venv/bin/activate
-
-   # On Windows
+   
+   # Windows
    venv\Scripts\activate
    ```
 
-3. Install required packages:
+3. Install packages:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. Export your Postman collection as a JSON file (v2.1 format)
-5. If your collection uses environment variables, export the environment as a JSON file
-6. Make sure Burp Suite is running and the proxy is configured (default: localhost:8080)
+4. Start Burp Suite with proxy on localhost:8080
 
 ## Usage
 
-### Using the Run Script
-
-The easiest way to run the tool is using the provided run script:
+### Run Script
 
 ```bash
-# Make the run script executable
-chmod +x run_postman2burp.sh
+# Make executable
+chmod +x run_postman_to_burp.sh
 
-# Run the script
-./run_postman2burp.sh
+# Run tool
+./run_postman_to_burp.sh
 ```
 
-This script will:
-1. Check if the virtual environment exists and set it up if needed
-2. Activate the virtual environment
-3. Verify Burp Suite is running
-4. Run the tool with the example collection and environment
+The script:
+1. Sets up the environment if needed
+2. Verifies Burp Suite is running
+3. Sends requests from the example collection
 
 ### Manual Usage
 
-If you want to run the script manually with your own parameters:
-
 ```bash
-# Activate the virtual environment
+# Activate environment
 source venv/bin/activate
 
 # Basic usage
@@ -93,30 +84,28 @@ python postman2burp.py --collection /path/to/collection.json
 # With environment variables
 python postman2burp.py --collection /path/to/collection.json --environment /path/to/environment.json
 
-# Custom proxy settings
+# Custom proxy
 python postman2burp.py --collection /path/to/collection.json --proxy-host 127.0.0.1 --proxy-port 8081
 
-# Save results to a file
+# Save results
 python postman2burp.py --collection /path/to/collection.json --output results.json
 
-# Enable verbose logging
+# Verbose logging
 python postman2burp.py --collection /path/to/collection.json --verbose
 
-# When finished, deactivate the virtual environment
+# Deactivate when done
 deactivate
 ```
 
-## Full Options
+## Options
 
 ```
 usage: postman2burp.py [-h] --collection COLLECTION [--environment ENVIRONMENT]
-                         [--proxy-host PROXY_HOST] [--proxy-port PROXY_PORT]
-                         [--verify-ssl] [--output OUTPUT] [--verbose]
-
-Send Postman collection requests through Burp Suite proxy
+                       [--proxy-host PROXY_HOST] [--proxy-port PROXY_PORT]
+                       [--verify-ssl] [--output OUTPUT] [--verbose]
 
 options:
-  -h, --help            show this help message and exit
+  -h, --help            show help message and exit
   --collection COLLECTION
                         Path to Postman collection JSON file
   --environment ENVIRONMENT
@@ -132,32 +121,37 @@ options:
 
 ## Features
 
-- Handles nested folders in Postman collections
+- Handles nested folders in collections
 - Supports environment variables
-- Processes different request body types (raw, urlencoded, formdata)
+- Processes multiple request body types
 - Handles authentication headers
-- Logs request results and statistics
-- Option to save results to a JSON file
+- Logs request results
+- Verifies proxy before sending requests
 
-## Workflow for Penetration Testing
+## Testing Workflow
 
-1. Receive Postman collection from client
-2. Configure Burp Suite with appropriate scanning settings
-3. Run this script to send all requests through Burp
-4. Burp will capture all requests for analysis, scanning, and further testing
-5. Review the script output for any failed requests
+1. Receive Postman collection
+2. Configure Burp Suite
+3. Run this tool
+4. Analyze captured requests in Burp
+5. Review results file
+
+## Included Examples
+
+- `real_world_postman_collection.json`: Comprehensive API collection
+- `real_world_environment.json`: Matching environment variables
 
 ## Troubleshooting
 
-- **Virtual Environment Issues**: If you encounter issues with the virtual environment, try removing the `venv` directory and running `setup_venv.sh` again.
-- **SSL Certificate Errors**: By default, SSL verification is disabled when using a proxy. Use `--verify-ssl` if you need to enable it.
-- **Connection Errors**: Ensure Burp Suite is running and the proxy is correctly configured.
-- **Authentication Issues**: If requests require authentication, make sure the necessary tokens/credentials are included in the Postman environment variables.
-- **Variable Resolution**: If you see unresolved variables in requests (like `{{variable}}`), check that your environment file is correctly formatted and loaded.
+- **Environment Issues**: Remove `venv` directory and run `setup_venv.sh` again
+- **SSL Errors**: Use `--verify-ssl` to enable certificate verification
+- **Connection Errors**: Verify Burp Suite is running with correct proxy settings
+- **Auth Issues**: Check environment variables contain necessary credentials
+- **Variable Resolution**: Verify environment file format is correct
+- **Proxy Not Running**: Start Burp Suite before running the tool
 
 ## Limitations
 
-- File uploads in multipart/form-data are not fully supported
-- WebSocket requests are not supported
-- Pre-request and test scripts from Postman are not executed
-
+- Limited support for file uploads in multipart/form-data
+- No support for WebSocket requests
+- No execution of Postman pre-request and test scripts

@@ -22,6 +22,7 @@ import logging
 import os
 import sys
 import urllib3
+import socket
 from typing import Dict, List, Optional, Any
 import requests
 
@@ -37,6 +38,33 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+def check_proxy_connection(host: str, port: int) -> bool:
+    """
+    Check if the proxy is running and accessible.
+    Returns True if proxy is running, False otherwise.
+    """
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)
+        result = sock.connect_ex((host, port))
+        sock.close()
+        
+        if result == 0:
+            logger.info(f"Proxy connection successful at {host}:{port}")
+            return True
+        else:
+            logger.error(f"Proxy not running at {host}:{port}")
+            print("\n[!] PROXY CONNECTION ERROR [!]")
+            print(f"[!] No proxy detected at {host}:{port}")
+            print("[!] Launch Burp Suite or your proxy before running this tool")
+            print("[!] Exiting...")
+            return False
+    except Exception as e:
+        logger.error(f"Error checking proxy: {str(e)}")
+        print(f"\n[!] PROXY ERROR: {str(e)}")
+        print("[!] Verify your proxy settings and try again")
+        return False
 
 class PostmanToBurp:
     def __init__(
@@ -298,6 +326,10 @@ def main():
     
     if args.verbose:
         logger.setLevel(logging.DEBUG)
+    
+    # Check if proxy is running before proceeding
+    if not check_proxy_connection(args.proxy_host, args.proxy_port):
+        sys.exit(1)
     
     processor = PostmanToBurp(
         collection_path=args.collection,
