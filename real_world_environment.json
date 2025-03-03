@@ -1,0 +1,75 @@
+{
+	"id": "a8b9c0d1-e2f3-4a5b-6c7d-8e9f0a1b2c3d",
+	"name": "API Security Testing",
+	"values": [
+		{
+			"key": "base_url",
+			"value": "https://api.example.com",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "username",
+			"value": "security.tester@example.com",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "password",
+			"value": "Test@123!",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "user_id",
+			"value": "61a7b8c9d0e1f2a3b4c5d6e7",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "product_id",
+			"value": "71a2b3c4d5e6f7a8b9c0d1e2",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "category_id",
+			"value": "81a2b3c4d5e6f7a8b9c0d1e2",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "order_id",
+			"value": "91a2b3c4d5e6f7a8b9c0d1e2",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "card_token",
+			"value": "tok_visa_4242424242424242",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "smtp_username",
+			"value": "notifications@example.com",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "smtp_password",
+			"value": "smtp_secret_password",
+			"type": "secret",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2023-05-15T14:30:45.000Z",
+	"_postman_exported_using": "Postman/10.14.5"
+} 
