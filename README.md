@@ -60,7 +60,8 @@ When performing a security assessment of an API that has a Postman collection:
 $ ./run_postman_to_burp.sh
 Activating virtual environment...
 Running Postman2Burp tool...
-2024-03-04 10:15:23 - INFO - Proxy connection successful at localhost:8080
+2024-03-04 10:15:23 - INFO - Attempting to auto-detect running proxy...
+2024-03-04 10:15:23 - INFO - Detected running proxy at localhost:8080
 2024-03-04 10:15:23 - INFO - Loading collection: ./postman_collection.json
 2024-03-04 10:15:23 - INFO - Loading environment: ./variables.json
 2024-03-04 10:15:23 - INFO - Processing folder: User Management
@@ -85,7 +86,8 @@ Success! All requests have been sent through Burp Suite.
 Testing with a non-standard proxy setup:
 
 ```bash
-$ python postman2burp.py --collection api_collection.json --proxy-host 192.168.1.100 --proxy-port 9090 --verbose
+$ python postman2burp.py --collection api_collection.json --proxy 192.168.1.100:9090 --verbose
+2024-03-04 10:20:15 - INFO - Using proxy 192.168.1.100:9090 from --proxy argument
 2024-03-04 10:20:15 - INFO - Proxy connection successful at 192.168.1.100:9090
 2024-03-04 10:20:15 - DEBUG - Using proxy: http://192.168.1.100:9090
 2024-03-04 10:20:15 - INFO - Loading collection: api_collection.json
@@ -107,6 +109,8 @@ Using environment variables for authenticated API testing:
 
 ```bash
 $ python postman2burp.py --collection secure_api.json --environment prod_env.json
+2024-03-04 10:30:45 - INFO - Attempting to auto-detect running proxy...
+2024-03-04 10:30:45 - INFO - Detected running proxy at localhost:8080
 2024-03-04 10:30:45 - INFO - Proxy connection successful at localhost:8080
 2024-03-04 10:30:45 - INFO - Loading collection: secure_api.json
 2024-03-04 10:30:45 - INFO - Loading environment: prod_env.json
@@ -136,7 +140,7 @@ Create a configuration file:
 
 ```bash
 # Save current settings to config.json
-$ python postman2burp.py --collection api_collection.json --proxy-host 10.0.0.1 --proxy-port 9090 --save-config
+$ python postman2burp.py --collection api_collection.json --proxy 10.0.0.1:9090 --save-config
 2024-03-04 10:40:12 - INFO - Configuration saved to /path/to/config.json
 ```
 
@@ -146,16 +150,17 @@ Use the configuration file:
 # Use settings from config.json
 $ python postman2burp.py --collection api_collection.json
 2024-03-04 10:41:30 - INFO - Loaded configuration from /path/to/config.json
-2024-03-04 10:41:30 - INFO - Using proxy: 10.0.0.1:9090
+2024-03-04 10:41:30 - INFO - Using proxy host from config: 10.0.0.1
+2024-03-04 10:41:30 - INFO - Using proxy port from config: 9090
 ```
 
 Override specific settings:
 
 ```bash
-# Override proxy port from config.json
-$ python postman2burp.py --collection api_collection.json --proxy-port 8888
+# Override proxy from config.json
+$ python postman2burp.py --collection api_collection.json --proxy localhost:8888
 2024-03-04 10:42:45 - INFO - Loaded configuration from /path/to/config.json
-2024-03-04 10:42:45 - INFO - Using proxy: 10.0.0.1:8888
+2024-03-04 10:42:45 - INFO - Using proxy localhost:8888 from --proxy argument
 ```
 
 ## 📦 Requirements
@@ -199,7 +204,7 @@ chmod +x setup_venv.sh
    pip install -r requirements.txt
    ```
 
-4. Start Burp Suite with proxy on localhost:8080
+4. Start Burp Suite with proxy on localhost:8080 (or let the tool auto-detect your proxy)
 
 ## 🚀 Usage
 
@@ -214,7 +219,7 @@ chmod +x run_postman_to_burp.sh
 
 This script:
 - Sets up the Python environment
-- Verifies Burp Suite is running
+- Automatically detects if Burp Suite is running
 - Sends requests from the example collection
 
 ### Manual Usage
@@ -226,8 +231,10 @@ This script:
 | **Environment Variables** | |
 | `--environment FILE` | Use Postman environment variables |
 | **Proxy Settings** | |
+| `--proxy HOST:PORT` | Specify proxy in host:port format |
 | `--proxy-host HOST` | Specify proxy hostname/IP |
 | `--proxy-port PORT` | Specify proxy port number |
+| `--no-auto-detect` | Disable proxy auto-detection |
 | **Output Options** | |
 | `--output FILE` | Save results to JSON file |
 | `--verbose` | Enable detailed logging |
@@ -248,7 +255,7 @@ python postman2burp.py --collection api_collection.json --environment variables.
 
 **Custom proxy settings:**
 ```bash
-python postman2burp.py --collection api_collection.json --proxy-host 192.168.1.100 --proxy-port 9090
+python postman2burp.py --collection api_collection.json --proxy localhost:8080
 ```
 
 **Save results and configuration:**
@@ -273,25 +280,34 @@ deactivate
 
 ```
 usage: postman2burp.py [-h] --collection COLLECTION [--environment ENVIRONMENT]
-                       [--proxy-host PROXY_HOST] [--proxy-port PROXY_PORT]
-                       [--verify-ssl] [--output OUTPUT] [--verbose]
-                       [--save-config]
+                       [--proxy PROXY] [--proxy-host PROXY_HOST] [--proxy-port PROXY_PORT]
+                       [--verify-ssl] [--skip-proxy-check] [--no-auto-detect]
+                       [--output OUTPUT] [--verbose] [--save-config]
 
 options:
   -h, --help            show help message and exit
   --collection COLLECTION
                         Path to Postman collection JSON file
+
+Environment Options:
   --environment ENVIRONMENT
                         Path to Postman environment JSON file
+
+Proxy Options:
+  --proxy PROXY         Proxy in format host:port (e.g., localhost:8080)
   --proxy-host PROXY_HOST
-                        Burp proxy host (default from config.json or localhost)
-                        Can include port (e.g., localhost:9090)
+                        Proxy hostname/IP (default: auto-detected)
   --proxy-port PROXY_PORT
-                        Burp proxy port (default from config.json or 8080)
-                        Ignored if port is specified in --proxy-host
+                        Proxy port (default: auto-detected or from config.json)
   --verify-ssl          Verify SSL certificates
-  --output OUTPUT       Path to save results JSON file
-  --verbose             Enable verbose logging
+  --skip-proxy-check    Skip proxy connection check
+  --no-auto-detect      Disable proxy auto-detection (use config values only)
+
+Output Options:
+  --output OUTPUT       Save results to JSON file
+  --verbose             Enable detailed logging
+
+Configuration Options:
   --save-config         Save current settings to config.json
 ```
 
@@ -299,6 +315,7 @@ options:
 
 | Feature | Description |
 |---------|-------------|
+| 🔍 Proxy Auto-detection | Automatically detects running proxies on common ports |
 | 📁 Nested Folders | Handles nested folders in collections |
 | 🔄 Environment Variables | Supports environment variables |
 | 📝 Multiple Body Types | Processes multiple request body types |
@@ -310,10 +327,9 @@ options:
 ## 📈 Testing Workflow
 
 1. Receive Postman collection
-2. Configure Burp Suite
-3. Run this tool
-4. Analyze captured requests in Burp
-5. Review results file
+2. Run this tool (it will auto-detect your proxy)
+3. Analyze captured requests in Burp
+4. Review results file
 
 ## 📚 Included Examples
 
@@ -326,10 +342,11 @@ options:
 |-------|----------|
 | **Environment Issues** | Remove `venv` directory and run `setup_venv.sh` again |
 | **SSL Errors** | Use `--verify-ssl` to enable certificate verification |
-| **Connection Errors** | Verify Burp Suite is running with correct proxy settings |
+| **Connection Errors** | Ensure a proxy is running or specify one with `--proxy` |
 | **Auth Issues** | Check environment variables contain necessary credentials |
 | **Variable Resolution** | Verify environment file format is correct |
-| **Proxy Not Running** | Start Burp Suite before running the tool |
+| **Proxy Not Detected** | Start Burp Suite or specify proxy with `--proxy host:port` |
+| **Auto-detection Issues** | Use `--verbose` to see detailed proxy detection logs |
 
 ## ⚠️ Limitations
 
