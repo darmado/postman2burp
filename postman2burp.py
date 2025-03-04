@@ -864,75 +864,82 @@ class PostmanToBurp:
     def check_proxy(self) -> bool:
         """
         Check if the proxy is running and accessible.
-        Auto-detect proxy if enabled and not explicitly provided.
+        Auto-detect proxy only if no proxy settings are explicitly provided.
         
         Returns:
             bool: True if proxy is available, False otherwise
         """
         # Set up proxy URLs
         if self.proxy_host and self.proxy_port:
+            # User explicitly provided proxy settings - use these and don't auto-detect
             self.proxies = {
                 "http": f"http://{self.proxy_host}:{self.proxy_port}",
                 "https": f"http://{self.proxy_host}:{self.proxy_port}"
             }
-            self.logger.debug(f"Using proxy: {self.proxies}")
-        else:
-            self.proxies = {}
+            self.logger.debug(f"Using user-specified proxy: {self.proxies}")
             
-        # Skip proxy check if requested
-        if self.skip_proxy_check:
-            self.logger.info(f"Skipping proxy connection check (using {self.proxy_host}:{self.proxy_port})")
-            return True
-            
-        # Auto-detect proxy if enabled and not explicitly provided
-        # This should run even if the config is empty/malformed
-        if self.auto_detect_proxy:
-            self.logger.info("Attempting to auto-detect running proxy...")
-            detected_host, detected_port = detect_running_proxy()
-            
-            if detected_host and detected_port:
-                self.proxy_host = detected_host
-                self.proxy_port = detected_port
-                self.proxies = {
-                    "http": f"http://{self.proxy_host}:{self.proxy_port}",
-                    "https": f"http://{self.proxy_host}:{self.proxy_port}"
-                }
-                self.logger.info(f"Using auto-detected proxy: {self.proxy_host}:{self.proxy_port}")
+            # Skip proxy check if requested
+            if self.skip_proxy_check:
+                self.logger.info(f"Skipping proxy connection check (using {self.proxy_host}:{self.proxy_port})")
                 return True
-            else:
-                self.logger.error("No proxy detected on common ports")
+                
+            # Check if the specified proxy is running
+            if not check_proxy_connection(self.proxy_host, self.proxy_port):
+                self.logger.error(f"Specified proxy not running at {self.proxy_host}:{self.proxy_port}")
                 
                 # Wrap filenames in single quotes to handle spaces
                 collection_name = f"'{os.path.basename(self.collection_path)}'" if ' ' in os.path.basename(self.collection_path) else os.path.basename(self.collection_path)
                 profile_name = f"'{os.path.basename(self.target_profile)}'" if self.target_profile and ' ' in os.path.basename(self.target_profile) else (os.path.basename(self.target_profile) if self.target_profile else 'profile.json')
                 
                 print("\nSuggestion:")
-                print("  1. Start your proxy (Burp Suite, ZAP, etc.) or")
+                print("  1. Start your proxy at the specified address or")
                 print("  2. Run with --skip-proxy-check flag:")
-                print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --skip-proxy-check")
+                print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --proxy {self.proxy_host}:{self.proxy_port} --skip-proxy-check")
                 print("  3. Or specify a different proxy:")
                 print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --proxy host:port")
-                print("  4. Save your preferred configuration:")
-                print(f"     python3 postman2burp.py --collection {collection_name} --proxy host:port --save-config")
                 return False
+        else:
+            # No proxy explicitly specified
+            self.proxies = {}
+            
+            # Skip proxy check if requested
+            if self.skip_proxy_check:
+                self.logger.info("Skipping proxy connection check")
+                return True
                 
-        # Check if proxy is running (only if auto-detect is disabled or we have explicit proxy settings)
-        if not check_proxy_connection(self.proxy_host, self.proxy_port):
-            self.logger.error(f"Proxy not running at {self.proxy_host}:{self.proxy_port}")
-            
-            # Wrap filenames in single quotes to handle spaces
-            collection_name = f"'{os.path.basename(self.collection_path)}'" if ' ' in os.path.basename(self.collection_path) else os.path.basename(self.collection_path)
-            profile_name = f"'{os.path.basename(self.target_profile)}'" if self.target_profile and ' ' in os.path.basename(self.target_profile) else (os.path.basename(self.target_profile) if self.target_profile else 'profile.json')
-            
-            print("\nSuggestion:")
-            print("  1. Start your proxy (Burp Suite, ZAP, etc.) or")
-            print("  2. Run with --skip-proxy-check flag:")
-            print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --skip-proxy-check")
-            print("  3. Or specify a different proxy:")
-            print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --proxy host:port")
-            print("  4. Save your preferred configuration:")
-            print(f"     python3 postman2burp.py --collection {collection_name} --proxy host:port --save-config")
-            return False
+            # Auto-detect proxy if enabled and no proxy explicitly provided
+            if self.auto_detect_proxy:
+                self.logger.info("No proxy specified. Attempting to auto-detect running proxy...")
+                detected_host, detected_port = detect_running_proxy()
+                
+                if detected_host and detected_port:
+                    self.proxy_host = detected_host
+                    self.proxy_port = detected_port
+                    self.proxies = {
+                        "http": f"http://{self.proxy_host}:{self.proxy_port}",
+                        "https": f"http://{self.proxy_host}:{self.proxy_port}"
+                    }
+                    self.logger.info(f"Using auto-detected proxy: {self.proxy_host}:{self.proxy_port}")
+                    return True
+                else:
+                    self.logger.error("No proxy detected on common ports")
+                    
+                    # Wrap filenames in single quotes to handle spaces
+                    collection_name = f"'{os.path.basename(self.collection_path)}'" if ' ' in os.path.basename(self.collection_path) else os.path.basename(self.collection_path)
+                    profile_name = f"'{os.path.basename(self.target_profile)}'" if self.target_profile and ' ' in os.path.basename(self.target_profile) else (os.path.basename(self.target_profile) if self.target_profile else 'profile.json')
+                    
+                    print("\nSuggestion:")
+                    print("  1. Start your proxy (Burp Suite, ZAP, etc.) or")
+                    print("  2. Run with --skip-proxy-check flag:")
+                    print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --skip-proxy-check")
+                    print("  3. Or specify a proxy:")
+                    print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --proxy host:port")
+                    print("  4. Save your preferred configuration:")
+                    print(f"     python3 postman2burp.py --collection {collection_name} --proxy host:port --save-config")
+                    return False
+            else:
+                self.logger.error("No proxy specified and auto-detection is disabled")
+                return False
             
         # Verify proxy works by making a test request
         try:

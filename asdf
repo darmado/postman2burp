@@ -1,0 +1,237 @@
+{
+  "total": 23,
+  "success": 23,
+  "failed": 0,
+  "requests": [
+    {
+      "name": "Login",
+      "folder": "Authentication",
+      "method": "POST",
+      "url": "https://api.example.com/api/v1/auth/login",
+      "status_code": 200,
+      "response_time": 0.194845,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Refresh Token",
+      "folder": "Authentication",
+      "method": "POST",
+      "url": "https://api.example.com/api/v1/auth/refresh",
+      "status_code": 200,
+      "response_time": 0.101946,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Logout",
+      "folder": "Authentication",
+      "method": "POST",
+      "url": "https://api.example.com/api/v1/auth/logout",
+      "status_code": 200,
+      "response_time": 0.092059,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Get Current User",
+      "folder": "Users",
+      "method": "GET",
+      "url": "https://api.example.com/api/v1/users/me",
+      "status_code": 200,
+      "response_time": 0.136924,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Update User Profile",
+      "folder": "Users",
+      "method": "PUT",
+      "url": "https://api.example.com/api/v1/users/me",
+      "status_code": 200,
+      "response_time": 0.103614,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Get User by ID",
+      "folder": "Users",
+      "method": "GET",
+      "url": "https://api.example.com/api/v1/users/",
+      "status_code": 200,
+      "response_time": 0.636429,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "List Users",
+      "folder": "Users",
+      "method": "GET",
+      "url": "https://api.example.com/api/v1/users?page=1&limit=20&sort=name",
+      "status_code": 200,
+      "response_time": 0.194511,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "List Products",
+      "folder": "Products",
+      "method": "GET",
+      "url": "https://api.example.com/api/v1/products?category=&page=1&limit=10",
+      "status_code": 200,
+      "response_time": 0.156783,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Get Product by ID",
+      "folder": "Products",
+      "method": "GET",
+      "url": "https://api.example.com/api/v1/products/",
+      "status_code": 200,
+      "response_time": 0.131156,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Create Product",
+      "folder": "Products",
+      "method": "POST",
+      "url": "https://api.example.com/api/v1/products",
+      "status_code": 200,
+      "response_time": 0.195274,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Update Product",
+      "folder": "Products",
+      "method": "PUT",
+      "url": "https://api.example.com/api/v1/products/",
+      "status_code": 200,
+      "response_time": 0.301398,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Delete Product",
+      "folder": "Products",
+      "method": "DELETE",
+      "url": "https://api.example.com/api/v1/products/",
+      "status_code": 200,
+      "response_time": 0.237445,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Upload Product Image",
+      "folder": "Products",
+      "method": "POST",
+      "url": "https://api.example.com/api/v1/products//images",
+      "status_code": 200,
+      "response_time": 0.202194,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Create Order",
+      "folder": "Orders",
+      "method": "POST",
+      "url": "https://api.example.com/api/v1/orders",
+      "status_code": 200,
+      "response_time": 0.095619,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Get Order by ID",
+      "folder": "Orders",
+      "method": "GET",
+      "url": "https://api.example.com/api/v1/orders/",
+      "status_code": 200,
+      "response_time": 0.137906,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "List User Orders",
+      "folder": "Orders",
+      "method": "GET",
+      "url": "https://api.example.com/api/v1/orders?status=completed&page=1&limit=10",
+      "status_code": 200,
+      "response_time": 0.145854,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Update Order Status",
+      "folder": "Orders",
+      "method": "PATCH",
+      "url": "https://api.example.com/api/v1/orders//status",
+      "status_code": 200,
+      "response_time": 0.142864,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Cancel Order",
+      "folder": "Orders",
+      "method": "POST",
+      "url": "https://api.example.com/api/v1/orders//cancel",
+      "status_code": 200,
+      "response_time": 0.109999,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Dashboard Stats",
+      "folder": "Admin",
+      "method": "GET",
+      "url": "https://api.example.com/api/v1/admin/dashboard",
+      "status_code": 200,
+      "response_time": 0.342795,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "List All Users",
+      "folder": "Admin",
+      "method": "GET",
+      "url": "https://api.example.com/api/v1/admin/users?role=customer&status=active&page=1&limit=50",
+      "status_code": 200,
+      "response_time": 0.133535,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Update User Role",
+      "folder": "Admin",
+      "method": "PATCH",
+      "url": "https://api.example.com/api/v1/admin/users//role",
+      "status_code": 200,
+      "response_time": 0.103483,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "Export Orders Report",
+      "folder": "Admin",
+      "method": "GET",
+      "url": "https://api.example.com/api/v1/admin/reports/orders?start_date=2023-01-01&end_date=2023-12-31&format=csv",
+      "status_code": 200,
+      "response_time": 0.143965,
+      "response_size": 1355,
+      "success": true
+    },
+    {
+      "name": "System Configuration",
+      "folder": "Admin",
+      "method": "PUT",
+      "url": "https://api.example.com/api/v1/admin/config",
+      "status_code": 200,
+      "response_time": 0.135858,
+      "response_size": 1355,
+      "success": true
+    }
+  ]
+}

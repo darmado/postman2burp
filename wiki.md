@@ -106,32 +106,40 @@ For detailed logging, add the `--verbose` flag:
 python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --verbose
 ```
 
-### Save Results to a File
+### Log Results to a File
 
-When using the `--output` flag, results are automatically saved to the `./logs` directory. The filename will match the postman_id of the profile that was loaded:
+Use the `--log` flag to save results automatically to the `./logs` directory:
 
 ```bash
-python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --output
+python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --log
 ```
 
-This will create a file in the `./logs` directory with a name like `f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json` (where the UUID is the postman_id from the profile).
+This will create a file in the `./logs` directory with a name like `f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json` (where the UUID is the postman_id from the profile). No filename is required as it will be automatically generated based on the profile's postman_id.
 
-If you use the `--verbose` flag along with `--output`, the tool will also log all HTTP requests and responses:
+If you use the `--verbose` flag along with `--log`, the tool will also log all HTTP requests and responses:
 
 ```bash
-python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --output --verbose
+python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --log --verbose
 ```
 
 This will create two files:
 - `f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json` - Contains the summary results
 - `f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2_requests.log` - Contains detailed HTTP request/response logs
 
-### Disable Auto-Detection of Proxies
+### Proxy Settings
 
-If you want to use only the specified proxy settings:
+When you explicitly specify a proxy (either via command line or through the configuration file), the tool will respect your settings and will not attempt to auto-detect other proxies:
+
 ```bash
-python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --proxy localhost:8080 --no-auto-detect
+# Using command-line proxy specification
+python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --proxy localhost:8080
 ```
+
+The tool will only attempt to auto-detect proxies when:
+1. No proxy is specified in the command line
+2. No proxy is specified in the configuration file
+
+This ensures that your specified proxy settings are always respected. If the specified proxy is not available, the tool will notify you rather than falling back to other proxies.
 
 ## Configuration Options
 
