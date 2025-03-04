@@ -1,0 +1,893 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8",
+		"name": "Healthcare API",
+		"description": "Collection for testing healthcare API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345678"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Provider Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"access_token\", jsonData.token);",
+									"pm.environment.set(\"refresh_token\", jsonData.refresh_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"provider_id\": \"{{provider_id}}\",    \"password\": \"{{password}}\",    \"facility_code\": \"{{facility_code}}\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/provider/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"provider",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patient Portal Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"patient_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"patient_email\": \"{{patient_email}}\",    \"password\": \"{{patient_password}}\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/patient/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"patient",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Patients",
+			"item": [
+				{
+					"name": "Search Patients",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/patients?query={{search_query}}&page={{page}}&limit={{limit}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"patients"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "{{search_query}}"
+								},
+								{
+									"key": "page",
+									"value": "{{page}}"
+								},
+								{
+									"key": "limit",
+									"value": "{{limit}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Patient Details",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/patients/{{patient_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"patients",
+								"{{patient_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Patient",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"first_name\": \"{{first_name}}\",    \"last_name\": \"{{last_name}}\",    \"date_of_birth\": \"{{date_of_birth}}\",    \"gender\": \"{{gender}}\",    \"email\": \"{{email}}\",    \"phone\": \"{{phone}}\",    \"address\": {        \"street\": \"{{street}}\",        \"city\": \"{{city}}\",        \"state\": \"{{state}}\",        \"zip\": \"{{zip}}\"    },    \"insurance\": {        \"provider\": \"{{insurance_provider}}\",        \"policy_number\": \"{{policy_number}}\",        \"group_number\": \"{{group_number}}\"    }}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/patients",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"patients"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Patient",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"email\": \"{{updated_email}}\",    \"phone\": \"{{updated_phone}}\",    \"address\": {        \"street\": \"{{updated_street}}\",        \"city\": \"{{updated_city}}\",        \"state\": \"{{updated_state}}\",        \"zip\": \"{{updated_zip}}\"    },    \"insurance\": {        \"provider\": \"{{updated_insurance_provider}}\",        \"policy_number\": \"{{updated_policy_number}}\",        \"group_number\": \"{{updated_group_number}}\"    }}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/patients/{{patient_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"patients",
+								"{{patient_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Appointments",
+			"item": [
+				{
+					"name": "Get Provider Schedule",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/schedule?provider_id={{provider_id}}&start_date={{start_date}}&end_date={{end_date}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"schedule"
+							],
+							"query": [
+								{
+									"key": "provider_id",
+									"value": "{{provider_id}}"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}"
+								},
+								{
+									"key": "end_date",
+									"value": "{{end_date}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Patient Appointments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/patients/{{patient_id}}/appointments?status={{appointment_status}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"patients",
+								"{{patient_id}}",
+								"appointments"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "{{appointment_status}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Schedule Appointment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"patient_id\": \"{{patient_id}}\",    \"provider_id\": \"{{provider_id}}\",    \"appointment_type\": \"{{appointment_type}}\",    \"start_time\": \"{{appointment_start_time}}\",    \"duration_minutes\": {{appointment_duration}},    \"reason\": \"{{appointment_reason}}\",    \"notes\": \"{{appointment_notes}}\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Appointment Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"status\": \"{{new_appointment_status}}\",    \"notes\": \"{{status_change_notes}}\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"{{appointment_id}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Medical Records",
+			"item": [
+				{
+					"name": "Get Patient Medical History",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/patients/{{patient_id}}/medical-history",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"patients",
+								"{{patient_id}}",
+								"medical-history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Patient Medications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/patients/{{patient_id}}/medications?status={{medication_status}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"patients",
+								"{{patient_id}}",
+								"medications"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "{{medication_status}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Encounter Note",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"patient_id\": \"{{patient_id}}\",    \"provider_id\": \"{{provider_id}}\",    \"appointment_id\": \"{{appointment_id}}\",    \"encounter_date\": \"{{encounter_date}}\",    \"chief_complaint\": \"{{chief_complaint}}\",    \"vital_signs\": {        \"temperature\": {{temperature}},        \"heart_rate\": {{heart_rate}},        \"respiratory_rate\": {{respiratory_rate}},        \"blood_pressure\": \"{{blood_pressure}}\",        \"oxygen_saturation\": {{oxygen_saturation}}    },    \"assessment\": \"{{assessment}}\",    \"plan\": \"{{treatment_plan}}\",    \"diagnosis_codes\": [\"{{diagnosis_code_1}}\", \"{{diagnosis_code_2}}\"]}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/encounters",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"encounters"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Prescribe Medication",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"patient_id\": \"{{patient_id}}\",    \"provider_id\": \"{{provider_id}}\",    \"encounter_id\": \"{{encounter_id}}\",    \"medication\": {        \"name\": \"{{medication_name}}\",        \"dosage\": \"{{medication_dosage}}\",        \"route\": \"{{medication_route}}\",        \"frequency\": \"{{medication_frequency}}\",        \"duration\": \"{{medication_duration}}\"    },    \"pharmacy\": {        \"name\": \"{{pharmacy_name}}\",        \"address\": \"{{pharmacy_address}}\",        \"phone\": \"{{pharmacy_phone}}\"    },    \"notes\": \"{{prescription_notes}}\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/prescriptions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"prescriptions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://api.healthcaresystem.org"
+		},
+		{
+			"key": "provider_id",
+			"value": "PROV12345"
+		},
+		{
+			"key": "password",
+			"value": "securepassword"
+		},
+		{
+			"key": "facility_code",
+			"value": "FAC789"
+		},
+		{
+			"key": "patient_email",
+			"value": "patient@example.com"
+		},
+		{
+			"key": "patient_password",
+			"value": "patientpassword"
+		},
+		{
+			"key": "search_query",
+			"value": "Smith"
+		},
+		{
+			"key": "page",
+			"value": "1"
+		},
+		{
+			"key": "limit",
+			"value": "20"
+		},
+		{
+			"key": "patient_id",
+			"value": "PAT987654"
+		},
+		{
+			"key": "first_name",
+			"value": "John"
+		},
+		{
+			"key": "last_name",
+			"value": "Doe"
+		},
+		{
+			"key": "date_of_birth",
+			"value": "1980-05-15"
+		},
+		{
+			"key": "gender",
+			"value": "male"
+		},
+		{
+			"key": "email",
+			"value": "john.doe@example.com"
+		},
+		{
+			"key": "phone",
+			"value": "555-123-4567"
+		},
+		{
+			"key": "street",
+			"value": "123 Main St"
+		},
+		{
+			"key": "city",
+			"value": "Anytown"
+		},
+		{
+			"key": "state",
+			"value": "CA"
+		},
+		{
+			"key": "zip",
+			"value": "12345"
+		},
+		{
+			"key": "insurance_provider",
+			"value": "Health Insurance Co"
+		},
+		{
+			"key": "policy_number",
+			"value": "POL123456"
+		},
+		{
+			"key": "group_number",
+			"value": "GRP789012"
+		},
+		{
+			"key": "updated_email",
+			"value": "john.updated@example.com"
+		},
+		{
+			"key": "updated_phone",
+			"value": "555-987-6543"
+		},
+		{
+			"key": "updated_street",
+			"value": "456 Oak Ave"
+		},
+		{
+			"key": "updated_city",
+			"value": "New City"
+		},
+		{
+			"key": "updated_state",
+			"value": "NY"
+		},
+		{
+			"key": "updated_zip",
+			"value": "54321"
+		},
+		{
+			"key": "updated_insurance_provider",
+			"value": "New Health Insurance"
+		},
+		{
+			"key": "updated_policy_number",
+			"value": "NEWPOL654321"
+		},
+		{
+			"key": "updated_group_number",
+			"value": "NEWGRP098765"
+		},
+		{
+			"key": "start_date",
+			"value": "2023-06-01"
+		},
+		{
+			"key": "end_date",
+			"value": "2023-06-07"
+		},
+		{
+			"key": "appointment_status",
+			"value": "scheduled"
+		},
+		{
+			"key": "appointment_type",
+			"value": "follow-up"
+		},
+		{
+			"key": "appointment_start_time",
+			"value": "2023-06-05T10:00:00Z"
+		},
+		{
+			"key": "appointment_duration",
+			"value": "30"
+		},
+		{
+			"key": "appointment_reason",
+			"value": "Follow-up for hypertension"
+		},
+		{
+			"key": "appointment_notes",
+			"value": "Patient requested morning appointment"
+		},
+		{
+			"key": "appointment_id",
+			"value": "APT123456"
+		},
+		{
+			"key": "new_appointment_status",
+			"value": "completed"
+		},
+		{
+			"key": "status_change_notes",
+			"value": "Patient seen and treatment provided"
+		},
+		{
+			"key": "medication_status",
+			"value": "active"
+		},
+		{
+			"key": "encounter_date",
+			"value": "2023-06-05"
+		},
+		{
+			"key": "chief_complaint",
+			"value": "Headache and dizziness"
+		},
+		{
+			"key": "temperature",
+			"value": "98.6"
+		},
+		{
+			"key": "heart_rate",
+			"value": "72"
+		},
+		{
+			"key": "respiratory_rate",
+			"value": "16"
+		},
+		{
+			"key": "blood_pressure",
+			"value": "120/80"
+		},
+		{
+			"key": "oxygen_saturation",
+			"value": "98"
+		},
+		{
+			"key": "assessment",
+			"value": "Patient presents with symptoms consistent with hypertension"
+		},
+		{
+			"key": "treatment_plan",
+			"value": "Continue current medication, follow up in 3 months"
+		},
+		{
+			"key": "diagnosis_code_1",
+			"value": "I10"
+		},
+		{
+			"key": "diagnosis_code_2",
+			"value": "R42"
+		},
+		{
+			"key": "encounter_id",
+			"value": "ENC789012"
+		},
+		{
+			"key": "medication_name",
+			"value": "Lisinopril"
+		},
+		{
+			"key": "medication_dosage",
+			"value": "10mg"
+		},
+		{
+			"key": "medication_route",
+			"value": "oral"
+		},
+		{
+			"key": "medication_frequency",
+			"value": "once daily"
+		},
+		{
+			"key": "medication_duration",
+			"value": "90 days"
+		},
+		{
+			"key": "pharmacy_name",
+			"value": "City Pharmacy"
+		},
+		{
+			"key": "pharmacy_address",
+			"value": "789 Pharmacy Rd, Anytown, CA 12345"
+		},
+		{
+			"key": "pharmacy_phone",
+			"value": "555-789-0123"
+		},
+		{
+			"key": "prescription_notes",
+			"value": "Take with food in the morning"
+		}
+	]
+} 

@@ -1,0 +1,10 @@
+{
+    "proxy_host": "localhost",
+    "proxy_port": 9999,
+    "verify_ssl": true,
+    "target_profile": "",
+    "verbose": true,
+    "collection_path": "API_Security_Assessment.postman_collection.json",
+    "log": false,
+    "description": "Custom configuration for specialized testing scenarios"
+} 

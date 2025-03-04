@@ -1,0 +1,287 @@
+{
+	"info": {
+		"_postman_id": "b2c3d4e5-f6g7-8901-hijk-lm2345678901",
+		"name": "Weather API",
+		"description": "Collection for testing weather API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "87654321"
+	},
+	"item": [
+		{
+			"name": "Current Weather",
+			"item": [
+				{
+					"name": "Get Current Weather by City",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/current?city={{city}}&units={{units}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"current"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "{{city}}"
+								},
+								{
+									"key": "units",
+									"value": "{{units}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current Weather by Coordinates",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/current?lat={{latitude}}&lon={{longitude}}&units={{units}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"current"
+							],
+							"query": [
+								{
+									"key": "lat",
+									"value": "{{latitude}}"
+								},
+								{
+									"key": "lon",
+									"value": "{{longitude}}"
+								},
+								{
+									"key": "units",
+									"value": "{{units}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Forecast",
+			"item": [
+				{
+					"name": "Get 5-Day Forecast",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/forecast?city={{city}}&days=5&units={{units}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"forecast"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "{{city}}"
+								},
+								{
+									"key": "days",
+									"value": "5"
+								},
+								{
+									"key": "units",
+									"value": "{{units}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Hourly Forecast",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/forecast/hourly?city={{city}}&hours=24&units={{units}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"forecast",
+								"hourly"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "{{city}}"
+								},
+								{
+									"key": "hours",
+									"value": "24"
+								},
+								{
+									"key": "units",
+									"value": "{{units}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Location",
+			"item": [
+				{
+					"name": "Search Locations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/locations/search?query={{location_query}}&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"locations",
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "{{location_query}}"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Location Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/locations/{{location_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"locations",
+								"{{location_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://api.weatherservice.com"
+		},
+		{
+			"key": "api_key",
+			"value": "your_api_key_here"
+		},
+		{
+			"key": "city",
+			"value": "London"
+		},
+		{
+			"key": "latitude",
+			"value": "51.5074"
+		},
+		{
+			"key": "longitude",
+			"value": "0.1278"
+		},
+		{
+			"key": "units",
+			"value": "metric"
+		},
+		{
+			"key": "location_query",
+			"value": "San Francisco"
+		},
+		{
+			"key": "location_id",
+			"value": "12345"
+		}
+	]
+} 

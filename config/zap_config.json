@@ -1,0 +1,10 @@
+{
+    "proxy_host": "127.0.0.1",
+    "proxy_port": 8090,
+    "verify_ssl": false,
+    "target_profile": "",
+    "verbose": false,
+    "collection_path": "postman_collection.json",
+    "log": true,
+    "description": "OWASP ZAP configuration for standard testing"
+} 

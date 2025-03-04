@@ -144,14 +144,23 @@ def validate_json_file(file_path: str) -> Tuple[bool, Optional[Dict]]:
         logger.warning(f"Error reading file {os.path.basename(file_path)}: {e}")
         return False, None
 
-def load_config() -> Dict:
+def load_config(config_path: str = None) -> Dict:
     """
     Load configuration from config.json file if it exists,
     otherwise return default configuration.
     If the config file exists but is malformed, return an empty dictionary
     to ensure we rely only on command-line arguments.
+    
+    Args:
+        config_path: Optional path to a specific config file
+        
+    Returns:
+        Dict: Configuration dictionary
     """
     config = DEFAULT_CONFIG.copy()
+    
+    # Use the provided config path or the default
+    config_file_path = config_path or CONFIG_FILE_PATH
     
     try:
         # Create config directory if it doesn't exist
@@ -162,29 +171,30 @@ def load_config() -> Dict:
             except Exception as e:
                 logger.warning(f"Could not create config directory: {e}")
         
-        if os.path.exists(CONFIG_FILE_PATH):
+        if os.path.exists(config_file_path):
             # Validate the JSON file before loading
-            is_valid, parsed_config = validate_json_file(CONFIG_FILE_PATH)
+            is_valid, parsed_config = validate_json_file(config_file_path)
             
             if is_valid and parsed_config:
                 config.update(parsed_config)
                 # Get just the directory name and filename instead of full path
-                config_dir = os.path.basename(os.path.dirname(CONFIG_FILE_PATH))
-                config_file = os.path.basename(CONFIG_FILE_PATH)
+                config_dir = os.path.basename(os.path.dirname(config_file_path))
+                config_file = os.path.basename(config_file_path)
                 logger.info(f"Loaded configuration from {config_dir}/{config_file}")
             else:
-                logger.warning(f"Config file {os.path.basename(CONFIG_FILE_PATH)} is malformed, using default settings")
+                logger.warning(f"Config file {os.path.basename(config_file_path)} is malformed, using default settings")
                 # Return empty dictionary to ensure we rely only on command-line arguments
                 return {}
         else:
-            logger.info(f"No config file found at {os.path.basename(CONFIG_FILE_PATH)}, using default settings")
-            # Auto-generate config file with default settings
-            try:
-                with open(CONFIG_FILE_PATH, 'w') as f:
-                    json.dump(DEFAULT_CONFIG, f, indent=4)
-                logger.info(f"Generated default configuration file: {os.path.basename(CONFIG_FILE_PATH)}")
-            except Exception as e:
-                logger.warning(f"Could not create default config file: {e}")
+            logger.info(f"No config file found at {os.path.basename(config_file_path)}, using default settings")
+            # Auto-generate config file with default settings if using the default path
+            if config_file_path == CONFIG_FILE_PATH:
+                try:
+                    with open(CONFIG_FILE_PATH, 'w') as f:
+                        json.dump(DEFAULT_CONFIG, f, indent=4)
+                    logger.info(f"Generated default configuration file: {os.path.basename(CONFIG_FILE_PATH)}")
+                except Exception as e:
+                    logger.warning(f"Could not create default config file: {e}")
     except Exception as e:
         logger.warning(f"Error loading config file: {e}. Using default settings.")
         # Return empty dictionary to ensure we rely only on command-line arguments
@@ -581,7 +591,7 @@ def save_config(config: Dict) -> bool:
         
         # Add any additional configuration items
         for key, value in config.items():
-            if key not in formatted_config and value is not None and key != "auto_detect_proxy":
+            if key not in formatted_config and value is not None:
                 formatted_config[key] = value
         
         with open(CONFIG_FILE_PATH, 'w') as f:
@@ -1439,11 +1449,6 @@ class PostmanToBurp:
             # Set the proxy in the session
             self.session.proxies.update(self.proxies)
             
-            # Skip proxy check if requested
-#          if self.skip_proxy_check:
-#               self.logger.info(f"Skipping proxy connection check (using {self.proxy_host}:{self.proxy_port})")
-#                return True
-                
             # Check if the specified proxy is running
             if not check_proxy_connection(self.proxy_host, self.proxy_port):
                 self.logger.error(f"Specified proxy not running at {self.proxy_host}:{self.proxy_port}")
@@ -1465,14 +1470,14 @@ class PostmanToBurp:
                 collection_name = f"'{os.path.basename(self.collection_path)}'" if ' ' in os.path.basename(self.collection_path) else os.path.basename(self.collection_path)
                 profile_arg = f"--target-profile '{os.path.basename(self.target_profile)}'" if self.target_profile else ""
                 
-                print(f"\n⚠️  Specified proxy at {self.proxy_host}:{self.proxy_port} is not running.")
+                print(f"\nSpecified proxy at {self.proxy_host}:{self.proxy_port} is not running.")
                 
                 if available_proxies:
-                    print("\n🔍 Available proxies detected:")
+                    print("\nAvailable proxies detected:")
                     for i, (host, port) in enumerate(available_proxies, 1):
                         print(f"  {i}. {host}:{port}")
                     
-                    print("\n📋 Select an option:")
+                    print("\nSelect an option:")
                     print("  1-{0}. Use one of the available proxies".format(len(available_proxies)))
                     print("  q. Quit")
                     
@@ -1496,7 +1501,7 @@ class PostmanToBurp:
                                 # Update session proxies
                                 self.session.proxies.update(self.proxies)
                                 
-                                print(f"\n[+] Using proxy: {self.proxy_host}:{self.proxy_port}")
+                                print(f"\nUsing proxy: {self.proxy_host}:{self.proxy_port}")
                                 self.logger.info(f"User selected proxy: {self.proxy_host}:{self.proxy_port}")
                                 
                                 # Verify the proxy with a test request
@@ -1511,11 +1516,11 @@ class PostmanToBurp:
                         except ValueError:
                             print("Invalid input. Please enter a number or 'q' to quit.")
                 else:
-                    print("\n[+] No other proxies were detected on common ports.")
+                    print("\nNo other proxies were detected on common ports.")
                     print("Please start a proxy server (Burp Suite, ZAP, etc.) and try again.")
                     print("Common proxy ports checked: 8080, 8090, 8081, 8888")
                 
-                print("\n[+] Other options:")
+                print("\nOther options:")
                 print("  1. Start your proxy at the specified address")
                 print("  2. Save your preferred configuration:")
                 print(f"     python3 postman2burp.py --collection {collection_name} --proxy <host>:<port> --save-config")
@@ -1536,11 +1541,6 @@ class PostmanToBurp:
             # No proxy explicitly specified
             self.proxies = {}
             
-            # Skip proxy check if requested
-#            if self.skip_proxy_check:
-#                self.logger.info("Skipping proxy connection check")
-#                return True
-                
             # Try to find running proxies
             self.logger.info("Auto-detecting proxy...")
             available_proxies = []
@@ -1563,7 +1563,7 @@ class PostmanToBurp:
                     # Set the proxy in the session
                     self.session.proxies.update(self.proxies)
                     
-                    print(f"\n[+] Using auto-detected proxy: {self.proxy_host}:{self.proxy_port}")
+                    print(f"\nUsing auto-detected proxy: {self.proxy_host}:{self.proxy_port}")
                     
                     # Verify the proxy with a test request
                     if verify_proxy_with_request(self.proxy_host, self.proxy_port):
@@ -1574,7 +1574,7 @@ class PostmanToBurp:
                         return True
                 else:
                     # Multiple proxies available, let user choose
-                    print("\n🔍 Multiple proxies detected. Please select one:")
+                    print("\nMultiple proxies detected. Please select one:")
                     for i, (host, port) in enumerate(available_proxies, 1):
                         print(f"  {i}. {host}:{port}")
                     
@@ -1600,7 +1600,7 @@ class PostmanToBurp:
                                 # Update session proxies
                                 self.session.proxies.update(self.proxies)
                                 
-                                print(f"\n✅ Using proxy: {self.proxy_host}:{self.proxy_port}")
+                                print(f"\nUsing proxy: {self.proxy_host}:{self.proxy_port}")
                                 self.logger.info(f"User selected proxy: {self.proxy_host}:{self.proxy_port}")
                                 
                                 # Verify the proxy with a test request
@@ -1616,7 +1616,7 @@ class PostmanToBurp:
                             print("Invalid input. Please enter a number or 'q' to quit.")
             else:
                 self.logger.error("No proxy detected on any common ports")
-                print("\n❌ No proxy was detected running on any common ports.")
+                print("\nNo proxy was detected running on any common ports.")
                 print("Please start a proxy server (Burp Suite, ZAP, etc.) and try again.")
                 print("Common proxy ports checked: 8080, 8090, 8081, 8888")
                 return False
@@ -1628,10 +1628,7 @@ def main():
     """
     Main entry point for the script.
     """
-    # Load configuration
-    config = load_config()
-    
-    # Parse command line arguments
+    # Parse command line arguments first to check for config option
     parser = argparse.ArgumentParser(description="Convert Postman collections to Burp Suite requests")
     parser.add_argument("--collection", required=True, help="Path to Postman collection JSON file")
     
@@ -1654,6 +1651,10 @@ def main():
     output_group.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     output_group.add_argument("--save-config", action="store_true", help="Save current settings as default configuration")
     
+    # Config options
+    config_group = parser.add_argument_group("Configuration Options")
+    config_group.add_argument("--config", nargs="?", const="select", help="Use a specific config file or select from available configs if no file specified")
+    
     args = parser.parse_args()
     
     # Configure logging
@@ -1662,6 +1663,33 @@ def main():
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format=log_format, datefmt=log_date_format)
     logger = logging.getLogger(__name__)
+    
+    # Handle config selection
+    config_path = None
+    if args.config:
+        if args.config == "select":
+            # Interactive selection of config file
+            config_path = select_config_file()
+        else:
+            # Use the specified config file
+            if os.path.isabs(args.config):
+                config_path = args.config
+            else:
+                # Try to find the config file in the config directory
+                potential_path = os.path.join(CONFIG_DIR, args.config)
+                if os.path.exists(potential_path):
+                    config_path = potential_path
+                else:
+                    # Try to find the config file as-is
+                    if os.path.exists(args.config):
+                        config_path = args.config
+                    else:
+                        logger.error(f"Config file not found: {args.config}")
+                        print(f"Config file not found: {args.config}")
+                        sys.exit(1)
+    
+    # Load configuration
+    config = load_config(config_path)
     
     # Resolve collection path
     logger.debug(f"Collection path from args: {args.collection}")
@@ -1800,7 +1828,7 @@ def main():
                 relative_path = os.path.relpath(output_path)
                 collection_name = os.path.basename(collection_path)
                 
-                print(f"\n[✓] Successfully created target profile with {variables_with_values} variables at {relative_path}")
+                print(f"\nSuccessfully created target profile with {variables_with_values} variables at {relative_path}")
                 print(f"\nNext command to run:")
                 print(f"python3 postman2burp.py --collection \"{collection_name}\" --target-profile \"{filename}\"")
                 
@@ -1812,7 +1840,7 @@ def main():
                 sys.exit(1)
         elif args.extract_keys == "print":
             # Print the list of keys
-            print(f"\n[✓] Found {len(variables)} variables in collection {os.path.basename(collection_path)}:")
+            print(f"\nFound {len(variables)} variables in collection {os.path.basename(collection_path)}:")
             for var in sorted(variables):
                 print(f"  - {var}")
             print("\nTo create a template file with these variables:")
@@ -1850,15 +1878,15 @@ def main():
     converter = PostmanToBurp(
         collection_path=collection_path,
         target_profile=args.target_profile or config.get("target_profile"),
-        proxy_host=args.proxy_host or config.get("proxy_host"),
-        proxy_port=args.proxy_port or config.get("proxy_port"),
+        proxy_host=proxy_host,
+        proxy_port=proxy_port,
         verify_ssl=args.verify_ssl or config.get("verify_ssl", False),
         auto_detect_proxy=True,  # Always enable auto-detection
         verbose=args.verbose or config.get("verbose", False)
     )
     
     # Set up logging to file if requested
-    if args.log:
+    if args.log or config.get("log", False):
         # Create logs directory if it doesn't exist
         logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
         try:
@@ -1905,6 +1933,61 @@ def main():
                     logger.info(f"Target profile '{args.target_profile}' saved in configuration")
             else:
                 logger.error("Failed to save configuration")
+
+def select_config_file() -> str:
+    """
+    List all config files in the config directory and allow the user to select one.
+    Returns the path to the selected config file.
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Get all JSON files in the config directory
+    config_files = []
+    try:
+        for file in os.listdir(CONFIG_DIR):
+            if file.endswith('.json'):
+                config_files.append(file)
+    except Exception as e:
+        logger.error(f"Error listing config directory: {e}")
+        return CONFIG_FILE_PATH
+    
+    # If no config files found, return the default
+    if not config_files:
+        logger.info("No config files found, using default config")
+        return CONFIG_FILE_PATH
+    
+    # If only one config file found, use it
+    if len(config_files) == 1:
+        config_path = os.path.join(CONFIG_DIR, config_files[0])
+        logger.info(f"Using config file: {config_files[0]}")
+        return config_path
+    
+    # Multiple config files found, let user select
+    print("\nMultiple configuration files found. Please select one:")
+    for i, file in enumerate(config_files, 1):
+        print(f"  {i}. {file}")
+    
+    print("  q. Quit")
+    
+    while True:
+        choice = input("\nEnter your choice (1-{0}/q): ".format(len(config_files)))
+        
+        if choice.lower() == 'q':
+            print("Exiting...")
+            sys.exit(0)
+        
+        try:
+            choice_idx = int(choice) - 1
+            if 0 <= choice_idx < len(config_files):
+                # User selected a valid config file
+                selected_file = config_files[choice_idx]
+                config_path = os.path.join(CONFIG_DIR, selected_file)
+                logger.info(f"User selected config file: {selected_file}")
+                return config_path
+            else:
+                print(f"Invalid choice. Please enter a number between 1 and {len(config_files)}.")
+        except ValueError:
+            print("Invalid input. Please enter a number or 'q' to quit.")
 
 if __name__ == "__main__":
     main() 
