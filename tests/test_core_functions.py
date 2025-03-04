@@ -235,22 +235,6 @@ class TestCoreFunctions(unittest.TestCase):
         result = check_proxy_connection("localhost", 8080)
         self.assertFalse(result)
     
-    @patch('postman2burp.check_proxy_connection')
-    def test_detect_running_proxy(self, mock_check_proxy):
-        """Test the detect_running_proxy function."""
-        # Test successful detection
-        # The third proxy in COMMON_PROXIES is localhost:8090 (based on test output)
-        mock_check_proxy.side_effect = [False, False, True, False]
-        host, port = detect_running_proxy()
-        self.assertEqual(host, "localhost")
-        self.assertEqual(port, 8090)  # Updated from 8081 to 8090
-        
-        # Test no proxy detected
-        mock_check_proxy.side_effect = [False] * 10
-        host, port = detect_running_proxy()
-        self.assertIsNone(host)
-        self.assertIsNone(port)
-    
     def test_extract_variables_from_text(self):
         """Test the extract_variables_from_text function."""
         # Test with variables
@@ -668,6 +652,65 @@ class TestPostmanToBurp(unittest.TestCase):
         self.assertEqual(result["name"], "Test Request")
         self.assertEqual(result["error"], "Test error")
         self.assertFalse(result["success"])
+
+    @patch('postman2burp.check_proxy_connection')
+    @patch('postman2burp.verify_proxy_with_request')
+    def test_proxy_detection_in_postman_to_burp(self, mock_verify, mock_check):
+        """Test the proxy detection functionality in PostmanToBurp."""
+        # Setup
+        converter = PostmanToBurp(
+            collection_path="test_collection.json",
+            proxy_host="localhost",
+            proxy_port=8080
+        )
+        
+        # Test 1: User-specified proxy is running
+        mock_check.return_value = True
+        mock_verify.return_value = True
+        result = converter.check_proxy()
+        self.assertTrue(result)
+        self.assertEqual(converter.proxy_host, "localhost")
+        self.assertEqual(converter.proxy_port, 8080)
+        
+        # Test 2: User-specified proxy is not running, but other proxies are available
+        mock_check.side_effect = [False] + [True] * 10  # First proxy fails, others succeed
+        mock_verify.return_value = True
+        
+        # Reset converter
+        converter = PostmanToBurp(
+            collection_path="test_collection.json",
+            proxy_host="localhost",
+            proxy_port=8080
+        )
+        
+        # This should return False because we don't auto-switch
+        result = converter.check_proxy()
+        self.assertFalse(result)
+        
+        # Test 3: No proxy specified, auto-detection finds a proxy
+        mock_check.side_effect = [True] + [False] * 10  # First proxy succeeds
+        mock_verify.return_value = True
+        
+        # Reset converter with no proxy specified
+        converter = PostmanToBurp(
+            collection_path="test_collection.json"
+        )
+        
+        result = converter.check_proxy()
+        self.assertTrue(result)
+        self.assertIsNotNone(converter.proxy_host)
+        self.assertIsNotNone(converter.proxy_port)
+        
+        # Test 4: No proxy specified, auto-detection finds no proxies
+        mock_check.side_effect = [False] * 20  # All proxies fail
+        
+        # Reset converter with no proxy specified
+        converter = PostmanToBurp(
+            collection_path="test_collection.json"
+        )
+        
+        result = converter.check_proxy()
+        self.assertFalse(result)
 
 if __name__ == '__main__':
     unittest.main() 

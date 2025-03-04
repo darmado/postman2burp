@@ -87,17 +87,38 @@ The tool will automatically:
 - Store logs in the `logs` directory with detailed request and response information in Postman Collection format
 - Send all requests through the detected proxy
 
+#### Saving Configuration
+
+To save your current settings (including proxy settings and target profile) for future runs:
+
+```bash
+python postman2burp.py --collection "your_collection.json" --target-profile "your_environment.json" --save-config
+```
+
+This will create a `config.json` file that will be used automatically in future runs, even if you don't specify the same parameters again.
+
 #### Extracting Variables
 
 To extract all variables from a collection:
 
 ```bash
-# Print all variables in the collection
+# Interactive mode - prompts for values for each variable
 python postman2burp.py --collection "your_collection.json" --extract-keys
+
+# Print all variables in the collection
+python postman2burp.py --collection "your_collection.json" --extract-keys print
 
 # Generate a template environment file with all variables
 python postman2burp.py --collection "your_collection.json" --extract-keys "environment_template.json"
 ```
+
+The interactive mode will:
+- Extract all variables from the collection
+- Display all variables with their original values (if available)
+- Prompt you to enter a value for each variable (press Enter to use original value or skip)
+- Create a profile file with only the variables that have values
+- Automatically save the profile in the `environments` directory with a timestamp
+- Provide the command to run with your new profile
 
 ### Manual Installation
 
@@ -122,7 +143,7 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/postm
 | 📊 Logging | Logs request results | Easy troubleshooting and verification |
 | 📋 Postman-Compatible Logs | Generates logs in Postman Collection format | Logs can be imported directly into Postman |
 | 🔍 Proxy Verification | Verifies proxy before sending requests | Prevents failed test runs |
-| ⚙️ Configuration File | Stores settings in config.json | Reuse configurations across runs |
+| ⚙️ Configuration File | Stores settings in config.json | Reuse configurations across runs including target profiles |
 | 🔑 Variable Extraction | Extracts variables from collections | Easily create environment templates or view all variables |
 
 ## 🎯 Use Cases

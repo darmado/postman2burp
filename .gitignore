@@ -1,6 +1,7 @@
 #Dynamically generated logs and test files 
 /logs/*   
 /MagicMock/*
+/profiles/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
