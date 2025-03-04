@@ -8,7 +8,7 @@
 			"type": "default",
 			"enabled": true
 		},
-		{
+		{ ,
 			"key": "username",
 			"value": "security.tester@postman2burp.io",
 			"type": "default",

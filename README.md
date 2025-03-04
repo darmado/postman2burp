@@ -19,6 +19,7 @@ Postman2Burp bridges the gap between API development and security testing by aut
     - [2. Custom Proxy Configuration](#2-custom-proxy-configuration)
     - [3. Handling Authentication](#3-handling-authentication)
     - [4. Configuration File](#4-configuration-file)
+    - [5. Variable Extraction](#5-variable-extraction)
   - [📦 Requirements](#-requirements)
   - [🔧 Setup](#-setup)
     - [Quick Setup](#quick-setup)
@@ -141,7 +142,7 @@ Create a configuration file:
 ```bash
 # Save current settings to config.json
 $ python postman2burp.py --collection api_collection.json --proxy 10.0.0.1:9090 --save-config
-2024-03-04 10:40:12 - INFO - Configuration saved to /path/to/config.json
+2024-03-04 10:40:12 - INFO - Configuration saved to config.json
 ```
 
 Use the configuration file:
@@ -149,7 +150,7 @@ Use the configuration file:
 ```bash
 # Use settings from config.json
 $ python postman2burp.py --collection api_collection.json
-2024-03-04 10:41:30 - INFO - Loaded configuration from /path/to/config.json
+2024-03-04 10:41:30 - INFO - Loaded configuration from config.json
 2024-03-04 10:41:30 - INFO - Using proxy host from config: 10.0.0.1
 2024-03-04 10:41:30 - INFO - Using proxy port from config: 9090
 ```
@@ -159,9 +160,33 @@ Override specific settings:
 ```bash
 # Override proxy from config.json
 $ python postman2burp.py --collection api_collection.json --proxy localhost:8888
-2024-03-04 10:42:45 - INFO - Loaded configuration from /path/to/config.json
+2024-03-04 10:42:45 - INFO - Loaded configuration from config.json
 2024-03-04 10:42:45 - INFO - Using proxy localhost:8888 from --proxy argument
 ```
+
+### 5. Variable Extraction
+
+Extract all variables from a Postman collection to create an environment template:
+
+```bash
+$ python postman2burp.py --collection api_collection.json --extract-keys
+2024-03-04 11:15:05 - INFO - Extracting variables from collection: api_collection.json
+2024-03-04 11:15:05 - INFO - Found 12 unique variables in collection
+2024-03-04 11:15:05 - INFO - Variables template saved to variables/f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json
+
+[✓] Successfully extracted 12 variables to variables/f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json
+
+[Variables Found]
+----------------
+access_token     order_id         smtp_password    
+base_url         password         smtp_username    
+card_token       product_id       user_id          
+category_id      product_id_2     username         
+
+[✓] Edit this file to add your values, then use it with --environment
+```
+
+The extracted variables are saved to a file in the `variables` directory, using the Postman collection ID as the filename. This makes it easy to manage environment templates for different collections.
 
 ## 📦 Requirements
 
@@ -230,6 +255,7 @@ This script:
 | `python postman2burp.py --collection FILE` | Process a Postman collection |
 | **Environment Variables** | |
 | `--environment FILE` | Use Postman environment variables |
+| `--extract-keys [FILE]` | Extract variables from collection to template file |
 | **Proxy Settings** | |
 | `--proxy HOST:PORT` | Specify proxy in host:port format |
 | `--proxy-host HOST` | Specify proxy hostname/IP |
@@ -263,6 +289,11 @@ python postman2burp.py --collection api_collection.json --proxy localhost:8080
 python postman2burp.py --collection api_collection.json --output results.json --save-config
 ```
 
+**Extract variables from collection:**
+```bash
+python postman2burp.py --collection api_collection.json --extract-keys
+```
+
 #### Complete Session
 
 ```bash
@@ -280,7 +311,8 @@ deactivate
 
 ```
 usage: postman2burp.py [-h] --collection COLLECTION [--environment ENVIRONMENT]
-                       [--proxy PROXY] [--proxy-host PROXY_HOST] [--proxy-port PROXY_PORT]
+                       [--extract-keys [OUTPUT_FILE]] [--proxy PROXY] 
+                       [--proxy-host PROXY_HOST] [--proxy-port PROXY_PORT]
                        [--verify-ssl] [--skip-proxy-check] [--no-auto-detect]
                        [--output OUTPUT] [--verbose] [--save-config]
 
@@ -292,6 +324,9 @@ options:
 Environment Options:
   --environment ENVIRONMENT
                         Path to Postman environment JSON file
+  --extract-keys [OUTPUT_FILE]
+                        Extract all variables from collection and save to template file
+                        (default: variables_template.json)
 
 Proxy Options:
   --proxy PROXY         Proxy in format host:port (e.g., localhost:8080)
@@ -323,13 +358,18 @@ Configuration Options:
 | 📊 Logging | Logs request results |
 | 🔍 Proxy Verification | Verifies proxy before sending requests |
 | ⚙️ Configuration File | Stores settings in config.json |
+| 🔑 Variable Extraction | Extracts variables from collections to create environment templates |
+| 🛡️ JSON Validation | Validates JSON files before loading to prevent errors |
+| 📂 Variables Directory | Organizes variable templates by collection ID |
 
 ## 📈 Testing Workflow
 
 1. Receive Postman collection
-2. Run this tool (it will auto-detect your proxy)
-3. Analyze captured requests in Burp
-4. Review results file
+2. Extract variables with `--extract-keys`
+3. Fill in the environment template with actual values
+4. Run the tool with `--environment` (it will auto-detect your proxy)
+5. Analyze captured requests in Burp
+6. Review results file
 
 ## 📚 Included Examples
 
@@ -347,6 +387,7 @@ Configuration Options:
 | **Variable Resolution** | Verify environment file format is correct |
 | **Proxy Not Detected** | Start Burp Suite or specify proxy with `--proxy host:port` |
 | **Auto-detection Issues** | Use `--verbose` to see detailed proxy detection logs |
+| **Malformed JSON** | The tool now validates JSON files and provides helpful error messages |
 
 ## ⚠️ Limitations
 

@@ -1,5 +1,5 @@
 {
-  "id": "auto-generated-1741050194",
+  "id": "auto-generated-1741050905",
   "name": "Auto-Generated Environment",
   "values": [
     {
@@ -76,6 +76,7 @@
     }
   ],
   "_postman_variable_scope": "environment",
-  "_postman_exported_at": "2025-03-03T17:03:14.000Z",
-  "_postman_exported_using": "Postman2Burp/Extract"
+  "_postman_exported_at": "2025-03-03T17:15:05.000Z",
+  "_postman_exported_using": "Postman2Burp/Extract",
+  "_postman_collection_id": "f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2"
 }

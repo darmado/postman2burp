@@ -77,6 +77,28 @@ COMMON_PROXIES = [
 # Path to config file
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
+# Path to variables templates directory
+VARIABLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "variables")
+
+def validate_json_file(file_path: str) -> Tuple[bool, Optional[Dict]]:
+    """
+    Validate a JSON file to ensure it's properly formatted.
+    Returns a tuple of (is_valid, parsed_json).
+    If the file is invalid, parsed_json will be None.
+    """
+    try:
+        with open(file_path, 'r') as f:
+            file_content = f.read()
+            # Try to parse the JSON
+            parsed_json = json.loads(file_content)
+            return True, parsed_json
+    except json.JSONDecodeError as e:
+        logger.warning(f"JSON validation failed for {os.path.basename(file_path)}: {e}")
+        return False, None
+    except Exception as e:
+        logger.warning(f"Error reading file {os.path.basename(file_path)}: {e}")
+        return False, None
+
 def load_config() -> Dict:
     """
     Load configuration from config.json file if it exists,
@@ -86,13 +108,17 @@ def load_config() -> Dict:
     
     try:
         if os.path.exists(CONFIG_FILE_PATH):
-            with open(CONFIG_FILE_PATH, 'r') as f:
-                file_config = json.load(f)
-                config.update(file_config)
+            # Validate the JSON file before loading
+            is_valid, parsed_config = validate_json_file(CONFIG_FILE_PATH)
+            
+            if is_valid and parsed_config:
+                config.update(parsed_config)
                 # Get just the directory name and filename instead of full path
                 config_dir = os.path.basename(os.path.dirname(CONFIG_FILE_PATH))
                 config_file = os.path.basename(CONFIG_FILE_PATH)
                 logger.info(f"Loaded configuration from {config_dir}/{config_file}")
+            else:
+                logger.warning(f"Config file {os.path.basename(CONFIG_FILE_PATH)} is malformed, using default settings")
         else:
             logger.info(f"No config file found at {os.path.basename(CONFIG_FILE_PATH)}, using default settings")
             # Auto-generate config file with default settings
@@ -211,10 +237,10 @@ def extract_variables_from_text(text: str) -> Set[str]:
     # Filter out any matches that start with $ (these are usually Postman's built-in variables)
     return {match for match in matches if not match.startswith('$')}
 
-def extract_variables_from_collection(collection_path: str) -> Set[str]:
+def extract_variables_from_collection(collection_path: str) -> Tuple[Set[str], Optional[str]]:
     """
     Extract all variables used in a Postman collection.
-    Returns a set of variable names.
+    Returns a tuple of (set of variable names, collection_id).
     """
     logger.info(f"Extracting variables from collection: {collection_path}")
     
@@ -226,6 +252,12 @@ def extract_variables_from_collection(collection_path: str) -> Set[str]:
         sys.exit(1)
     
     variables = set()
+    collection_id = None
+    
+    # Try to extract the Postman collection ID
+    if "info" in collection and "_postman_id" in collection["info"]:
+        collection_id = collection["info"]["_postman_id"]
+        logger.debug(f"Found Postman collection ID: {collection_id}")
     
     def process_url(url):
         if isinstance(url, dict):
@@ -328,12 +360,30 @@ def extract_variables_from_collection(collection_path: str) -> Set[str]:
                     variables.update(extract_variables_from_text(line))
     
     logger.info(f"Found {len(variables)} unique variables in collection")
-    return variables
+    return variables, collection_id
 
-def generate_variables_template(variables: Set[str], output_path: str) -> None:
+def generate_variables_template(variables: Set[str], output_path: str, collection_id: Optional[str] = None) -> None:
     """
     Generate a Postman environment template file with the extracted variables.
+    If collection_id is provided and output_path is not specified, the file will be saved
+    in the variables directory with the collection ID as the filename.
     """
+    # Create variables directory if it doesn't exist
+    if not os.path.exists(VARIABLES_DIR):
+        try:
+            os.makedirs(VARIABLES_DIR)
+            logger.debug(f"Created variables directory at {VARIABLES_DIR}")
+        except Exception as e:
+            logger.warning(f"Could not create variables directory: {e}")
+    
+    # If collection_id is provided and output_path is the default, use collection_id for filename
+    if collection_id and output_path == "variables_template.json":
+        output_path = os.path.join(VARIABLES_DIR, f"{collection_id}.json")
+        logger.info(f"Using collection ID for filename: {os.path.basename(output_path)}")
+    elif not os.path.isabs(output_path) and not output_path.startswith('./'):
+        # If output_path is not an absolute path or doesn't start with ./, put it in variables dir
+        output_path = os.path.join(VARIABLES_DIR, output_path)
+    
     template = {
         "id": f"auto-generated-{int(time.time())}",
         "name": "Auto-Generated Environment",
@@ -342,6 +392,10 @@ def generate_variables_template(variables: Set[str], output_path: str) -> None:
         "_postman_exported_at": time.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
         "_postman_exported_using": "Postman2Burp/Extract"
     }
+    
+    # If we have a collection ID, add it to the template
+    if collection_id:
+        template["_postman_collection_id"] = collection_id
     
     for var in sorted(variables):
         template["values"].append({
@@ -426,8 +480,14 @@ class PostmanToBurp:
     def load_collection(self) -> Dict:
         """Load the Postman collection from JSON file."""
         try:
-            with open(self.collection_path, 'r') as f:
-                return json.load(f)
+            # Validate the JSON file before loading
+            is_valid, parsed_collection = validate_json_file(self.collection_path)
+            
+            if is_valid and parsed_collection:
+                return parsed_collection
+            else:
+                logger.error(f"Collection file {os.path.basename(self.collection_path)} is malformed")
+                sys.exit(1)
         except Exception as e:
             logger.error(f"Failed to load collection: {e}")
             sys.exit(1)
@@ -438,23 +498,28 @@ class PostmanToBurp:
             return
         
         try:
-            with open(self.environment_path, 'r') as f:
-                env_data = json.load(f)
+            # Validate the JSON file before loading
+            is_valid, parsed_env = validate_json_file(self.environment_path)
+            
+            if not is_valid or not parsed_env:
+                logger.warning(f"Environment file {os.path.basename(self.environment_path)} is malformed, skipping environment variables")
+                return
                 
-                # Handle different Postman environment formats
-                if "values" in env_data:
-                    for var in env_data["values"]:
-                        if "enabled" in var and not var["enabled"]:
-                            continue
-                        self.environment_variables[var["key"]] = var["value"]
-                elif "environment" in env_data and "values" in env_data["environment"]:
-                    for var in env_data["environment"]["values"]:
-                        if "enabled" in var and not var["enabled"]:
-                            continue
-                        self.environment_variables[var["key"]] = var["value"]
+            # Handle different Postman environment formats
+            if "values" in parsed_env:
+                for var in parsed_env["values"]:
+                    if "enabled" in var and not var["enabled"]:
+                        continue
+                    self.environment_variables[var["key"]] = var["value"]
+            elif "environment" in parsed_env and "values" in parsed_env["environment"]:
+                for var in parsed_env["environment"]["values"]:
+                    if "enabled" in var and not var["enabled"]:
+                        continue
+                    self.environment_variables[var["key"]] = var["value"]
+            
+            logger.info(f"Loaded {len(self.environment_variables)} variables from environment file")
         except Exception as e:
-            logger.error(f"Failed to load environment: {e}")
-            sys.exit(1)
+            logger.warning(f"Failed to load environment: {e}. Continuing without environment variables.")
 
     def replace_variables(self, text: str) -> str:
         """Replace Postman variables in the given text."""
@@ -756,8 +821,9 @@ Examples:
     
     # Handle extract-keys mode
     if args.extract_keys is not None:
-        variables = extract_variables_from_collection(args.collection)
-        generate_variables_template(variables, args.extract_keys)
+        output_file = args.extract_keys if args.extract_keys != True else "variables_template.json"
+        variables, collection_id = extract_variables_from_collection(args.collection)
+        generate_variables_template(variables, output_file, collection_id)
         return
     
     # Extract host and port from the combined proxy argument if provided
@@ -874,7 +940,7 @@ Examples:
         try:
             with open(CONFIG_FILE_PATH, 'w') as f:
                 json.dump(new_config, f, indent=4)
-            logger.info(f"Configuration saved to {CONFIG_FILE_PATH}")
+            logger.info(f"Configuration saved to {os.path.basename(CONFIG_FILE_PATH)}")
         except Exception as e:
             logger.error(f"Failed to save configuration: {e}")
     
