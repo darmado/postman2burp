@@ -1,5 +1,5 @@
 #!/bin/bash
-# Example script to run the Postman2Burp tool with virtual environment
+# Script to run the Postman2Burp tool with virtual environment
 
 # Check if virtual environment exists
 if [ ! -d "venv" ]; then
@@ -27,10 +27,41 @@ if ! command -v python &> /dev/null; then
     fi
 fi
 
-# Set variables
-COLLECTION_FILE="./postman_collection.json"
-ENVIRONMENT_FILE="./variables.json"
-OUTPUT_FILE="./burp_results.json"
+# Parse command line arguments
+COLLECTION_FILE=""
+ENVIRONMENT_FILE=""
+VERBOSE=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --collection)
+            COLLECTION_FILE="collections/$2"
+            shift 2
+            ;;
+        --environment)
+            ENVIRONMENT_FILE="environments/$2"
+            shift 2
+            ;;
+        --verbose)
+            VERBOSE="--verbose"
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: ./run_postman_to_burp.sh --collection COLLECTION_FILE [--environment ENVIRONMENT_FILE] [--verbose]"
+            deactivate
+            exit 1
+            ;;
+    esac
+done
+
+# Check if collection file is provided
+if [ -z "$COLLECTION_FILE" ]; then
+    echo "Error: Collection file is required"
+    echo "Usage: ./run_postman_to_burp.sh --collection COLLECTION_FILE [--environment ENVIRONMENT_FILE] [--verbose]"
+    deactivate
+    exit 1
+fi
 
 # Check if files exist
 if [ ! -f "$COLLECTION_FILE" ]; then
@@ -39,31 +70,33 @@ if [ ! -f "$COLLECTION_FILE" ]; then
     exit 1
 fi
 
-if [ ! -f "$ENVIRONMENT_FILE" ]; then
+if [ ! -z "$ENVIRONMENT_FILE" ] && [ ! -f "$ENVIRONMENT_FILE" ]; then
     echo "Error: Environment file not found: $ENVIRONMENT_FILE"
     deactivate
     exit 1
 fi
 
+# Build command
+CMD="$PYTHON_CMD postman2burp.py --collection \"$COLLECTION_FILE\" $VERBOSE"
+if [ ! -z "$ENVIRONMENT_FILE" ]; then
+    CMD="$CMD --environment \"$ENVIRONMENT_FILE\""
+fi
+
 # Run the script
 echo "Running Postman2Burp tool..."
-$PYTHON_CMD postman2burp.py \
-    --collection "$COLLECTION_FILE" \
-    --environment "$ENVIRONMENT_FILE" \
-    --output "$OUTPUT_FILE" \
-    --verbose
+eval $CMD
 
 # Check if the script ran successfully
 if [ $? -eq 0 ]; then
-    echo "Success! All requests have been sent through Burp Suite."
-    echo "Results saved to: $OUTPUT_FILE"
+    echo "✅ Success! All requests have been sent through Burp Suite."
+    echo "📊 Results saved to logs directory"
     echo ""
-    echo "Next steps:"
+    echo "📋 Next steps:"
     echo "1. Check Burp Suite's HTTP history to see all captured requests"
-    echo "2. Review the results file for any failed requests"
+    echo "2. Review the log files for any failed requests"
     echo "3. Configure Burp Suite's scanner to analyze the captured endpoints"
 else
-    echo "Error: The script encountered an issue. Please check the output above."
+    echo "❌ Error: The script encountered an issue. Please check the output above."
 fi
 
 # Deactivate virtual environment

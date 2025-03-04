@@ -21,7 +21,7 @@ Postman2Burp bridges the gap between API development and security testing by aut
 | [🎯 Purpose](#-purpose) | [🔮 Assumptions](#-assumptions) | [📦 Requirements](#-requirements) | [🚀 Quick Start](#-quick-start) |
 |:----------------------:|:------------------------------:|:--------------------------------:|:-------------------------------:|
 | [✨ Features](#-features) | [🎯 Use Cases](#-use-cases) | [⚠️ Limitations](#️-limitations) | [📚 Documentation](#-documentation) |
-| [🏆 Credits](#-credits) | [📜 License](#-license) | [👥 Contributing](#-contributing) | |
+|  | [📜 License](#-license) | [👥 Contributing](#-contributing) | |
 
 </div>
 
@@ -56,11 +56,57 @@ The tool operates under the following assumptions:
 
 ## 🚀 Quick Start
 
+### One-Line Installation
+
+```bash
+curl -sSL https://raw.githubusercontent.com/darmado/postman2burp/main/install.sh | bash
+```
+
+This installation script will:
+- Clone the repository
+- Set up a Python virtual environment
+- Install all dependencies
+- Create necessary directories (collections, environments, logs)
+- Generate a sample environment file
+- Configure and make helper scripts executable
+
+### Using the Tool
+
+After installation:
+
+1. Place your Postman collection JSON files in the `collections` directory
+2. Place your environment files in the `environments` directory (optional)
+3. Run the tool:
+
+```bash
+./run_postman_to_burp.sh --collection "your_collection.json" [--environment "your_environment.json"] [--verbose]
+```
+
+The tool will automatically:
+- Generate a log file based on the collection ID and timestamp
+- Store logs in the `logs` directory with detailed request and response information in Postman Collection format
+- Send all requests through the detected proxy
+
+#### Extracting Variables
+
+To extract all variables from a collection:
+
+```bash
+# Print all variables in the collection
+python postman2burp.py --collection "your_collection.json" --extract-keys
+
+# Generate a template environment file with all variables
+python postman2burp.py --collection "your_collection.json" --extract-keys "environment_template.json"
+```
+
+### Manual Installation
+
 | Step | Command |
 |------|---------|
 | 1. Clone the repository | `git clone https://github.com/darmado/postman2burp.git`<br>`cd postman2burp` |
 | 2. Set up the environment | `chmod +x setup_venv.sh`<br>`./setup_venv.sh` |
-| 3. Run the tool | `python postman2burp.py --collection "your_collection.json"` |
+| 3. Create directories | `mkdir -p collections environments logs` |
+| 4. Run the tool | `./run_postman_to_burp.sh --collection "your_collection.json"` |
 
 For detailed usage instructions, see the [Wiki](https://github.com/darmado/postman2burp/wiki).
 
@@ -74,9 +120,10 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/postm
 | 📝 Multiple Body Types | Processes multiple request body types | Works with JSON, form data, raw text, etc. |
 | 🔐 Authentication | Handles authentication headers | Maintains security context across requests |
 | 📊 Logging | Logs request results | Easy troubleshooting and verification |
+| 📋 Postman-Compatible Logs | Generates logs in Postman Collection format | Logs can be imported directly into Postman |
 | 🔍 Proxy Verification | Verifies proxy before sending requests | Prevents failed test runs |
 | ⚙️ Configuration File | Stores settings in config.json | Reuse configurations across runs |
-| 🔑 Variable Extraction | Extracts variables from collections | Easily create environment templates |
+| 🔑 Variable Extraction | Extracts variables from collections | Easily create environment templates or view all variables |
 
 ## 🎯 Use Cases
 

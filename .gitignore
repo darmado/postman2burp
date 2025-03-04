@@ -1,5 +1,6 @@
-#Burp Suite
-burp_results.json   
+#Dynamically generated logs and test files 
+/logs/*   
+/MagicMock/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -16,8 +16,8 @@ Usage:
     Proxy Settings:
         python postman2burp.py --collection <collection.json> --proxy-host <host> --proxy-port <port>
     
-    Output Options:
-        python postman2burp.py --collection <collection.json> --output <results.json> --verbose
+    Log Options:
+        python postman2burp.py --collection <collection.json> --log --verbose
     
     Configuration:
         python postman2burp.py --collection <collection.json> --save-config
@@ -43,6 +43,8 @@ import re
 from typing import Dict, List, Optional, Any, Tuple, Set
 import requests
 import time
+import datetime
+import uuid
 
 # Disable SSL warnings when using proxy
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -515,7 +517,7 @@ def resolve_collection_path(collection_path: str) -> str:
 class PostmanToBurp:
     def __init__(self, collection_path: str, target_profile: str = None, proxy_host: str = None, proxy_port: int = None,
                  verify_ssl: bool = False, skip_proxy_check: bool = False, auto_detect_proxy: bool = True,
-                 output_path: str = None, verbose: bool = False):
+                 verbose: bool = False):
         """
         Initialize the PostmanToBurp converter.
         
@@ -527,7 +529,6 @@ class PostmanToBurp:
             verify_ssl: Whether to verify SSL certificates
             skip_proxy_check: Whether to skip proxy connection check
             auto_detect_proxy: Whether to auto-detect proxy settings
-            output_path: Path to save the output file
             verbose: Whether to enable verbose logging
         """
         self.collection_path = collection_path
@@ -537,7 +538,7 @@ class PostmanToBurp:
         self.verify_ssl = verify_ssl
         self.skip_proxy_check = skip_proxy_check
         self.auto_detect_proxy = auto_detect_proxy
-        self.output_path = output_path
+        self.log_path = None
         self.verbose = verbose
         
         self.collection = None
@@ -560,6 +561,7 @@ class PostmanToBurp:
     def load_collection(self) -> bool:
         """
         Load the Postman collection from the specified file.
+        Also sets up the log file path based on the collection ID.
         
         Returns:
             bool: True if the collection was loaded successfully, False otherwise
@@ -573,6 +575,16 @@ class PostmanToBurp:
             return False
             
         self.collection = json_data
+        
+        # Generate log file path based on collection ID
+        collection_id = self.collection.get("info", {}).get("_postman_id", "unknown")
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_filename = f"{collection_id}_{timestamp}.json"
+        
+        # Ensure logs directory exists
+        os.makedirs("logs", exist_ok=True)
+        self.log_path = os.path.join("logs", log_filename)
+        self.logger.info(f"Log file will be saved to: {self.log_path}")
         return True
     
     def load_profile(self) -> bool:
@@ -668,127 +680,193 @@ class PostmanToBurp:
         return requests
 
     def prepare_request(self, request_data: Dict) -> Dict:
-        """Prepare a request for sending."""
-        request = request_data["request"]
+        """
+        Prepare a request for sending.
+        
+        Args:
+            request_data: The request data from the collection
+            
+        Returns:
+            Dict: The prepared request data
+        """
+        # Extract request details
+        name = request_data.get("name", "Unnamed Request")
+        folder = request_data.get("folder", "")
+        request = request_data.get("request", {})
+        
+        # Extract URL
+        url = ""
+        if isinstance(request.get("url"), str):
+            url = self.replace_variables(request.get("url", ""))
+        elif isinstance(request.get("url"), dict):
+            url_obj = request.get("url", {})
+            
+            # Build URL from components
+            protocol = url_obj.get("protocol", "https")
+            host = url_obj.get("host", [])
+            if isinstance(host, list):
+                host = ".".join(host)
+            host = self.replace_variables(host)
+            
+            path = url_obj.get("path", [])
+            if isinstance(path, list):
+                path = "/".join(path)
+            path = self.replace_variables(path)
+            
+            # Add query parameters
+            query_params = []
+            for param in url_obj.get("query", []):
+                if param.get("disabled", False):
+                    continue
+                key = self.replace_variables(param.get("key", ""))
+                value = self.replace_variables(param.get("value", ""))
+                query_params.append(f"{key}={value}")
+            
+            query_string = ""
+            if query_params:
+                query_string = "?" + "&".join(query_params)
+            
+            url = f"{protocol}://{host}/{path}{query_string}"
+        
+        # Fix double protocol issue (https://https://example.com)
+        if url.startswith("http://http://") or url.startswith("https://https://"):
+            url = url.replace("http://http://", "http://").replace("https://https://", "https://")
+        
+        # Extract method
+        method = request.get("method", "GET")
+        
+        # Extract headers
+        headers = {}
+        for header in request.get("header", []):
+            if header.get("disabled", False):
+                continue
+            key = self.replace_variables(header.get("key", ""))
+            value = self.replace_variables(header.get("value", ""))
+            headers[key] = value
+        
+        # Prepare request data
         prepared_request = {
-            "name": request_data["name"],
-            "folder": request_data["folder"],
-            "method": request["method"],
-            "url": "",
-            "headers": {},
-            "body": None
+            "name": name,
+            "folder": folder,
+            "method": method,
+            "url": url,
+            "headers": headers
         }
         
-        # Process URL
-        if isinstance(request["url"], dict):
-            if "raw" in request["url"]:
-                prepared_request["url"] = self.replace_variables(request["url"]["raw"])
-            else:
-                # Construct URL from host, path, etc.
-                host = ".".join(request["url"].get("host", []))
-                path = "/".join(request["url"].get("path", []))
-                protocol = request["url"].get("protocol", "https")
-                prepared_request["url"] = f"{protocol}://{host}/{path}"
-        else:
-            prepared_request["url"] = self.replace_variables(request["url"])
+        # Extract body
+        if "body" in request and request["body"]:
+            body_mode = request["body"].get("mode", "")
             
-        # Process headers
-        if "header" in request:
-            for header in request["header"]:
-                if "disabled" in header and header["disabled"]:
-                    continue
-                prepared_request["headers"][header["key"]] = self.replace_variables(header["value"])
+            if body_mode == "raw":
+                raw_body = request["body"].get("raw", "")
+                # Replace variables in the raw body
+                raw_body = self.replace_variables(raw_body)
+                # Clean up the raw body by stripping extra whitespace
+                raw_body = raw_body.strip()
+                prepared_request["body"] = raw_body
                 
-        # Process body
-        if "body" in request:
-            body = request["body"]
-            if body.get("mode") == "raw":
-                prepared_request["body"] = self.replace_variables(body.get("raw", ""))
-            elif body.get("mode") == "urlencoded":
+            elif body_mode == "urlencoded":
                 form_data = {}
-                for param in body.get("urlencoded", []):
+                for param in request["body"].get("urlencoded", []):
                     if "disabled" in param and param["disabled"]:
                         continue
                     form_data[param["key"]] = self.replace_variables(param["value"])
                 prepared_request["body"] = form_data
-            elif body.get("mode") == "formdata":
-                # For multipart/form-data, we'd need more complex handling
-                # This is a simplified version
+                
+            elif body_mode == "formdata":
                 form_data = {}
-                for param in body.get("formdata", []):
+                for param in request["body"].get("formdata", []):
                     if "disabled" in param and param["disabled"]:
                         continue
                     if param["type"] == "text":
                         form_data[param["key"]] = self.replace_variables(param["value"])
                 prepared_request["body"] = form_data
-                
+        
         return prepared_request
 
     def send_request(self, prepared_request: Dict) -> Dict:
-        """Send a request through the Burp proxy and return the result."""
-        method = prepared_request["method"]
-        url = prepared_request["url"]
-        headers = prepared_request["headers"]
-        body = prepared_request["body"]
+        """
+        Send a request to the specified URL through the proxy.
         
-        self.logger.info(f"Sending {method} request to {url}")
-        self.logger.debug(f"Using proxy: {self.proxies}")
+        Args:
+            prepared_request: The prepared request data
+            
+        Returns:
+            Dict: The response data
+        """
+        url = prepared_request.get("url", "")
+        method = prepared_request.get("method", "GET")
+        headers = prepared_request.get("headers", {})
+        body = prepared_request.get("body", None)
+        name = prepared_request.get("name", "Unnamed Request")
+        folder = prepared_request.get("folder", "")
+        
+        self.logger.info(f"Sending request: {name} ({method} {url})")
+        
+        # Set proxy
+        proxies = None
+        if self.proxy_host and self.proxy_port:
+            proxy_url = f"http://{self.proxy_host}:{self.proxy_port}"
+            proxies = {
+                "http": proxy_url,
+                "https": proxy_url
+            }
+            self.logger.debug(f"Using proxy: {proxy_url}")
+        
+        # Prepare response data
+        response_data = {
+            "name": name,
+            "folder": folder,
+            "method": method,
+            "url": url,
+            "headers": headers,
+            "body": body,
+            "request_details": prepared_request,
+            "success": False
+        }
         
         try:
+            start_time = time.time()
+            
+            # Send request
             response = self.session.request(
                 method=method,
                 url=url,
                 headers=headers,
-                data=body if isinstance(body, (str, dict)) else None,
-                json=body if not isinstance(body, (str, dict)) and body is not None else None,
-                proxies=self.proxies,
-                timeout=30
+                data=body,
+                proxies=proxies,
+                timeout=30,
+                allow_redirects=True
             )
             
-            result = {
-                "name": prepared_request["name"],
-                "folder": prepared_request["folder"],
-                "method": method,
-                "url": url,
+            end_time = time.time()
+            response_time = end_time - start_time
+            
+            # Clean up the response body by stripping extra whitespace
+            try:
+                response_body = response.text.strip()
+            except:
+                response_body = ""
+            
+            # Update response data
+            response_data.update({
                 "status_code": response.status_code,
-                "response_time": response.elapsed.total_seconds(),
+                "response_time": response_time,
                 "response_size": len(response.content),
-                "success": 200 <= response.status_code < 300
-            }
+                "response_headers": dict(response.headers),
+                "response_body": response_body,
+                "success": 200 <= response.status_code < 400
+            })
             
-            self.logger.info(f"Response: {response.status_code} ({result['response_time']:.2f}s)")
-            return result
+            self.logger.info(f"Response: {response.status_code} ({round(response_time * 1000)}ms)")
             
-        except requests.exceptions.ProxyError as e:
-            self.logger.error(f"Proxy error: {e}")
-            return {
-                "name": prepared_request["name"],
-                "folder": prepared_request["folder"],
-                "method": method,
-                "url": url,
-                "error": f"Proxy error: {str(e)}",
-                "success": False
-            }
-        except requests.exceptions.ConnectionError as e:
-            self.logger.error(f"Connection error: {e}")
-            return {
-                "name": prepared_request["name"],
-                "folder": prepared_request["folder"],
-                "method": method,
-                "url": url,
-                "error": f"Connection error: {str(e)}",
-                "success": False
-            }
         except Exception as e:
             self.logger.error(f"Request failed: {e}")
-            return {
-                "name": prepared_request["name"],
-                "folder": prepared_request["folder"],
-                "method": method,
-                "url": url,
-                "error": str(e),
-                "success": False
-            }
+            response_data.update({
+                "error": str(e)
+            })
+        
+        return response_data
 
     def process_collection(self) -> None:
         """Process the entire Postman collection and send requests through Burp."""
@@ -827,9 +905,8 @@ class PostmanToBurp:
             self.results["requests"].append(result)
             
         # Save results if output file is specified
-        if self.output_path:
-            with open(self.output_path, 'w') as f:
-                json.dump(self.results, f, indent=2)
+        if self.log_path:
+            self.save_results()
                 
         # Print summary
         self.results["total"] = len(self.results["requests"])
@@ -859,7 +936,7 @@ class PostmanToBurp:
         self.process_collection()
         
         # Save results
-        if self.output_path:
+        if self.log_path:
             self.save_results()
             
         return self.results
@@ -974,13 +1051,134 @@ class PostmanToBurp:
             return True  # Continue anyway to allow for internal proxies
             
     def save_results(self) -> None:
-        """
-        Save the results to a JSON file.
-        """
+        """Save the results to a file."""
+        if not self.log_path:
+            self.logger.error("Log path not set")
+            return
+            
+        self.logger.info(f"Saving results to {self.log_path}")
+        
         try:
-            with open(self.output_path, 'w') as f:
-                json.dump(self.results, f, indent=2)
-            self.logger.info(f"Results saved to {self.output_path}")
+            # Extract collection ID from the loaded collection
+            collection_id = self.collection.get("info", {}).get("_postman_id", "unknown")
+            collection_name = self.collection.get("info", {}).get("name", "Postman Collection")
+            
+            # Convert results to Postman Collection format
+            postman_collection = {
+                "info": {
+                    "name": f"Postman2Burp Results - {collection_name}",
+                    "description": f"Results from running Postman collection {collection_id} through Burp Suite proxy",
+                    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+                    "_postman_id": str(uuid.uuid4()),
+                    "version": "1.0.0"
+                },
+                "item": []
+            }
+            
+            # Group requests by folder
+            folders = {}
+            for request in self.results.get("requests", []):
+                folder_name = request.get("folder", "")
+                if not folder_name:
+                    folder_name = "Ungrouped Requests"
+                
+                if folder_name not in folders:
+                    folders[folder_name] = []
+                
+                # Create Postman request format
+                postman_request = {
+                    "name": request.get("name", "Unnamed Request"),
+                    "request": {
+                        "method": request.get("method", "GET"),
+                        "header": [],
+                        "url": request.get("url", "")
+                    },
+                    "response": []
+                }
+                
+                # Add headers
+                for key, value in request.get("headers", {}).items():
+                    postman_request["request"]["header"].append({
+                        "key": key,
+                        "value": value,
+                        "type": "text"
+                    })
+                
+                # Add body if present
+                if "body" in request and request["body"]:
+                    body_content = request["body"]
+                    if isinstance(body_content, str):
+                        postman_request["request"]["body"] = {
+                            "mode": "raw",
+                            "raw": body_content.strip()
+                        }
+                    elif isinstance(body_content, dict):
+                        # Handle form data
+                        postman_request["request"]["body"] = {
+                            "mode": "urlencoded",
+                            "urlencoded": []
+                        }
+                        for key, value in body_content.items():
+                            postman_request["request"]["body"]["urlencoded"].append({
+                                "key": key,
+                                "value": value,
+                                "type": "text"
+                            })
+                
+                # Add response if available
+                if "status_code" in request:
+                    response = {
+                        "name": f"Response {request.get('status_code', 'Unknown')}",
+                        "originalRequest": postman_request["request"],
+                        "status": str(request.get("status_code", "")),
+                        "code": request.get("status_code", 0),
+                        "header": [],
+                        "_postman_previewlanguage": "json",
+                        "cookie": [],
+                        "responseTime": int(request.get("response_time", 0) * 1000) if request.get("response_time") else None,
+                        "body": request.get("response_body", "")
+                    }
+                    
+                    # Add response headers
+                    for key, value in request.get("response_headers", {}).items():
+                        response["header"].append({
+                            "key": key,
+                            "value": str(value),
+                            "name": key,
+                            "description": ""
+                        })
+                    
+                    postman_request["response"] = [response]
+                
+                folders[folder_name].append(postman_request)
+            
+            # Add folders to collection
+            for folder_name, requests in folders.items():
+                folder = {
+                    "name": folder_name,
+                    "item": requests
+                }
+                postman_collection["item"].append(folder)
+            
+            # Add summary as a variable
+            postman_collection["variable"] = [
+                {
+                    "key": "total_requests",
+                    "value": str(self.results.get("total", 0))
+                },
+                {
+                    "key": "successful_requests",
+                    "value": str(self.results.get("success", 0))
+                },
+                {
+                    "key": "failed_requests",
+                    "value": str(self.results.get("failed", 0))
+                }
+            ]
+            
+            with open(self.log_path, 'w', encoding='utf-8') as f:
+                json.dump(postman_collection, f, indent=2, ensure_ascii=False)
+            self.logger.info(f"Results saved to {self.log_path}")
         except Exception as e:
             self.logger.error(f"Failed to save results: {e}")
 
@@ -998,8 +1196,8 @@ def main():
     # Environment options
     env_group = parser.add_argument_group("Environment Options")
     env_group.add_argument("--target-profile", help="Path to Postman environment JSON file")
-    env_group.add_argument("--extract-keys", nargs="?", const="variables_template.json", metavar="OUTPUT_FILE",
-                          help="Extract all variables from collection and save to template file (default: variables_template.json)")
+    env_group.add_argument("--extract-keys", nargs="?", const="print", metavar="OUTPUT_FILE",
+                          help="Extract all variables from collection. If no file is specified, prints the list of keys. Otherwise, saves to template file.")
     
     # Proxy options
     proxy_group = parser.add_argument_group("Proxy Options")
@@ -1012,7 +1210,7 @@ def main():
     
     # Output options
     output_group = parser.add_argument_group("Output Options")
-    output_group.add_argument("--output", help="Path to save the output file")
+    output_group.add_argument("--log", action="store_true", help="Enable logging (always enabled, included for backward compatibility)")
     output_group.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     output_group.add_argument("--save-config", action="store_true", help="Save current settings as default configuration")
     
@@ -1030,7 +1228,18 @@ def main():
     
     # Extract variables from collection if requested
     if args.extract_keys is not None:
-        generate_variables_template(collection_path, args.extract_keys)
+        variables, collection_id = extract_variables_from_collection(collection_path)
+        
+        if args.extract_keys == "print":
+            # Print the list of keys
+            print(f"\n[✓] Found {len(variables)} variables in collection {os.path.basename(collection_path)}:")
+            for var in sorted(variables):
+                print(f"  - {var}")
+            print("\nTo create a template file with these variables:")
+            print(f"python3 postman2burp.py --collection {os.path.basename(collection_path)} --extract-keys variables_template.json")
+        else:
+            # Generate template file
+            generate_variables_template(collection_path, args.extract_keys)
         return
     
     # Parse proxy settings - prioritize command line arguments over config
@@ -1056,39 +1265,27 @@ def main():
         verify_ssl=args.verify_ssl or config.get("verify_ssl", DEFAULT_CONFIG["verify_ssl"]),
         skip_proxy_check=args.skip_proxy_check or config.get("skip_proxy_check", DEFAULT_CONFIG["skip_proxy_check"]),
         auto_detect_proxy=not args.no_auto_detect and config.get("auto_detect_proxy", True),
-        output_path=args.output or config.get("output_path"),
         verbose=args.verbose or config.get("verbose", False)
     )
     
-    # Run conversion
-    results = converter.run()
-    
-    # Print summary
-    print("\nSummary:")
-    print(f"  Total requests: {results['total']}")
-    print(f"  Successful: {results['success']}")
-    print(f"  Failed: {results['failed']}")
-    
-    # Save configuration if requested
-    if args.save_config:
-        # Create a comprehensive configuration with all settings
-        new_config = {
-            "proxy_host": proxy_host,
-            "proxy_port": proxy_port,
-            "verify_ssl": args.verify_ssl or config.get("verify_ssl", DEFAULT_CONFIG["verify_ssl"]),
-            "skip_proxy_check": args.skip_proxy_check or config.get("skip_proxy_check", DEFAULT_CONFIG["skip_proxy_check"]),
-            "auto_detect_proxy": not args.no_auto_detect and config.get("auto_detect_proxy", True),
-            "output_path": args.output or config.get("output_path"),
-            "verbose": args.verbose or config.get("verbose", False),
-            "last_collection": os.path.basename(collection_path),
-            "last_target_profile": os.path.basename(args.target_profile) if args.target_profile else None
-        }
-        
-        if save_config(new_config):
-            print("\nConfiguration saved to config/config.json")
-            print("You can now run the tool without specifying these options again.")
-        else:
-            logger.error("Failed to save configuration")
+    # Run the converter
+    result = converter.run()
+    if result["success"]:
+        # Save configuration if requested
+        if args.save_config:
+            config_to_save = {
+                "proxy_host": converter.proxy_host,
+                "proxy_port": converter.proxy_port,
+                "verify_ssl": args.verify_ssl,
+                "skip_proxy_check": args.skip_proxy_check,
+                "auto_detect_proxy": not args.no_auto_detect,
+                "verbose": args.verbose
+            }
+            
+            if save_config(config_to_save):
+                logger.info("Configuration saved successfully")
+            else:
+                logger.error("Failed to save configuration")
 
 if __name__ == "__main__":
     main() 
