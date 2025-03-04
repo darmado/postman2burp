@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
 """
- ______   _____   _____ _______ __  __          _   _  ___  ____  _    _ _____  _____  
-|  __  \ / __  \ / ____|__   __|  \/  |   /\   | \ | |/ _ \|  _ \| |  | |  __ \|  __ \ 
-| |__) || |  | || (___    | |  | \  / |  /  \  |  \| | | | | |_) | |  | | |__) | |__) |
-|  ___/ | |  | | \___ \   | |  | |\/| | / /\ \ | . ` | | | |  _ <| |  | |  _  /|  ___/ 
-| |     | |__| | ____) |  | |  | |  | |/ ____ \| |\  | |_| | |_) | |__| | | \ \| |     
-|_|      \____/ |_____/   |_|  |_|  |_/_/    \_\_| \_|\___/|____/ \____/|_|  \_\_|     
-                                                                                      
-+-----------------------------------------------------------------------------+
-|                Automated API Request Tool for Burp Suite Proxy               |
-+-----------------------------------------------------------------------------+
-
 Postman2Burp - Automated API Endpoint Scanner
 
 This tool reads a Postman collection JSON file and sends all the requests
@@ -47,7 +36,7 @@ import os
 import sys
 import urllib3
 import socket
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 import requests
 import time
 
@@ -61,6 +50,25 @@ DEFAULT_CONFIG = {
     "verify_ssl": False,
     "skip_proxy_check": False
 }
+
+# Common proxy configurations to check
+COMMON_PROXIES = [
+    # Burp Suite default
+    {"host": "localhost", "port": 8080},
+    {"host": "127.0.0.1", "port": 8080},
+    # OWASP ZAP default
+    {"host": "localhost", "port": 8090},
+    {"host": "127.0.0.1", "port": 8090},
+    # Mitmproxy default
+    {"host": "localhost", "port": 8081},
+    {"host": "127.0.0.1", "port": 8081},
+    # Charles Proxy default
+    {"host": "localhost", "port": 8888},
+    {"host": "127.0.0.1", "port": 8888},
+    # Fiddler default
+    {"host": "localhost", "port": 8888},
+    {"host": "127.0.0.1", "port": 8888},
+]
 
 # Path to config file
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
@@ -80,6 +88,13 @@ def load_config() -> Dict:
                 logger.info(f"Loaded configuration from {CONFIG_FILE_PATH}")
         else:
             logger.info(f"No config file found at {CONFIG_FILE_PATH}, using default settings")
+            # Auto-generate config file with default settings
+            try:
+                with open(CONFIG_FILE_PATH, 'w') as f:
+                    json.dump(DEFAULT_CONFIG, f, indent=4)
+                logger.info(f"Generated default configuration file at {CONFIG_FILE_PATH}")
+            except Exception as e:
+                logger.warning(f"Could not create default config file: {e}")
     except Exception as e:
         logger.warning(f"Error loading config file: {e}. Using default settings.")
     
@@ -120,16 +135,58 @@ def check_proxy_connection(host: str, port: int) -> bool:
             logger.info(f"Proxy connection successful at {host}:{port}")
             return True
         else:
-            logger.error(f"Proxy not running at {host}:{port}")
-            print("\n[!] PROXY CONNECTION ERROR [!]")
-            print(f"[!] No proxy detected at {host}:{port}")
-            print("[!] Launch Burp Suite or your proxy before running this tool")
-            print("[!] Exiting...")
+            logger.debug(f"No proxy detected at {host}:{port}")
             return False
     except Exception as e:
-        logger.error(f"Error checking proxy: {str(e)}")
-        print(f"\n[!] PROXY ERROR: {str(e)}")
-        print("[!] Verify your proxy settings and try again")
+        logger.debug(f"Error checking proxy at {host}:{port}: {str(e)}")
+        return False
+
+def detect_running_proxy() -> Tuple[Optional[str], Optional[int]]:
+    """
+    Auto-detect running proxy by checking common proxy configurations.
+    Returns a tuple of (host, port) if a proxy is found, otherwise (None, None).
+    """
+    logger.info("Attempting to auto-detect running proxy...")
+    
+    for proxy in COMMON_PROXIES:
+        host, port = proxy["host"], proxy["port"]
+        if check_proxy_connection(host, port):
+            logger.info(f"Detected running proxy at {host}:{port}")
+            return host, port
+    
+    logger.warning("No running proxy detected on common ports")
+    return None, None
+
+def verify_proxy_with_request(host: str, port: int) -> bool:
+    """
+    Verify proxy by making a test request through it.
+    Returns True if the proxy works, False otherwise.
+    """
+    try:
+        proxies = {
+            "http": f"http://{host}:{port}",
+            "https": f"http://{host}:{port}"
+        }
+        
+        # Use a reliable test endpoint
+        test_url = "https://httpbin.org/get"
+        
+        logger.debug(f"Testing proxy with request to {test_url}")
+        response = requests.get(
+            test_url, 
+            proxies=proxies, 
+            verify=False, 
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            logger.info(f"Proxy test request successful through {host}:{port}")
+            return True
+        else:
+            logger.warning(f"Proxy test request failed with status code {response.status_code}")
+            return False
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"Proxy test request failed: {str(e)}")
         return False
 
 class PostmanToBurp:
@@ -446,7 +503,7 @@ Examples:
     python postman2burp.py --collection api_collection.json --environment variables.json
   
   Custom proxy settings:
-    python postman2burp.py --collection api_collection.json --proxy-host 192.168.1.100 --proxy-port 9090
+    python postman2burp.py --collection api_collection.json --proxy localhost:8080
   
   Save results and configuration:
     python postman2burp.py --collection api_collection.json --output results.json --save-config
@@ -464,14 +521,18 @@ Examples:
     
     # Proxy options
     proxy_group = parser.add_argument_group('Proxy Options')
+    proxy_group.add_argument("--proxy", default=None, 
+                           help="Proxy in format host:port (e.g., localhost:8080)")
     proxy_group.add_argument("--proxy-host", default=None, 
-                           help="Proxy hostname/IP (default: from config.json or localhost)")
+                           help="Proxy hostname/IP (default: auto-detected)")
     proxy_group.add_argument("--proxy-port", type=int, default=None, 
-                           help="Proxy port (default: from config.json or 8080)")
+                           help="Proxy port (default: auto-detected or from config.json)")
     proxy_group.add_argument("--verify-ssl", action="store_true", 
                            help="Verify SSL certificates")
     proxy_group.add_argument("--skip-proxy-check", action="store_true", 
                            help="Skip proxy connection check")
+    proxy_group.add_argument("--no-auto-detect", action="store_true", 
+                           help="Disable proxy auto-detection (use config values only)")
     
     # Output options
     output_group = parser.add_argument_group('Output Options')
@@ -490,11 +551,26 @@ Examples:
     if args.verbose:
         logger.setLevel(logging.DEBUG)
     
-    # Extract host and port if port is included in the proxy host
+    # Extract host and port from the combined proxy argument if provided
     proxy_host = args.proxy_host
     proxy_port = args.proxy_port
     
-    if proxy_host and ':' in proxy_host and not proxy_host.startswith('http'):
+    if args.proxy:
+        # Parse the combined proxy argument (host:port)
+        if ':' in args.proxy:
+            host_parts = args.proxy.split(':')
+            proxy_host = host_parts[0]
+            try:
+                proxy_port = int(host_parts[1])
+                logger.info(f"Using proxy {proxy_host}:{proxy_port} from --proxy argument")
+            except (IndexError, ValueError):
+                logger.warning(f"Could not extract port from '{args.proxy}', using default port")
+        else:
+            # If no port specified, use the host as-is
+            proxy_host = args.proxy
+            logger.info(f"Using proxy host {proxy_host} from --proxy argument (with default port)")
+    elif proxy_host and ':' in proxy_host and not proxy_host.startswith('http'):
+        # For backward compatibility, also handle port in the proxy-host argument
         host_parts = proxy_host.split(':')
         proxy_host = host_parts[0]
         try:
@@ -503,7 +579,23 @@ Examples:
         except (IndexError, ValueError):
             logger.warning(f"Could not extract port from '{proxy_host}', using provided port {proxy_port}")
     
-    # If proxy settings weren't provided via command line, use config values
+    # Check if proxy host was explicitly provided
+    proxy_host_provided = args.proxy is not None or args.proxy_host is not None
+    
+    # Auto-detect proxy if not explicitly disabled and proxy host not provided
+    if not args.no_auto_detect and not proxy_host_provided:
+        detected_host, detected_port = detect_running_proxy()
+        
+        if detected_host and detected_port:
+            proxy_host = detected_host
+            logger.info(f"Using auto-detected proxy host: {proxy_host}")
+            
+            # Only use detected port if not explicitly provided
+            if proxy_port is None:
+                proxy_port = detected_port
+                logger.info(f"Using auto-detected proxy port: {proxy_port}")
+    
+    # If proxy settings still weren't provided, use config values
     if proxy_host is None:
         proxy_host = config["proxy_host"]
         logger.debug(f"Using proxy host from config: {proxy_host}")
@@ -515,15 +607,51 @@ Examples:
     # Determine if we should skip the proxy check
     skip_proxy_check = args.skip_proxy_check or config.get("skip_proxy_check", False)
     
-    # Check if proxy is explicitly configured via command line
-    proxy_explicitly_configured = any(arg.startswith('--proxy-host') or arg.startswith('--proxy-port') for arg in sys.argv)
-    
-    # Skip proxy check if explicitly requested or if proxy is explicitly configured
-    if skip_proxy_check or proxy_explicitly_configured:
+    # Skip proxy check if explicitly requested
+    if skip_proxy_check:
         logger.info(f"Skipping proxy connection check (using {proxy_host}:{proxy_port})")
     else:
+        # First check if proxy is running
         if not check_proxy_connection(proxy_host, proxy_port):
-            sys.exit(1)
+            # If not running and not explicitly provided, try to auto-detect
+            if not proxy_host_provided and not args.no_auto_detect:
+                logger.warning(f"No proxy detected at {proxy_host}:{proxy_port}, attempting to auto-detect...")
+                detected_host, detected_port = detect_running_proxy()
+                
+                if detected_host and detected_port:
+                    proxy_host = detected_host
+                    proxy_port = detected_port
+                    logger.info(f"Using auto-detected proxy: {proxy_host}:{proxy_port}")
+                else:
+                    # No proxy detected, show error and exit
+                    logger.error(f"No proxy detected at {proxy_host}:{proxy_port} and auto-detection failed")
+                    print("\n[!] PROXY CONNECTION ERROR [!]")
+                    print(f"[!] No proxy detected at {proxy_host}:{proxy_port}")
+                    print("[!] Please start one of the following proxy tools:")
+                    print("    - Burp Suite (default: localhost:8080)")
+                    print("    - OWASP ZAP (default: localhost:8090)")
+                    print("    - Mitmproxy (default: localhost:8081)")
+                    print("    - Charles Proxy (default: localhost:8888)")
+                    print("    - Fiddler (default: localhost:8888)")
+                    print("[!] Or specify a custom proxy with --proxy host:port")
+                    print("[!] Exiting...")
+                    sys.exit(1)
+            else:
+                # Proxy was explicitly provided but not running
+                logger.error(f"Proxy not running at {proxy_host}:{proxy_port}")
+                print("\n[!] PROXY CONNECTION ERROR [!]")
+                print(f"[!] No proxy detected at {proxy_host}:{proxy_port}")
+                print("[!] Please verify your proxy settings and ensure the proxy is running")
+                print("[!] Exiting...")
+                sys.exit(1)
+        
+        # Verify proxy works by making a test request
+        if not verify_proxy_with_request(proxy_host, proxy_port):
+            logger.warning("Proxy connection test failed, but will attempt to continue anyway")
+            print("\n[!] PROXY WARNING [!]")
+            print(f"[!] Proxy at {proxy_host}:{proxy_port} is running but test request failed")
+            print("[!] This might indicate proxy configuration issues")
+            print("[!] Continuing anyway, but requests might fail...")
     
     # Save config if requested
     if args.save_config:
