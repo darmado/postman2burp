@@ -120,6 +120,11 @@ Output Options:
 Proxy Profiles:
   -profile [PROFILE]    Use specific proxy profile or select from available profiles if no file specified. Omit to select when multiple profiles
                         exist.
+
+Custom Headers:
+  --header HEADER       Add custom header in format 'Key:Value'. Can be specified multiple times. These headers will be added to all requests and
+                        will override any existing headers with the same name. Example: --header 'X-API-Key:12345' --header 'User-
+                        Agent:PostmanToBurp'
 ```
 
 

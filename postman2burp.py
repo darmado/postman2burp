@@ -804,7 +804,7 @@ def resolve_collection_path(collection_path: str) -> str:
 class PostmanToBurp:
     def __init__(self, collection_path: str, target_profile: str = None, proxy_host: str = None, proxy_port: int = None,
                  verify_ssl: bool = False, auto_detect_proxy: bool = True,
-                 verbose: bool = False):
+                 verbose: bool = False, custom_headers: List[str] = None):
         """
         Initialize the PostmanToBurp converter.
         
@@ -816,6 +816,7 @@ class PostmanToBurp:
             verify_ssl: Whether to verify SSL certificates
             auto_detect_proxy: Whether to auto-detect proxy settings
             verbose: Whether to enable verbose logging
+            custom_headers: List of custom headers in format "Key:Value"
         """
         self.collection_path = collection_path
         self.target_profile = target_profile
@@ -825,6 +826,14 @@ class PostmanToBurp:
         self.auto_detect_proxy = auto_detect_proxy
         self.log_path = None
         self.verbose = verbose
+        self.custom_headers = {}
+        
+        # Process custom headers if provided
+        if custom_headers:
+            for header in custom_headers:
+                if ":" in header:
+                    key, value = header.split(":", 1)
+                    self.custom_headers[key.strip()] = value.strip()
         
         self.collection = None
         self.environment = {}
@@ -1131,6 +1140,13 @@ class PostmanToBurp:
             key = self.replace_variables(header.get("key", ""))
             value = self.replace_variables(header.get("value", ""))
             headers[key] = value
+        
+        # Add custom headers if any
+        if self.custom_headers:
+            self.logger.debug(f"Adding {len(self.custom_headers)} custom headers")
+            for key, value in self.custom_headers.items():
+                headers[key] = self.replace_variables(value)
+                self.logger.debug(f"Added custom header: {key}")
         
         # Prepare request data
         prepared_request = {
@@ -1832,6 +1848,13 @@ def main():
     proxy_group.add_argument("-profile", nargs="?", const="select", 
                              help="Use specific proxy profile or select from available profiles if no file specified. Omit to select when multiple profiles exist.")
     
+    # Custom header options
+    header_group = parser.add_argument_group("Custom Headers")
+    header_group.add_argument("--header", action="append", 
+                             help="Add custom header in format 'Key:Value'. Can be specified multiple times. "
+                                  "These headers will be added to all requests and will override any existing headers with the same name."
+                                  " Example: --header 'X-API-Key:12345' --header 'User-Agent:PostmanToBurp'")
+    
     args = parser.parse_args()
     
     # Configure logging
@@ -1937,7 +1960,8 @@ def main():
         proxy_port=proxy_port,
         verify_ssl=args.verify_ssl or proxy.get("verify_ssl", False),
         auto_detect_proxy=True,  # Always enable auto-detection
-        verbose=args.verbose or proxy.get("verbose", False)
+        verbose=args.verbose or proxy.get("verbose", False),
+        custom_headers=args.header
     )
     
     # Set up logging to file if requested
