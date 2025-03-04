@@ -11,7 +11,7 @@ Usage:
         python postman2burp.py --collection <collection.json>
     
     Environment Variables:
-        python postman2burp.py --collection <collection.json> --environment <environment.json>
+        python postman2burp.py --collection <collection.json> --target-profile <environment.json>
     
     Proxy Settings:
         python postman2burp.py --collection <collection.json> --proxy-host <host> --proxy-port <port>
@@ -75,10 +75,14 @@ COMMON_PROXIES = [
 ]
 
 # Path to config file
-CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+CONFIG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config")
+CONFIG_FILE_PATH = os.path.join(CONFIG_DIR, "config.json")
 
 # Path to variables templates directory
-VARIABLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "variables")
+VARIABLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "profiles")
+
+# Path to collections directory
+COLLECTIONS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "collections")
 
 def validate_json_file(file_path: str) -> Tuple[bool, Optional[Dict]]:
     """
@@ -103,10 +107,20 @@ def load_config() -> Dict:
     """
     Load configuration from config.json file if it exists,
     otherwise return default configuration.
+    If the config file exists but is malformed, return an empty dictionary
+    to ensure we rely only on command-line arguments.
     """
     config = DEFAULT_CONFIG.copy()
     
     try:
+        # Create config directory if it doesn't exist
+        if not os.path.exists(CONFIG_DIR):
+            try:
+                os.makedirs(CONFIG_DIR)
+                logger.debug(f"Created config directory at {CONFIG_DIR}")
+            except Exception as e:
+                logger.warning(f"Could not create config directory: {e}")
+        
         if os.path.exists(CONFIG_FILE_PATH):
             # Validate the JSON file before loading
             is_valid, parsed_config = validate_json_file(CONFIG_FILE_PATH)
@@ -119,6 +133,8 @@ def load_config() -> Dict:
                 logger.info(f"Loaded configuration from {config_dir}/{config_file}")
             else:
                 logger.warning(f"Config file {os.path.basename(CONFIG_FILE_PATH)} is malformed, using default settings")
+                # Return empty dictionary to ensure we rely only on command-line arguments
+                return {}
         else:
             logger.info(f"No config file found at {os.path.basename(CONFIG_FILE_PATH)}, using default settings")
             # Auto-generate config file with default settings
@@ -130,6 +146,8 @@ def load_config() -> Dict:
                 logger.warning(f"Could not create default config file: {e}")
     except Exception as e:
         logger.warning(f"Error loading config file: {e}. Using default settings.")
+        # Return empty dictionary to ensure we rely only on command-line arguments
+        return {}
     
     return config
 
@@ -362,26 +380,32 @@ def extract_variables_from_collection(collection_path: str) -> Tuple[Set[str], O
     logger.info(f"Found {len(variables)} unique variables in collection")
     return variables, collection_id
 
-def generate_variables_template(variables: Set[str], output_path: str, collection_id: Optional[str] = None) -> None:
+def generate_variables_template(collection_path: str, output_path: str) -> None:
     """
-    Generate a Postman environment template file with the extracted variables.
-    If collection_id is provided and output_path is not specified, the file will be saved
-    in the variables directory with the collection ID as the filename.
+    Extract variables from a collection and generate a Postman environment template file.
+    The template will be saved in the profiles directory if output_path is not an absolute path.
+    
+    Args:
+        collection_path: Path to the Postman collection JSON file
+        output_path: Path to save the variables template file
     """
-    # Create variables directory if it doesn't exist
+    # Extract variables from collection
+    variables, collection_id = extract_variables_from_collection(collection_path)
+    
+    # Create profiles directory if it doesn't exist
     if not os.path.exists(VARIABLES_DIR):
         try:
             os.makedirs(VARIABLES_DIR)
-            logger.debug(f"Created variables directory at {VARIABLES_DIR}")
+            logger.debug(f"Created profiles directory at {VARIABLES_DIR}")
         except Exception as e:
-            logger.warning(f"Could not create variables directory: {e}")
+            logger.warning(f"Could not create profiles directory: {e}")
     
     # If collection_id is provided and output_path is the default, use collection_id for filename
     if collection_id and output_path == "variables_template.json":
         output_path = os.path.join(VARIABLES_DIR, f"{collection_id}.json")
         logger.info(f"Using collection ID for filename: {os.path.basename(output_path)}")
     elif not os.path.isabs(output_path) and not output_path.startswith('./'):
-        # If output_path is not an absolute path or doesn't start with ./, put it in variables dir
+        # If output_path is not an absolute path or doesn't start with ./, put it in profiles dir
         output_path = os.path.join(VARIABLES_DIR, output_path)
     
     template = {
@@ -408,118 +432,182 @@ def generate_variables_template(variables: Set[str], output_path: str, collectio
     try:
         with open(output_path, 'w') as f:
             json.dump(template, f, indent=2)
-        logger.info(f"Variables template saved to {output_path}")
         
-        # Print a more detailed summary with the actual variable names
-        print(f"\n[✓] Successfully extracted {len(variables)} variables to {output_path}")
-        print("\n[Variables Found]")
-        print("----------------")
-        # Group variables in columns if there are many
-        var_list = sorted(variables)
-        if len(var_list) > 6:
-            # Create columns for better readability
-            col_width = max(len(var) for var in var_list) + 4  # Add padding
-            cols = 3  # Number of columns
-            rows = (len(var_list) + cols - 1) // cols  # Ceiling division
-            
-            for i in range(rows):
-                row = []
-                for j in range(cols):
-                    idx = i + j * rows
-                    if idx < len(var_list):
-                        row.append(var_list[idx].ljust(col_width))
-                    else:
-                        row.append("")
-                print("".join(row))
-        else:
-            # For a small number of variables, just list them one per line
-            for var in var_list:
-                print(f"- {var}")
+        # Print a more concise output with just the path and next command
+        relative_path = os.path.relpath(output_path)
+        profile_filename = os.path.basename(output_path)
         
-        print("\n[✓] Edit this file to add your values, then use it with --environment")
+        # Wrap filenames in single quotes if they contain spaces
+        collection_name = f"'{os.path.basename(collection_path)}'" if ' ' in os.path.basename(collection_path) else os.path.basename(collection_path)
+        profile_name = f"'{profile_filename}'" if ' ' in profile_filename else profile_filename
+        
+        print(f"\n[✓] Successfully extracted {len(variables)} variables to {relative_path}")
+        print(f"\nNext command to run:")
+        print(f"python3 postman2burp.py --collection {collection_name} --target-profile {profile_name}")
+        
     except Exception as e:
         logger.error(f"Failed to save variables template: {e}")
         sys.exit(1)
 
+def save_config(config: Dict) -> bool:
+    """
+    Save configuration to config.json file.
+    
+    Args:
+        config: Configuration dictionary to save
+        
+    Returns:
+        bool: True if the configuration was saved successfully, False otherwise
+    """
+    try:
+        # Create config directory if it doesn't exist
+        if not os.path.exists(CONFIG_DIR):
+            try:
+                os.makedirs(CONFIG_DIR)
+                logger.debug(f"Created config directory at {CONFIG_DIR}")
+            except Exception as e:
+                logger.warning(f"Could not create config directory: {e}")
+                return False
+        
+        with open(CONFIG_FILE_PATH, 'w') as f:
+            json.dump(config, f, indent=4)
+        logger.info(f"Configuration saved to {os.path.basename(CONFIG_DIR)}/{os.path.basename(CONFIG_FILE_PATH)}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to save configuration: {e}")
+        return False
+
+def resolve_collection_path(collection_path: str) -> str:
+    """
+    Resolve the collection path. If the path is not absolute and the file doesn't exist,
+    check if it exists in the collections directory.
+    
+    Args:
+        collection_path: Path to the collection file
+        
+    Returns:
+        str: Resolved path to the collection file
+    """
+    # If the path is absolute or the file exists, return it as is
+    if os.path.isabs(collection_path) or os.path.exists(collection_path):
+        return collection_path
+    
+    # Check if the file exists in the collections directory
+    collections_path = os.path.join(COLLECTIONS_DIR, os.path.basename(collection_path))
+    if os.path.exists(collections_path):
+        logger.debug(f"Found collection in collections directory: {os.path.basename(collections_path)}")
+        return collections_path
+    
+    # Create collections directory if it doesn't exist
+    if not os.path.exists(COLLECTIONS_DIR):
+        try:
+            os.makedirs(COLLECTIONS_DIR)
+            logger.debug(f"Created collections directory at {COLLECTIONS_DIR}")
+        except Exception as e:
+            logger.warning(f"Could not create collections directory: {e}")
+    
+    # If the file doesn't exist in the collections directory, return the original path
+    return collection_path
+
 class PostmanToBurp:
-    def __init__(
-        self,
-        collection_path: str,
-        environment_path: Optional[str] = None,
-        proxy_host: str = None,
-        proxy_port: int = None,
-        verify_ssl: bool = None,
-        output_file: Optional[str] = None
-    ):
-        # Load config
-        config = load_config()
+    def __init__(self, collection_path: str, target_profile: str = None, proxy_host: str = None, proxy_port: int = None,
+                 verify_ssl: bool = False, skip_proxy_check: bool = False, auto_detect_proxy: bool = True,
+                 output_path: str = None, verbose: bool = False):
+        """
+        Initialize the PostmanToBurp converter.
         
+        Args:
+            collection_path: Path to the Postman collection JSON file
+            target_profile: Path to the Postman environment JSON file
+            proxy_host: Proxy host
+            proxy_port: Proxy port
+            verify_ssl: Whether to verify SSL certificates
+            skip_proxy_check: Whether to skip proxy connection check
+            auto_detect_proxy: Whether to auto-detect proxy settings
+            output_path: Path to save the output file
+            verbose: Whether to enable verbose logging
+        """
         self.collection_path = collection_path
-        self.environment_path = environment_path
+        self.target_profile = target_profile
+        self.proxy_host = proxy_host
+        self.proxy_port = proxy_port
+        self.verify_ssl = verify_ssl
+        self.skip_proxy_check = skip_proxy_check
+        self.auto_detect_proxy = auto_detect_proxy
+        self.output_path = output_path
+        self.verbose = verbose
         
-        # Use provided values or fall back to config values
-        self.proxy_host = proxy_host if proxy_host is not None else config["proxy_host"]
-        self.proxy_port = proxy_port if proxy_port is not None else config["proxy_port"]
-        self.verify_ssl = verify_ssl if verify_ssl is not None else config["verify_ssl"]
-        
-        self.output_file = output_file
-        
-        # Construct proxy URLs
-        self.proxies = {
-            "http": f"http://{self.proxy_host}:{self.proxy_port}",
-            "https": f"http://{self.proxy_host}:{self.proxy_port}"
+        self.collection = None
+        self.environment = {}
+        self.results = {
+            "total": 0,
+            "success": 0,
+            "failed": 0,
+            "requests": []
         }
         
-        logger.debug(f"Using proxy settings - Host: {self.proxy_host}, Port: {self.proxy_port}")
-        logger.debug(f"Proxy URLs: {self.proxies}")
+        # Configure logging
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG if verbose else logging.INFO)
         
-        self.environment_variables = {}
-        self.collection_variables = {}
-        self.results = []
+        # Configure session
+        self.session = requests.Session()
+        self.session.verify = verify_ssl
 
-    def load_collection(self) -> Dict:
-        """Load the Postman collection from JSON file."""
-        try:
-            # Validate the JSON file before loading
-            is_valid, parsed_collection = validate_json_file(self.collection_path)
-            
-            if is_valid and parsed_collection:
-                return parsed_collection
-            else:
-                logger.error(f"Collection file {os.path.basename(self.collection_path)} is malformed")
-                sys.exit(1)
-        except Exception as e:
-            logger.error(f"Failed to load collection: {e}")
-            sys.exit(1)
-
-    def load_environment(self) -> None:
-        """Load the Postman environment variables if provided."""
-        if not self.environment_path:
-            return
+    def load_collection(self) -> bool:
+        """
+        Load the Postman collection from the specified file.
         
-        try:
-            # Validate the JSON file before loading
-            is_valid, parsed_env = validate_json_file(self.environment_path)
+        Returns:
+            bool: True if the collection was loaded successfully, False otherwise
+        """
+        self.logger.info(f"Loading collection: {os.path.basename(self.collection_path)}")
+        
+        # Validate the collection file
+        is_valid, json_data = validate_json_file(self.collection_path)
+        if not is_valid:
+            self.logger.error(f"Failed to load collection: {os.path.basename(self.collection_path)} - Malformed JSON")
+            return False
             
-            if not is_valid or not parsed_env:
-                logger.warning(f"Environment file {os.path.basename(self.environment_path)} is malformed, skipping environment variables")
-                return
-                
-            # Handle different Postman environment formats
-            if "values" in parsed_env:
-                for var in parsed_env["values"]:
-                    if "enabled" in var and not var["enabled"]:
-                        continue
-                    self.environment_variables[var["key"]] = var["value"]
-            elif "environment" in parsed_env and "values" in parsed_env["environment"]:
-                for var in parsed_env["environment"]["values"]:
-                    if "enabled" in var and not var["enabled"]:
-                        continue
-                    self.environment_variables[var["key"]] = var["value"]
+        self.collection = json_data
+        return True
+    
+    def load_profile(self) -> bool:
+        """
+        Load the Postman environment variables from the specified file.
+        If the path is not absolute, check in the profiles directory first.
+        
+        Returns:
+            bool: True if the environment was loaded successfully, False otherwise
+        """
+        if not self.target_profile:
+            return True
+        
+        # If the path is not absolute, check if it exists in the profiles directory
+        target_path = self.target_profile
+        if not os.path.isabs(target_path) and not os.path.exists(target_path):
+            profiles_path = os.path.join(VARIABLES_DIR, os.path.basename(target_path))
+            if os.path.exists(profiles_path):
+                target_path = profiles_path
+                self.logger.debug(f"Found profile in profiles directory: {os.path.basename(target_path)}")
             
-            logger.info(f"Loaded {len(self.environment_variables)} variables from environment file")
-        except Exception as e:
-            logger.warning(f"Failed to load environment: {e}. Continuing without environment variables.")
+        self.logger.info(f"Loading environment: {os.path.basename(target_path)}")
+        
+        # Validate the environment file
+        is_valid, json_data = validate_json_file(target_path)
+        if not is_valid:
+            self.logger.warning(f"Failed to load environment: {os.path.basename(target_path)} - Malformed JSON")
+            self.logger.warning("Continuing without environment variables")
+            return False
+            
+        # Extract environment variables
+        if "values" in json_data:
+            for var in json_data["values"]:
+                if "key" in var and "value" in var and var.get("enabled", True):
+                    self.environment[var["key"]] = var["value"]
+        
+        self.logger.info(f"Resolved {len(self.environment)} environment variables")
+        return True
 
     def replace_variables(self, text: str) -> str:
         """Replace Postman variables in the given text."""
@@ -527,12 +615,7 @@ class PostmanToBurp:
             return text
             
         # First try environment variables, then collection variables
-        for key, value in self.environment_variables.items():
-            if value is not None:
-                text = text.replace(f"{{{{${key}}}}}", str(value))
-                text = text.replace(f"{{{{{key}}}}}", str(value))
-                
-        for key, value in self.collection_variables.items():
+        for key, value in self.environment.items():
             if value is not None:
                 text = text.replace(f"{{{{${key}}}}}", str(value))
                 text = text.replace(f"{{{{{key}}}}}", str(value))
@@ -572,7 +655,7 @@ class PostmanToBurp:
         # Handle collection variables if present
         if "variable" in collection:
             for var in collection["variable"]:
-                self.collection_variables[var["key"]] = var["value"]
+                self.environment[var["key"]] = var["value"]
                 
         # Extract requests from items
         if "item" in collection:
@@ -645,18 +728,17 @@ class PostmanToBurp:
         headers = prepared_request["headers"]
         body = prepared_request["body"]
         
-        logger.info(f"Sending {method} request to {url}")
-        logger.debug(f"Using proxy: {self.proxies}")
+        self.logger.info(f"Sending {method} request to {url}")
+        self.logger.debug(f"Using proxy: {self.proxies}")
         
         try:
-            response = requests.request(
+            response = self.session.request(
                 method=method,
                 url=url,
                 headers=headers,
                 data=body if isinstance(body, (str, dict)) else None,
                 json=body if not isinstance(body, (str, dict)) and body is not None else None,
                 proxies=self.proxies,
-                verify=self.verify_ssl,
                 timeout=30
             )
             
@@ -671,11 +753,11 @@ class PostmanToBurp:
                 "success": 200 <= response.status_code < 300
             }
             
-            logger.info(f"Response: {response.status_code} ({result['response_time']:.2f}s)")
+            self.logger.info(f"Response: {response.status_code} ({result['response_time']:.2f}s)")
             return result
             
         except requests.exceptions.ProxyError as e:
-            logger.error(f"Proxy error: {e}")
+            self.logger.error(f"Proxy error: {e}")
             return {
                 "name": prepared_request["name"],
                 "folder": prepared_request["folder"],
@@ -685,7 +767,7 @@ class PostmanToBurp:
                 "success": False
             }
         except requests.exceptions.ConnectionError as e:
-            logger.error(f"Connection error: {e}")
+            self.logger.error(f"Connection error: {e}")
             return {
                 "name": prepared_request["name"],
                 "folder": prepared_request["folder"],
@@ -695,7 +777,7 @@ class PostmanToBurp:
                 "success": False
             }
         except Exception as e:
-            logger.error(f"Request failed: {e}")
+            self.logger.error(f"Request failed: {e}")
             return {
                 "name": prepared_request["name"],
                 "folder": prepared_request["folder"],
@@ -708,16 +790,16 @@ class PostmanToBurp:
     def process_collection(self) -> None:
         """Process the entire Postman collection and send requests through Burp."""
         # Load collection and environment
-        collection = self.load_collection()
-        self.load_environment()
+        self.load_collection()
+        self.load_profile()
         
         # Extract all requests
-        requests = self.extract_all_requests(collection)
-        logger.info(f"Found {len(requests)} requests in the collection")
+        requests = self.extract_all_requests(self.collection)
+        self.logger.info(f"Found {len(requests)} requests in the collection")
         
         # Process each request
         for i, request_data in enumerate(requests, 1):
-            logger.info(f"Processing request {i}/{len(requests)}: {request_data['name']}")
+            self.logger.info(f"Processing request {i}/{len(requests)}: {request_data['name']}")
             prepared_request = self.prepare_request(request_data)
             
             # Try the request with retries
@@ -733,227 +815,270 @@ class PostmanToBurp:
                 retry_count += 1
                 if retry_count < max_retries:
                     retry_delay = 2 ** retry_count  # Exponential backoff
-                    logger.warning(f"Request failed: {result.get('error')}. Retrying in {retry_delay}s... (Attempt {retry_count+1}/{max_retries})")
+                    self.logger.warning(f"Request failed: {result.get('error')}. Retrying in {retry_delay}s... (Attempt {retry_count+1}/{max_retries})")
                     time.sleep(retry_delay)
             
             if retry_count > 0 and not result.get("success", False):
-                logger.error(f"Request failed after {retry_count} retries: {result.get('error')}")
+                self.logger.error(f"Request failed after {retry_count} retries: {result.get('error')}")
             
-            self.results.append(result)
+            self.results["requests"].append(result)
             
         # Save results if output file is specified
-        if self.output_file:
-            with open(self.output_file, 'w') as f:
+        if self.output_path:
+            with open(self.output_path, 'w') as f:
                 json.dump(self.results, f, indent=2)
                 
         # Print summary
-        success_count = sum(1 for r in self.results if r.get("success", False))
-        logger.info(f"Summary: {success_count}/{len(self.results)} requests successful")
+        self.results["total"] = len(self.results["requests"])
+        self.results["success"] = sum(1 for r in self.results["requests"] if r.get("success", False))
+        self.results["failed"] = self.results["total"] - self.results["success"]
+        self.logger.info(f"Summary: {self.results['success']}/{self.results['total']} requests successful")
+
+    def run(self) -> Dict:
+        """
+        Run the conversion process.
+        
+        Returns:
+            Dict: Results of the conversion
+        """
+        # Check proxy connection
+        if not self.check_proxy():
+            return self.results
+            
+        # Load collection
+        if not self.load_collection():
+            return self.results
+            
+        # Load environment variables
+        self.load_profile()
+        
+        # Process collection
+        self.process_collection()
+        
+        # Save results
+        if self.output_path:
+            self.save_results()
+            
+        return self.results
+
+    def check_proxy(self) -> bool:
+        """
+        Check if the proxy is running and accessible.
+        Auto-detect proxy if enabled and not explicitly provided.
+        
+        Returns:
+            bool: True if proxy is available, False otherwise
+        """
+        # Set up proxy URLs
+        if self.proxy_host and self.proxy_port:
+            self.proxies = {
+                "http": f"http://{self.proxy_host}:{self.proxy_port}",
+                "https": f"http://{self.proxy_host}:{self.proxy_port}"
+            }
+            self.logger.debug(f"Using proxy: {self.proxies}")
+        else:
+            self.proxies = {}
+            
+        # Skip proxy check if requested
+        if self.skip_proxy_check:
+            self.logger.info(f"Skipping proxy connection check (using {self.proxy_host}:{self.proxy_port})")
+            return True
+            
+        # Auto-detect proxy if enabled and not explicitly provided
+        # This should run even if the config is empty/malformed
+        if self.auto_detect_proxy:
+            self.logger.info("Attempting to auto-detect running proxy...")
+            detected_host, detected_port = detect_running_proxy()
+            
+            if detected_host and detected_port:
+                self.proxy_host = detected_host
+                self.proxy_port = detected_port
+                self.proxies = {
+                    "http": f"http://{self.proxy_host}:{self.proxy_port}",
+                    "https": f"http://{self.proxy_host}:{self.proxy_port}"
+                }
+                self.logger.info(f"Using auto-detected proxy: {self.proxy_host}:{self.proxy_port}")
+                return True
+            else:
+                self.logger.error("No proxy detected on common ports")
+                
+                # Wrap filenames in single quotes to handle spaces
+                collection_name = f"'{os.path.basename(self.collection_path)}'" if ' ' in os.path.basename(self.collection_path) else os.path.basename(self.collection_path)
+                profile_name = f"'{os.path.basename(self.target_profile)}'" if self.target_profile and ' ' in os.path.basename(self.target_profile) else (os.path.basename(self.target_profile) if self.target_profile else 'profile.json')
+                
+                print("\nSuggestion:")
+                print("  1. Start your proxy (Burp Suite, ZAP, etc.) or")
+                print("  2. Run with --skip-proxy-check flag:")
+                print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --skip-proxy-check")
+                print("  3. Or specify a different proxy:")
+                print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --proxy host:port")
+                print("  4. Save your preferred configuration:")
+                print(f"     python3 postman2burp.py --collection {collection_name} --proxy host:port --save-config")
+                return False
+                
+        # Check if proxy is running (only if auto-detect is disabled or we have explicit proxy settings)
+        if not check_proxy_connection(self.proxy_host, self.proxy_port):
+            self.logger.error(f"Proxy not running at {self.proxy_host}:{self.proxy_port}")
+            
+            # Wrap filenames in single quotes to handle spaces
+            collection_name = f"'{os.path.basename(self.collection_path)}'" if ' ' in os.path.basename(self.collection_path) else os.path.basename(self.collection_path)
+            profile_name = f"'{os.path.basename(self.target_profile)}'" if self.target_profile and ' ' in os.path.basename(self.target_profile) else (os.path.basename(self.target_profile) if self.target_profile else 'profile.json')
+            
+            print("\nSuggestion:")
+            print("  1. Start your proxy (Burp Suite, ZAP, etc.) or")
+            print("  2. Run with --skip-proxy-check flag:")
+            print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --skip-proxy-check")
+            print("  3. Or specify a different proxy:")
+            print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --proxy host:port")
+            print("  4. Save your preferred configuration:")
+            print(f"     python3 postman2burp.py --collection {collection_name} --proxy host:port --save-config")
+            return False
+            
+        # Verify proxy works by making a test request
+        try:
+            test_url = "https://httpbin.org/get"
+            response = self.session.get(
+                test_url,
+                proxies=self.proxies,
+                timeout=5
+            )
+            
+            if response.status_code == 200:
+                self.logger.info(f"Proxy test request successful through {self.proxy_host}:{self.proxy_port}")
+                return True
+            else:
+                self.logger.warning(f"Proxy test request failed with status code {response.status_code}")
+                
+                # Wrap filenames in single quotes to handle spaces
+                collection_name = f"'{os.path.basename(self.collection_path)}'" if ' ' in os.path.basename(self.collection_path) else os.path.basename(self.collection_path)
+                profile_name = f"'{os.path.basename(self.target_profile)}'" if self.target_profile and ' ' in os.path.basename(self.target_profile) else (os.path.basename(self.target_profile) if self.target_profile else 'profile.json')
+                
+                print("\nSuggestion:")
+                print("  1. Check if your proxy is configured correctly")
+                print("  2. Run with --skip-proxy-check flag:")
+                print(f"     python3 postman2burp.py --collection {collection_name} --target-profile {profile_name} --skip-proxy-check")
+                return False
+        except requests.exceptions.RequestException as e:
+            self.logger.warning(f"Proxy test request failed: {str(e)}")
+            self.logger.warning("Continuing anyway, but requests might fail")
+            return True  # Continue anyway to allow for internal proxies
+            
+    def save_results(self) -> None:
+        """
+        Save the results to a JSON file.
+        """
+        try:
+            with open(self.output_path, 'w') as f:
+                json.dump(self.results, f, indent=2)
+            self.logger.info(f"Results saved to {self.output_path}")
+        except Exception as e:
+            self.logger.error(f"Failed to save results: {e}")
 
 def main():
-    # Load config first
+    """
+    Main entry point for the script.
+    """
+    # Load configuration
     config = load_config()
     
-    parser = argparse.ArgumentParser(
-        description="Postman2Burp - Send Postman collection requests through Burp Suite proxy",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  Basic scan:
-    python postman2burp.py --collection api_collection.json
-  
-  With environment variables:
-    python postman2burp.py --collection api_collection.json --environment variables.json
-  
-  Custom proxy settings:
-    python postman2burp.py --collection api_collection.json --proxy localhost:8080
-  
-  Save results and configuration:
-    python postman2burp.py --collection api_collection.json --output results.json --save-config
-    
-  Extract variables:
-    python postman2burp.py --collection api_collection.json --extract-keys variables_template.json
-"""
-    )
-    
-    # Required arguments
-    parser.add_argument("--collection", required=True, 
-                      help="Path to Postman collection JSON file")
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Convert Postman collections to Burp Suite requests")
+    parser.add_argument("--collection", required=True, help="Path to Postman collection JSON file")
     
     # Environment options
-    env_group = parser.add_argument_group('Environment Options')
-    env_group.add_argument("--environment", 
-                         help="Path to Postman environment JSON file")
-    env_group.add_argument("--extract-keys", nargs='?', const="variables_template.json", metavar="OUTPUT_FILE",
-                         help="Extract all variables from collection and save to template file (default: variables_template.json)")
+    env_group = parser.add_argument_group("Environment Options")
+    env_group.add_argument("--target-profile", help="Path to Postman environment JSON file")
+    env_group.add_argument("--extract-keys", nargs="?", const="variables_template.json", metavar="OUTPUT_FILE",
+                          help="Extract all variables from collection and save to template file (default: variables_template.json)")
     
     # Proxy options
-    proxy_group = parser.add_argument_group('Proxy Options')
-    proxy_group.add_argument("--proxy", default=None, 
-                           help="Proxy in format host:port (e.g., localhost:8080)")
-    proxy_group.add_argument("--proxy-host", default=None, 
-                           help="Proxy hostname/IP (default: auto-detected)")
-    proxy_group.add_argument("--proxy-port", type=int, default=None, 
-                           help="Proxy port (default: auto-detected or from config.json)")
-    proxy_group.add_argument("--verify-ssl", action="store_true", 
-                           help="Verify SSL certificates")
-    proxy_group.add_argument("--skip-proxy-check", action="store_true", 
-                           help="Skip proxy connection check")
-    proxy_group.add_argument("--no-auto-detect", action="store_true", 
-                           help="Disable proxy auto-detection (use config values only)")
+    proxy_group = parser.add_argument_group("Proxy Options")
+    proxy_group.add_argument("--proxy", help="Proxy in host:port format")
+    proxy_group.add_argument("--proxy-host", help="Proxy host")
+    proxy_group.add_argument("--proxy-port", type=int, help="Proxy port")
+    proxy_group.add_argument("--verify-ssl", action="store_true", help="Verify SSL certificates")
+    proxy_group.add_argument("--skip-proxy-check", action="store_true", help="Skip proxy connection check")
+    proxy_group.add_argument("--no-auto-detect", action="store_true", help="Disable auto-detection of proxy settings")
     
     # Output options
-    output_group = parser.add_argument_group('Output Options')
-    output_group.add_argument("--output", 
-                            help="Save results to JSON file")
-    output_group.add_argument("--verbose", action="store_true", 
-                            help="Enable detailed logging")
-    
-    # Configuration options
-    config_group = parser.add_argument_group('Configuration Options')
-    config_group.add_argument("--save-config", action="store_true", 
-                            help="Save current settings to config.json")
+    output_group = parser.add_argument_group("Output Options")
+    output_group.add_argument("--output", help="Path to save the output file")
+    output_group.add_argument("--verbose", action="store_true", help="Enable verbose logging")
+    output_group.add_argument("--save-config", action="store_true", help="Save current settings as default configuration")
     
     args = parser.parse_args()
     
-    if args.verbose:
-        logger.setLevel(logging.DEBUG)
+    # Configure logging
+    log_format = "%(asctime)s - %(levelname)s - %(message)s"
+    log_date_format = "%Y-%m-%d %H:%M:%S"
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
+                        format=log_format, datefmt=log_date_format)
+    logger = logging.getLogger(__name__)
     
-    # Handle extract-keys mode
+    # Resolve collection path
+    collection_path = resolve_collection_path(args.collection)
+    
+    # Extract variables from collection if requested
     if args.extract_keys is not None:
-        output_file = args.extract_keys if args.extract_keys != True else "variables_template.json"
-        variables, collection_id = extract_variables_from_collection(args.collection)
-        generate_variables_template(variables, output_file, collection_id)
+        generate_variables_template(collection_path, args.extract_keys)
         return
     
-    # Extract host and port from the combined proxy argument if provided
-    proxy_host = args.proxy_host
-    proxy_port = args.proxy_port
+    # Parse proxy settings - prioritize command line arguments over config
+    # If config is empty (due to malformed config file), use DEFAULT_CONFIG values only if no command line args
+    proxy_host = args.proxy_host or config.get("proxy_host") or DEFAULT_CONFIG["proxy_host"]
+    proxy_port = args.proxy_port or config.get("proxy_port") or DEFAULT_CONFIG["proxy_port"]
     
     if args.proxy:
-        # Parse the combined proxy argument (host:port)
-        if ':' in args.proxy:
-            host_parts = args.proxy.split(':')
-            proxy_host = host_parts[0]
-            try:
-                proxy_port = int(host_parts[1])
-                logger.info(f"Using proxy {proxy_host}:{proxy_port} from --proxy argument")
-            except (IndexError, ValueError):
-                logger.warning(f"Could not extract port from '{args.proxy}', using default port")
-        else:
-            # If no port specified, use the host as-is
-            proxy_host = args.proxy
-            logger.info(f"Using proxy host {proxy_host} from --proxy argument (with default port)")
-    elif proxy_host and ':' in proxy_host and not proxy_host.startswith('http'):
-        # For backward compatibility, also handle port in the proxy-host argument
-        host_parts = proxy_host.split(':')
-        proxy_host = host_parts[0]
         try:
-            proxy_port = int(host_parts[1])
-            logger.info(f"Using port {proxy_port} from proxy host string")
+            proxy_parts = args.proxy.split(":")
+            proxy_host = proxy_parts[0]
+            proxy_port = int(proxy_parts[1])
         except (IndexError, ValueError):
-            logger.warning(f"Could not extract port from '{proxy_host}', using provided port {proxy_port}")
+            logger.error("Invalid proxy format. Use host:port")
+            return
     
-    # Check if proxy host was explicitly provided
-    proxy_host_provided = args.proxy is not None or args.proxy_host is not None
+    # Create converter instance
+    converter = PostmanToBurp(
+        collection_path=collection_path,
+        target_profile=args.target_profile,
+        proxy_host=proxy_host,
+        proxy_port=proxy_port,
+        verify_ssl=args.verify_ssl or config.get("verify_ssl", DEFAULT_CONFIG["verify_ssl"]),
+        skip_proxy_check=args.skip_proxy_check or config.get("skip_proxy_check", DEFAULT_CONFIG["skip_proxy_check"]),
+        auto_detect_proxy=not args.no_auto_detect and config.get("auto_detect_proxy", True),
+        output_path=args.output or config.get("output_path"),
+        verbose=args.verbose or config.get("verbose", False)
+    )
     
-    # Auto-detect proxy if not explicitly disabled and proxy host not provided
-    if not args.no_auto_detect and not proxy_host_provided:
-        detected_host, detected_port = detect_running_proxy()
-        
-        if detected_host and detected_port:
-            proxy_host = detected_host
-            logger.info(f"Using auto-detected proxy host: {proxy_host}")
-            
-            # Only use detected port if not explicitly provided
-            if proxy_port is None:
-                proxy_port = detected_port
-                logger.info(f"Using auto-detected proxy port: {proxy_port}")
+    # Run conversion
+    results = converter.run()
     
-    # If proxy settings still weren't provided, use config values
-    if proxy_host is None:
-        proxy_host = config["proxy_host"]
-        logger.debug(f"Using proxy host from config: {proxy_host}")
+    # Print summary
+    print("\nSummary:")
+    print(f"  Total requests: {results['total']}")
+    print(f"  Successful: {results['success']}")
+    print(f"  Failed: {results['failed']}")
     
-    if proxy_port is None:
-        proxy_port = config["proxy_port"]
-        logger.debug(f"Using proxy port from config: {proxy_port}")
-    
-    # Determine if we should skip the proxy check
-    skip_proxy_check = args.skip_proxy_check or config.get("skip_proxy_check", False)
-    
-    # Skip proxy check if explicitly requested
-    if skip_proxy_check:
-        logger.info(f"Skipping proxy connection check (using {proxy_host}:{proxy_port})")
-    else:
-        # First check if proxy is running
-        if not check_proxy_connection(proxy_host, proxy_port):
-            # If not running and not explicitly provided, try to auto-detect
-            if not proxy_host_provided and not args.no_auto_detect:
-                logger.warning(f"No proxy detected at {proxy_host}:{proxy_port}, attempting to auto-detect...")
-                detected_host, detected_port = detect_running_proxy()
-                
-                if detected_host and detected_port:
-                    proxy_host = detected_host
-                    proxy_port = detected_port
-                    logger.info(f"Using auto-detected proxy: {proxy_host}:{proxy_port}")
-                else:
-                    # No proxy detected, show error and exit
-                    logger.error(f"No proxy detected at {proxy_host}:{proxy_port} and auto-detection failed")
-                    print("\n[!] PROXY CONNECTION ERROR [!]")
-                    print(f"[!] No proxy detected at {proxy_host}:{proxy_port}")
-                    print("[!] Please start one of the following proxy tools:")
-                    print("    - Burp Suite (default: localhost:8080)")
-                    print("    - OWASP ZAP (default: localhost:8090)")
-                    print("    - Mitmproxy (default: localhost:8081)")
-                    print("    - Charles Proxy (default: localhost:8888)")
-                    print("    - Fiddler (default: localhost:8888)")
-                    print("[!] Or specify a custom proxy with --proxy host:port")
-                    print("[!] Exiting...")
-                    sys.exit(1)
-            else:
-                # Proxy was explicitly provided but not running
-                logger.error(f"Proxy not running at {proxy_host}:{proxy_port}")
-                print("\n[!] PROXY CONNECTION ERROR [!]")
-                print(f"[!] No proxy detected at {proxy_host}:{proxy_port}")
-                print("[!] Please verify your proxy settings and ensure the proxy is running")
-                print("[!] Exiting...")
-                sys.exit(1)
-        
-        # Verify proxy works by making a test request
-        if not verify_proxy_with_request(proxy_host, proxy_port):
-            logger.warning("Proxy connection test failed, but will attempt to continue anyway")
-            print("\n[!] PROXY WARNING [!]")
-            print(f"[!] Proxy at {proxy_host}:{proxy_port} is running but test request failed")
-            print("[!] This might indicate proxy configuration issues")
-            print("[!] Continuing anyway, but requests might fail...")
-    
-    # Save config if requested
+    # Save configuration if requested
     if args.save_config:
+        # Create a comprehensive configuration with all settings
         new_config = {
             "proxy_host": proxy_host,
             "proxy_port": proxy_port,
-            "verify_ssl": args.verify_ssl,
-            "skip_proxy_check": skip_proxy_check
+            "verify_ssl": args.verify_ssl or config.get("verify_ssl", DEFAULT_CONFIG["verify_ssl"]),
+            "skip_proxy_check": args.skip_proxy_check or config.get("skip_proxy_check", DEFAULT_CONFIG["skip_proxy_check"]),
+            "auto_detect_proxy": not args.no_auto_detect and config.get("auto_detect_proxy", True),
+            "output_path": args.output or config.get("output_path"),
+            "verbose": args.verbose or config.get("verbose", False),
+            "last_collection": os.path.basename(collection_path),
+            "last_target_profile": os.path.basename(args.target_profile) if args.target_profile else None
         }
         
-        try:
-            with open(CONFIG_FILE_PATH, 'w') as f:
-                json.dump(new_config, f, indent=4)
-            logger.info(f"Configuration saved to {os.path.basename(CONFIG_FILE_PATH)}")
-        except Exception as e:
-            logger.error(f"Failed to save configuration: {e}")
-    
-    processor = PostmanToBurp(
-        collection_path=args.collection,
-        environment_path=args.environment,
-        proxy_host=proxy_host,
-        proxy_port=proxy_port,
-        verify_ssl=args.verify_ssl,
-        output_file=args.output
-    )
-    
-    processor.process_collection()
+        if save_config(new_config):
+            print("\nConfiguration saved to config/config.json")
+            print("You can now run the tool without specifying these options again.")
+        else:
+            logger.error("Failed to save configuration")
 
 if __name__ == "__main__":
     main() 

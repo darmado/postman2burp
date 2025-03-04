@@ -1,17 +1,37 @@
 # Postman2Burp
 
+<div align="center">
+
 [![Python](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Burp Suite](https://img.shields.io/badge/Burp%20Suite-Compatible-orange.svg)](https://portswigger.net/burp)
-[![Postman](https://img.shields.io/badge/Postman-Collection-orange.svg)](https://www.postman.com/)
+[![Postman](https://img.shields.io/badge/Postman-v11.35.0-orange.svg)](https://www.postman.com/)
+[![Postman Collections](https://img.shields.io/badge/Postman%20Collections-v2.1-orange.svg)](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
 
-> **Problem Statement:** Security teams need to efficiently test API endpoints in Burp Suite but manually recreating Postman collections is time-consuming and error-prone.
+</div>
+
+> **Problem Statement:** Security teams need to manually import postman collections into BurpSuite. It's time-consuming and error-prone.
 
 Postman2Burp bridges the gap between API development and security testing by automatically sending Postman collection requests through Burp Suite proxy.
 
+## 🔮 Assumptions
+
+The user operates under the following assumptions:
+
+| Assumption | Description |
+|------------|-------------|
+| 📁 Collection Location | User has exported a Postman collection to the `/collections` directory of this repository |
+| 🧩 Collection Format | The exported collection follows Postman Collection v2.1 format |
+| 🔄 Variable Usage | Collection may contain environment variables that need resolution |
+| 🌐 Proxy Availability | A proxy (like Burp Suite) is running and accessible |
+| 🔒 Authentication | Any required authentication tokens can be provided via environment variables |
+
 ## 📋 Table of Contents
+<details>
+<summary>Table of Contents</summary>
 
 - [Postman2Burp](#postman2burp)
+  - [🔮 Assumptions](#-assumptions)
   - [📋 Table of Contents](#-table-of-contents)
   - [🎯 Purpose](#-purpose)
   - [🔍 Use Cases](#-use-cases)
@@ -27,6 +47,8 @@ Postman2Burp bridges the gap between API development and security testing by aut
   - [🚀 Usage](#-usage)
     - [Run Script](#run-script)
     - [Manual Usage](#manual-usage)
+      - [Examples](#examples)
+      - [Complete Session](#complete-session)
   - [⚙️ Options](#️-options)
   - [✨ Features](#-features)
   - [📈 Testing Workflow](#-testing-workflow)
@@ -38,10 +60,11 @@ Postman2Burp bridges the gap between API development and security testing by aut
     - [Code Style](#code-style)
     - [Bug Reports](#bug-reports)
     - [Feature Requests](#feature-requests)
+</details>
 
 ## 🎯 Purpose
 
-This tool automates API security testing by:
+To automate API security testing by:
 
 | Step | Description |
 |------|-------------|
@@ -109,7 +132,7 @@ Summary:
 Using environment variables for authenticated API testing:
 
 ```bash
-$ python postman2burp.py --collection secure_api.json --environment prod_env.json
+$ python postman2burp.py --collection secure_api.json --target-profile prod_env.json
 2024-03-04 10:30:45 - INFO - Attempting to auto-detect running proxy...
 2024-03-04 10:30:45 - INFO - Detected running proxy at localhost:8080
 2024-03-04 10:30:45 - INFO - Proxy connection successful at localhost:8080
@@ -172,9 +195,9 @@ Extract all variables from a Postman collection to create an environment templat
 $ python postman2burp.py --collection api_collection.json --extract-keys
 2024-03-04 11:15:05 - INFO - Extracting variables from collection: api_collection.json
 2024-03-04 11:15:05 - INFO - Found 12 unique variables in collection
-2024-03-04 11:15:05 - INFO - Variables template saved to variables/f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json
+2024-03-04 11:15:05 - INFO - Variables template saved to profiles/f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json
 
-[✓] Successfully extracted 12 variables to variables/f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json
+[✓] Successfully extracted 12 variables to profiles/f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json
 
 [Variables Found]
 ----------------
@@ -183,10 +206,10 @@ base_url         password         smtp_username
 card_token       product_id       user_id          
 category_id      product_id_2     username         
 
-[✓] Edit this file to add your values, then use it with --environment
+[✓] Edit this file to add your values, then use it with --target-profile
 ```
 
-The extracted variables are saved to a file in the `variables` directory, using the Postman collection ID as the filename. This makes it easy to manage environment templates for different collections.
+The extracted variables are saved to a file in the `profiles` directory, using the Postman collection ID as the filename. This makes it easy to manage environment templates for different collections.
 
 ## 📦 Requirements
 
@@ -254,7 +277,7 @@ This script:
 | **Basic Usage** | |
 | `python postman2burp.py --collection FILE` | Process a Postman collection |
 | **Environment Variables** | |
-| `--environment FILE` | Use Postman environment variables |
+| `--target-profile FILE` | Use Postman environment variables |
 | `--extract-keys [FILE]` | Extract variables from collection to template file |
 | **Proxy Settings** | |
 | `--proxy HOST:PORT` | Specify proxy in host:port format |
@@ -276,7 +299,7 @@ python postman2burp.py --collection api_collection.json
 
 **With environment variables:**
 ```bash
-python postman2burp.py --collection api_collection.json --environment variables.json
+python postman2burp.py --collection api_collection.json --target-profile variables.json
 ```
 
 **Custom proxy settings:**
@@ -301,7 +324,7 @@ python postman2burp.py --collection api_collection.json --extract-keys
 source venv/bin/activate
 
 # 2. Run the tool
-python postman2burp.py --collection api_collection.json --environment variables.json
+python postman2burp.py --collection api_collection.json --target-profile variables.json
 
 # 3. Deactivate when done
 deactivate
@@ -310,7 +333,7 @@ deactivate
 ## ⚙️ Options
 
 ```
-usage: postman2burp.py [-h] --collection COLLECTION [--environment ENVIRONMENT]
+usage: postman2burp.py [-h] --collection COLLECTION [--target-profile ENVIRONMENT]
                        [--extract-keys [OUTPUT_FILE]] [--proxy PROXY] 
                        [--proxy-host PROXY_HOST] [--proxy-port PROXY_PORT]
                        [--verify-ssl] [--skip-proxy-check] [--no-auto-detect]
@@ -322,7 +345,7 @@ options:
                         Path to Postman collection JSON file
 
 Environment Options:
-  --environment ENVIRONMENT
+  --target-profile ENVIRONMENT
                         Path to Postman environment JSON file
   --extract-keys [OUTPUT_FILE]
                         Extract all variables from collection and save to template file
@@ -360,14 +383,14 @@ Configuration Options:
 | ⚙️ Configuration File | Stores settings in config.json |
 | 🔑 Variable Extraction | Extracts variables from collections to create environment templates |
 | 🛡️ JSON Validation | Validates JSON files before loading to prevent errors |
-| 📂 Variables Directory | Organizes variable templates by collection ID |
+| 📂 Profiles Directory | Organizes variable templates by collection ID |
 
 ## 📈 Testing Workflow
 
 1. Receive Postman collection
 2. Extract variables with `--extract-keys`
 3. Fill in the environment template with actual values
-4. Run the tool with `--environment` (it will auto-detect your proxy)
+4. Run the tool with `--target-profile` (it will auto-detect your proxy)
 5. Analyze captured requests in Burp
 6. Review results file
 
