@@ -8,29 +8,34 @@ Postman2Burp bridges the gap between API development and security testing by aut
 
 ## Documentation Sections
 
-### [Installation](Installation/README.md)
+### [[Overview]]
+Get a high-level understanding of Postman2Burp, its target users, and common use cases.
+
+### [[Installation]]
 Learn how to install and set up Postman2Burp on your system.
 
-### [Usage](Usage/README.md)
+### [[Usage]]
 Step-by-step guide on how to use Postman2Burp for basic operations.
 
-### [Advanced Usage](Advanced/README.md)
-Explore advanced features and usage patterns for Postman2Burp.
+### [[Use Cases]]
+Detailed examples of specific problems Postman2Burp solves with technical details.
 
-### [Configuration](Configuration/README.md)
+### [[Features|Additional Features]]
+Extended features and techniques to get the most out of Postman2Burp.
+
+### [[Configuration]]
 Understand how to configure Postman2Burp using configuration files and command-line options.
 
-### [Troubleshooting](Troubleshooting/README.md)
+### [[Troubleshooting]]
 Diagnose and resolve common issues with Postman2Burp.
 
 ## Quick Start
 
 If you're new to Postman2Burp, we recommend following these steps:
 
-1. Start with the [Installation Guide](Installation/README.md) to set up the tool
-2. Follow the [Usage Guide](Usage/README.md) to learn the basic workflow
-3. Explore [Advanced Usage](Advanced/README.md) and [Configuration](Configuration/README.md) as needed
-4. Refer to [Troubleshooting](Troubleshooting/README.md) if you encounter any issues
+1. Start with the [[Installation]] guide to set up the tool
+2. Follow the [[Usage]] guide to learn the basic workflow
+3. Refer to [[Troubleshooting]] if you encounter any issues
 
 ## Contributing to the Wiki
 
@@ -38,4 +43,4 @@ If you'd like to contribute to this wiki, please submit a pull request with your
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](../LICENSE) file for details. 
+This project is licensed under the Apache License 2.0 - see the LICENSE file for details. 

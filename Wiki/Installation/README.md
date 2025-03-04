@@ -60,6 +60,6 @@ You should see the help message with available options.
 
 After installation, you can:
 
-1. [Export your Postman collection](../Usage/README.md)
-2. [Extract variables from your collection](../Usage/README.md#extracting-variables)
-3. [Run the tool with your collection and profile](../Usage/README.md#running-the-tool) 
+1. [[Usage|Export your Postman collection]]
+2. [[Usage#extracting-variables|Extract variables from your collection]]
+3. [[Usage#running-the-tool|Run the tool with your collection and profile]] 

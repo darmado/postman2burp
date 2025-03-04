@@ -105,5 +105,4 @@ python postman2burp.py --collection your_collection.json
 
 ## Next Steps
 
-- [Advanced Usage](../Advanced/README.md)
-- [Troubleshooting](../Troubleshooting/README.md) 
+- [[Troubleshooting]] 

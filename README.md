@@ -14,9 +14,33 @@
 
 Postman2Burp bridges the gap between API development and security testing by automatically sending Postman collection requests through Burp Suite proxy.
 
+## 📋 Table of Contents
+
+- [Postman2Burp](#postman2burp)
+  - [📋 Table of Contents](#-table-of-contents)
+  - [🎯 Purpose](#-purpose)
+  - [🔮 Assumptions](#-assumptions)
+  - [📦 Requirements](#-requirements)
+  - [🚀 Quick Start](#-quick-start)
+  - [✨ Features](#-features)
+  - [🎯 Use Cases](#-use-cases)
+  - [⚠️ Limitations](#️-limitations)
+  - [📚 Documentation](#-documentation)
+  - [📜 License](#-license)
+  - [👥 Contributing](#-contributing)
+
+## 🎯 Purpose
+
+| Problem | Solution |
+|---------|----------|
+| Manual recreation of API requests in security tools is time-consuming and error-prone | Postman2Burp automates sending Postman collection requests through Burp Suite proxy |
+| Complex API flows are difficult to test manually | Maintains request sequence and handles variable extraction/substitution automatically |
+| Environment variables need manual substitution | Automatically resolves all environment variables from profile files |
+| Authentication flows require careful token management | Extracts and reuses tokens across requests in the correct sequence |
+
 ## 🔮 Assumptions
 
-The user operates under the following assumptions:
+The tool operates under the following assumptions:
 
 | Assumption | Description |
 |------------|-------------|
@@ -26,89 +50,71 @@ The user operates under the following assumptions:
 | 🌐 Proxy Availability | A proxy (like Burp Suite) is running and accessible |
 | 🔒 Authentication | Any required authentication tokens can be provided via environment variables |
 
-## 📋 Table of Contents
-
-- [Postman2Burp](#postman2burp)
-  - [🔮 Assumptions](#-assumptions)
-  - [📋 Table of Contents](#-table-of-contents)
-  - [🎯 Purpose](#-purpose)
-  - [📦 Requirements](#-requirements)
-  - [🚀 Quick Start](#-quick-start)
-  - [✨ Features](#-features)
-  - [⚠️ Limitations](#️-limitations)
-  - [📚 Documentation](#-documentation)
-  - [📜 License](#-license)
-  - [👥 Contributing](#-contributing)
-    - [Code Style](#code-style)
-    - [Bug Reports](#bug-reports)
-    - [Feature Requests](#feature-requests)
-
-## 🎯 Purpose
-
-To automate API security testing by:
-
-| Step | Description |
-|------|-------------|
-| 1️⃣ | Reading Postman collection JSON files |
-| 2️⃣ | Parsing all requests (including nested folders) |
-| 3️⃣ | Resolving environment variables |
-| 4️⃣ | Sending requests through Burp Suite proxy |
-| 5️⃣ | Logging results |
-
 ## 📦 Requirements
 
-- Python 3.6+
-- Required packages (auto-installed):
-  - requests
-  - urllib3
-  - python-dotenv
+| Requirement | Details |
+|-------------|---------|
+| **Python** | 3.6 or higher |
+| **Packages** | Auto-installed via setup script:<br>• requests<br>• urllib3<br>• python-dotenv |
+| **Operating System** | Windows, macOS, or Linux |
 
 ## 🚀 Quick Start
 
-```bash
-# Clone the repository
-git clone https://github.com/darmado/postman2burp.git
-cd postman2burp
-
-# Set up the environment
-chmod +x setup_venv.sh
-./setup_venv.sh
-
-# Run the tool
-python postman2burp.py --collection "your_collection.json"
-```
+| Step | Command |
+|------|---------|
+| 1. Clone the repository | `git clone https://github.com/darmado/postman2burp.git`<br>`cd postman2burp` |
+| 2. Set up the environment | `chmod +x setup_venv.sh`<br>`./setup_venv.sh` |
+| 3. Run the tool | `python postman2burp.py --collection "your_collection.json"` |
 
 For detailed usage instructions, see the [Wiki](https://github.com/darmado/postman2burp/wiki).
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| 🔍 Proxy Auto-detection | Automatically detects running proxies on common ports |
-| 📁 Nested Folders | Handles nested folders in collections |
-| 🔄 Environment Variables | Supports environment variables |
-| 📝 Multiple Body Types | Processes multiple request body types |
-| 🔐 Authentication | Handles authentication headers |
-| 📊 Logging | Logs request results |
-| 🔍 Proxy Verification | Verifies proxy before sending requests |
-| ⚙️ Configuration File | Stores settings in config.json |
-| 🔑 Variable Extraction | Extracts variables from collections to create environment templates |
+| Feature | Description | Benefit |
+|---------|-------------|---------|
+| 🔍 Proxy Auto-detection | Automatically detects running proxies on common ports | No manual proxy configuration needed |
+| 📁 Nested Folders | Handles nested folders in collections | Works with complex collection structures |
+| 🔄 Environment Variables | Supports environment variables | Reuse collections across different environments |
+| 📝 Multiple Body Types | Processes multiple request body types | Works with JSON, form data, raw text, etc. |
+| 🔐 Authentication | Handles authentication headers | Maintains security context across requests |
+| 📊 Logging | Logs request results | Easy troubleshooting and verification |
+| 🔍 Proxy Verification | Verifies proxy before sending requests | Prevents failed test runs |
+| ⚙️ Configuration File | Stores settings in config.json | Reuse configurations across runs |
+| 🔑 Variable Extraction | Extracts variables from collections | Easily create environment templates |
+
+## 🎯 Use Cases
+
+| Problem | Solution | Example Command | Details |
+|---------|----------|-----------------|---------|
+| **OAuth2 Flows**: Multiple sequential requests with token extraction and reuse | Maintains request sequence and handles token extraction automatically | `python postman2burp.py --collection "oauth_flow.json" --target-profile "oauth_creds.json" --verbose` | [View Details](https://github.com/darmado/postman2burp/wiki/Use-Cases#oauth2-flow-analysis) |
+| **GraphQL Queries**: Complex nested queries difficult to recreate manually | Preserves exact query structure and variables | `python postman2burp.py --collection "graphql_api.json" --target-profile "graphql_vars.json"` | [View Details](https://github.com/darmado/postman2burp/wiki/Use-Cases#graphql-api-security-testing) |
+| **Anti-CSRF Protection**: Tokens from responses must be included in subsequent requests | Extracts tokens from responses and applies them to follow-up requests | `python postman2burp.py --collection "secured_workflow.json" --target-profile "test_env.json" --verbose` | [View Details](https://github.com/darmado/postman2burp/wiki/Use-Cases#anti-csrf-protection-testing) |
+| **BOLA/IDOR Testing**: Requires different user contexts for the same endpoints | Allows running the same collection with different profile files | `python postman2burp.py --collection "user_management.json" --target-profile "admin_profile.json" --output "admin_results.json"` | [View Details](https://github.com/darmado/postman2burp/wiki/Use-Cases#broken-object-level-authorization-testing) |
+| **API Gateway Configurations**: Specific headers, API keys, and request signing | Maintains all headers and authentication mechanisms | `python postman2burp.py --collection "aws_api.json" --target-profile "aws_creds.json"` | [View Details](https://github.com/darmado/postman2burp/wiki/Use-Cases#api-gateway-configuration-testing) |
+
+For complete examples with code samples and technical details, see our [Use Cases Documentation](https://github.com/darmado/postman2burp/wiki/Use-Cases).
 
 ## ⚠️ Limitations
 
-- Limited support for file uploads in multipart/form-data
-- No support for WebSocket requests
-- No execution of Postman pre-request and test scripts
+| Limitation | Description | Workaround |
+|------------|-------------|------------|
+| File Uploads | Limited support for multipart/form-data file uploads | Use simple file uploads with base64-encoded content |
+| WebSocket Requests | No support for WebSocket requests | Use separate WebSocket testing tools |
+| Pre-request Scripts | No execution of Postman pre-request scripts | Manually implement required functionality in your environment |
 
 ## 📚 Documentation
 
 Comprehensive documentation is available in the [Wiki](https://github.com/darmado/postman2burp/wiki):
 
-- [Installation Guide](https://github.com/darmado/postman2burp/wiki/Installation)
-- [Usage Guide](https://github.com/darmado/postman2burp/wiki/Usage)
-- [Advanced Usage](https://github.com/darmado/postman2burp/wiki/Advanced)
-- [Configuration Options](https://github.com/darmado/postman2burp/wiki/Configuration)
-- [Troubleshooting](https://github.com/darmado/postman2burp/wiki/Troubleshooting)
+| Documentation | Description |
+|---------------|-------------|
+| [Overview](https://github.com/darmado/postman2burp/wiki/Overview) | High-level understanding of Postman2Burp |
+| [Installation](https://github.com/darmado/postman2burp/wiki/Installation) | How to install and set up the tool |
+| [Usage](https://github.com/darmado/postman2burp/wiki/Usage) | Basic operations and commands |
+| [Use Cases](https://github.com/darmado/postman2burp/wiki/Use-Cases) | Detailed examples for specific scenarios |
+| [Additional Features](https://github.com/darmado/postman2burp/wiki/Features) | Extended features and techniques |
+| [Configuration](https://github.com/darmado/postman2burp/wiki/Configuration) | Configuration options and settings |
+| [Troubleshooting](https://github.com/darmado/postman2burp/wiki/Troubleshooting) | Solutions for common issues |
 
 ## 📜 License
 
@@ -124,25 +130,8 @@ Contributions are welcome! Here's how you can contribute:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Code Style
-
-- Follow PEP 8 guidelines for Python code
-- Use descriptive variable names
-- Add comments for complex logic
-- Write tests for new features
-
-### Bug Reports
-
-If you find a bug, please open an issue with:
-- Clear description of the bug
-- Steps to reproduce
-- Expected behavior
-- Screenshots (if applicable)
-- Environment details
-
-### Feature Requests
-
-Have an idea for a new feature? Open an issue describing:
-- The problem your feature would solve
-- How your solution would work
-- Any alternatives you've considered
+| Contribution Area | Guidelines |
+|-------------------|------------|
+| **Code Style** | • Follow PEP 8 guidelines for Python code<br>• Use descriptive variable names<br>• Add comments for complex logic<br>• Write tests for new features |
+| **Bug Reports** | • Clear description of the bug<br>• Steps to reproduce<br>• Expected behavior<br>• Screenshots (if applicable)<br>• Environment details |
+| **Feature Requests** | • The problem your feature would solve<br>• How your solution would work<br>• Any alternatives you've considered |

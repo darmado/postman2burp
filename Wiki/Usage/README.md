@@ -1,6 +1,3 @@
-# Usage Guide
-
-This guide explains how to use Postman2Burp to send Postman collection requests through Burp Suite proxy.
 
 ## Step-by-Step Usage
 
@@ -86,10 +83,10 @@ usage: postman2burp.py [-h] --collection COLLECTION [--target-profile ENVIRONMEN
                        [--output OUTPUT] [--verbose] [--save-config]
 ```
 
-For more advanced options, see the [Advanced Usage Guide](../Advanced/README.md).
+For more features and options, see the [[Features|Additional Features]] guide.
 
 ## Next Steps
 
-- [Advanced Usage](../Advanced/README.md)
-- [Configuration Options](../Configuration/README.md)
-- [Troubleshooting](../Troubleshooting/README.md) 
+- [[Features|Additional Features]]
+- [[Configuration]]
+- [[Troubleshooting]] 

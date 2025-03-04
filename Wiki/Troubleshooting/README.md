@@ -141,7 +141,7 @@ If you're still experiencing issues:
 
 ## Next Steps
 
-- [Installation Guide](../Installation/README.md)
-- [Usage Guide](../Usage/README.md)
-- [Advanced Usage](../Advanced/README.md)
-- [Configuration Guide](../Configuration/README.md) 
+- [[Installation]]
+- [[Usage]]
+- [[Features|Additional Features]]
+- [[Configuration]] 
