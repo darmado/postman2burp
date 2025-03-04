@@ -66,8 +66,8 @@ curl -L https://github.com/darmado/postman2burp/install.sh | sh
 ### Setup your Workspace:
 0. Launch your proxy 
 
-**1. Export our postman collection. Use Schema 2.1 [from Postman](https://learning.postman.com/docs/getting-started/importing-and-exporting/exporting-data/)
-**
+**1. Export our postman collection. Use Schema 2.1** [from Postman](https://learning.postman.com/docs/getting-started/importing-and-exporting/exporting-data/)
+
 **2. Move your Postman collections directory.** 
 
   ```bash
