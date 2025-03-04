@@ -1806,13 +1806,13 @@ def main():
     """
     # Parse command line arguments first to check for proxy option
     parser = argparse.ArgumentParser(description="Convert Postman collections to Burp Suite requests")
-    parser.add_argument("--collection", nargs="?", const="select", help="Path to Postman collection JSON file. If no path is provided, you will be prompted to select a collection.")
+    parser.add_argument("--collection", nargs="?", const="select", help="Path to Postman collection JSON file (supports Postman 2.1 schema). Specify no path to select interactively.")
     
-    # Environment options
-    env_group = parser.add_argument_group("Environment Options")
-    env_group.add_argument("--target-profile", help="Path to Postman environment JSON file")
+    # Profile options
+    env_group = parser.add_argument_group("Profile Options")
+    env_group.add_argument("--target-profile", help="Path to profile JSON file with values to replace variables in the collection")
     env_group.add_argument("--extract-keys", nargs="?", const="interactive", metavar="OUTPUT_FILE",
-                          help="Extract all variables from collection. If no file is specified, enters interactive mode to create a profile. Otherwise, saves to template file.")
+                          help="Extract variables from collection. Specify no file to enter interactive mode. Specify 'print' to display variables. Specify a filename to save template.")
     
     # Proxy options
     proxy_group = parser.add_argument_group("Proxy Options")
@@ -1827,11 +1827,10 @@ def main():
     output_group.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     output_group.add_argument("--save-proxy", action="store_true", help="Save current settings as default proxy")
     
-    # Proxy options
-    proxy_group = parser.add_argument_group("Configuration Options")
+    # Proxy profile options
+    proxy_group = parser.add_argument_group("Proxy Profiles")
     proxy_group.add_argument("-profile", nargs="?", const="select", 
-                             help="Use a specific proxy file or select from available proxys if no file specified. "
-                                  "If omitted, you will be prompted to select a proxy when multiple are available.")
+                             help="Use specific proxy profile or select from available profiles if no file specified. Omit to select when multiple profiles exist.")
     
     args = parser.parse_args()
     
@@ -1841,31 +1840,6 @@ def main():
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format=log_format, datefmt=log_date_format)
     logger = logging.getLogger(__name__)
-    
-    # Handle proxy selection
-    proxy_path = None
-    if args.proxy == "select":
-        proxy_path = select_proxy_file()
-    elif args.proxy:
-        proxy_path = args.proxy
-    else:
-        # Check if multiple proxy files exist
-        try:
-            proxy_files = [f for f in os.listdir(CONFIG_DIR) if f.endswith('.json')]
-            if len(proxy_files) > 1:
-                logger.info("Multiple proxy files found, prompting user to select")
-                proxy_path = select_proxy_file()
-            elif len(proxy_files) == 1:
-                proxy_path = os.path.join(CONFIG_DIR, proxy_files[0])
-                logger.info(f"Using the only available proxy file: {proxy_files[0]}")
-            else:
-                logger.info("No proxy files found, using default proxy")
-        except Exception as e:
-            logger.warning(f"Error listing proxies directory: {e}")
-            logger.info("Using default proxy")
-    
-    # Load proxy
-    proxy = load_proxy(proxy_path)
     
     # Handle collection selection if --collection is provided without a value
     collection_path = None
@@ -1883,7 +1857,8 @@ def main():
     collection_path = resolve_collection_path(collection_path)
     logger.debug(f"Resolved collection path: {collection_path}")
     
-    # Extract variables from collection if requested
+    # Extract variables from collection if requested - do this before proxy selection
+    # since we don't need a proxy for extraction
     if args.extract_keys is not None:
         variables, collection_id, collection_data = extract_variables_from_collection(collection_path)
         
@@ -1908,6 +1883,32 @@ def main():
             generate_variables_template(collection_path, args.extract_keys)
             # Exit after generating template
             sys.exit(0)
+    
+    # Only handle proxy selection if we're not extracting keys
+    # Handle proxy selection
+    proxy_path = None
+    if args.proxy == "select":
+        proxy_path = select_proxy_file()
+    elif args.proxy:
+        proxy_path = args.proxy
+    else:
+        # Check if multiple proxy files exist
+        try:
+            proxy_files = [f for f in os.listdir(CONFIG_DIR) if f.endswith('.json')]
+            if len(proxy_files) > 1:
+                logger.info("Multiple proxy files found, prompting user to select")
+                proxy_path = select_proxy_file()
+            elif len(proxy_files) == 1:
+                proxy_path = os.path.join(CONFIG_DIR, proxy_files[0])
+                logger.info(f"Using the only available proxy file: {proxy_files[0]}")
+            else:
+                logger.info("No proxy files found, using default proxy")
+        except Exception as e:
+            logger.warning(f"Error listing proxies directory: {e}")
+            logger.info("Using default proxy")
+    
+    # Load proxy
+    proxy = load_proxy(proxy_path)
     
     # Parse proxy settings - prioritize command line arguments over proxy
     # If proxy is empty (due to malformed proxy file), use DEFAULT_CONFIG values only if no command line args

@@ -1,73 +1,6 @@
-# Postman2Burp
-
-A tool to convert Postman collections to Burp Suite requests, allowing for automated security testing of APIs.
-
-## Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/darmado/postman2burp.git
-cd postman2burp
-
-# Run the installation script
-./install.sh
-```
-
-## Usage
-
-### Basic Usage
-```bash
-python3 postman2burp.py --collection <collection_file.json> --proxy-host localhost --proxy-port 8080
-```
-
-### Interactive Collection Selection
-```bash
-python3 postman2burp.py --collection
-```
-
-### Extract Variables from Collection
-```bash
-# Interactive mode
-python3 postman2burp.py --collection <collection_file.json> --extract-keys
-
-# Print variables only
-python3 postman2burp.py --collection <collection_file.json> --extract-keys print
-
-# Save to template file
-python3 postman2burp.py --collection <collection_file.json> --extract-keys <output_file.json>
-```
-
-### Using Target Profiles
-```bash
-python3 postman2burp.py --collection <collection_file.json> --target-profile <profile_file.json>
-```
-
-### Using Proxy Configurations
-```bash
-python3 postman2burp.py --collection <collection_file.json> --proxy <host:port>
-```
-
-## Directory Structure
-
-- `collections/`: Store your Postman collection JSON files
-- `profiles/`: Store target profiles with variable values
-- `proxies/`: Store proxy configurations
-- `logs/`: Output logs are saved here
-
-## Features
-
-- Convert Postman collections to Burp Suite requests
-- Extract variables from collections
-- Use target profiles to replace variables
-- Configure proxy settings
-- Interactive mode for selecting collections and profiles
-- Detailed logging of requests and responses
-
-## License
-
-MIT
-
 <div align="center">
+<h1>Postman2Burp</h1>
+A tool to convert Postman collections to Burp Suite requests, allowing for automated security testing of APIs.
 
 [![Python](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -75,33 +8,39 @@ MIT
 [![Postman](https://img.shields.io/badge/Postman-v11.35.0-orange.svg)](https://www.postman.com/)
 [![Postman Collections](https://img.shields.io/badge/Postman%20Collections-v2.1-orange.svg)](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
 
+
+Postman2Burp bridges the gap between API development and security testing by automatically sending Postman collection requests through Burp Suite proxy, supporting Postman 2.1 schema exports.
+
 </div>
 
-> **Problem Statement:** Security teams need to manually import postman collections into BurpSuite. It's time-consuming and error-prone.
 
-Postman2Burp bridges the gap between API development and security testing by automatically sending Postman collection requests through Burp Suite proxy.
 
-## 📋 Table of Contents
+##
 
 <div align="center">
 
-| [🎯 Purpose](#-purpose) | [🔮 Assumptions](#-assumptions) | [📦 Requirements](#-requirements) | [🚀 Quick Start](#-quick-start) |
-|:----------------------:|:------------------------------:|:--------------------------------:|:-------------------------------:|
-| [✨ Features](#-features) | [🎯 Use Cases](#-use-cases) | [⚠️ Limitations](#️-limitations) | [📚 Documentation](#-documentation) |
-|  | [📜 License](#-license) | [👥 Contributing](#-contributing) | |
+| [🎯 Purpose](#-purpose) | [🔮 Assumptions](#-assumptions) | [✨ Features](#-features) | [🎯 Use Cases](#-use-cases) |
+|:----------------------:|:------------------------------:|:-------------------------:|:----------------------------:|
+| [⚠️ Limitations](#️-limitations) | [📚 Documentation](#-documentation) | [📜 License](#-license) | [👥 Contributing](#-contributing) |
 
 </div>
 
-## 🎯 Purpose
+##
+
 
 | Problem | Solution |
 |---------|----------|
-| Manual recreation of API requests in security tools is time-consuming and error-prone | Postman2Burp automates sending Postman collection requests through Burp Suite proxy |
-| Complex API flows are difficult to test manually | Maintains request sequence and handles variable extraction/substitution automatically |
-| Environment variables need manual substitution | Automatically resolves all environment variables from profile files |
-| Authentication flows require careful token management | Extracts and reuses tokens across requests in the correct sequence |
+| During engagements, clients provide large Postman collections with complex API flows that are difficult to manually recreate in Burp Suite | Postman2Burp automatically sends all requests through Burp Suite while maintaining the exact structure and sequence |
+| Security testers need to log requests that rotate admin roles or API keys before using Burp Intruder, which doesn't log in history | Postman2Burp logs all requests with detailed information, preserving the complete testing context |
+| API security testing requires multiple authentication flows with different tokens | Extracts and reuses tokens across requests in the correct sequence, maintaining proper authentication context |
+| Penetration testers need to test the same endpoints with different privilege levels | Allows running identical collections with different profile files to test authorization boundaries |
+| Security teams need to document findings with exact request/response pairs | Generates comprehensive logs in Postman-compatible format that can be included in reports |
 
-## 🔮 Assumptions
+##
+
+###
+
+### 🔮 Assumptions
 
 The tool operates under the following assumptions:
 
@@ -113,92 +52,82 @@ The tool operates under the following assumptions:
 | 🌐 Proxy Availability | A proxy (like Burp Suite) is running and accessible |
 | 🔒 Authentication | Any required authentication tokens can be provided via environment variables |
 
-## 📦 Requirements
 
-| Requirement | Details |
-|-------------|---------|
-| **Python** | 3.6 or higher |
-| **Packages** | Auto-installed via setup script:<br>• requests<br>• urllib3<br>• python-dotenv |
-| **Operating System** | Windows, macOS, or Linux |
+##
 
-## 🚀 Quick Start
-
-### One-Line Installation
+### Installation
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/darmado/postman2burp/main/install.sh | bash
+curl -L https://github.com/darmado/postman2burp/install.sh | sh
 ```
 
-This installation script will:
-- Clone the repository
-- Set up a Python virtual environment
-- Install all dependencies
-- Create necessary directories (collections, environments, logs)
-- Generate a sample environment file
-- Configure and make helper scripts executable
+##
 
-### Using the Tool
+### Setup your Workspace:
+0. Launch your proxy 
 
-After installation:
+**1. Export our postman collection. Use Schema 2.1 [from Postman](https://learning.postman.com/docs/getting-started/importing-and-exporting/exporting-data/)
+**
+**2. Move your Postman collections directory.** 
 
-1. Place your Postman collection JSON files in the `collections` directory
-2. Place your environment files in the `environments` directory (optional)
-3. Run the tool:
+  ```bash
+   mv postman_collection.json ./postman2burp/collections/
+   ```
+   `./collections` 
+   
+**3. Exract keys from the Postman collection. The interactive prompt helps you **replace and store new parameter values** in the `./profiles` directory.**
 
 ```bash
-./run_postman_to_burp.sh --collection "your_collection.json" [--environment "your_environment.json"] [--verbose]
+python3 postman2burp.py --collection  postmanCollection.json --extract-keys 
 ```
 
-The tool will automatically:
-- Generate a log file based on the collection ID and timestamp
-- Store logs in the `logs` directory with detailed request and response information in Postman Collection format
-- Send all requests through the detected proxy
-
-#### Saving Configuration
-
-To save your current settings (including proxy settings and target profile) for future runs:
+**1. Excute postman2Burp**
 
 ```bash
-python postman2burp.py --collection "your_collection.json" --target-profile "your_environment.json" --save-config
+python3 postman2burp.py --collection "postman_collection.json" --target-profile "f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2_1741124383.json"
 ```
 
-This will create a `config.json` file that will be used automatically in future runs, even if you don't specify the same parameters again.
+##
 
-#### Extracting Variables
-
-To extract all variables from a collection:
+### Other Options
 
 ```bash
-# Interactive mode - prompts for values for each variable
-python postman2burp.py --collection "your_collection.json" --extract-keys
+options:
+  -h, --help            show this help message and exit
+  --collection [COLLECTION]
+                        Path to Postman collection JSON file (supports Postman 2.1 schema). Specify no path to select interactively.
 
-# Print all variables in the collection
-python postman2burp.py --collection "your_collection.json" --extract-keys print
+Profile Options:
+  --target-profile TARGET_PROFILE
+                        Path to profile JSON file with values to replace variables in the collection
+  --extract-keys [OUTPUT_FILE]
+                        Extract variables from collection. Specify no file to enter interactive mode. Specify 'print' to display variables.
+                        Specify a filename to save template.
 
-# Generate a template environment file with all variables
-python postman2burp.py --collection "your_collection.json" --extract-keys "environment_template.json"
+Proxy Options:
+  --proxy PROXY         Proxy in host:port format
+  --proxy-host PROXY_HOST
+                        Proxy host
+  --proxy-port PROXY_PORT
+                        Proxy port
+  --verify-ssl          Verify SSL certificates
+
+Output Options:
+  --log                 Enable logging to file (saves detailed request results to logs directory)
+  --verbose             Enable verbose logging
+  --save-proxy          Save current settings as default proxy
+
+Proxy Profiles:
+  -profile [PROFILE]    Use specific proxy profile or select from available profiles if no file specified. Omit to select when multiple profiles
+                        exist.
 ```
 
-The interactive mode will:
-- Extract all variables from the collection
-- Display all variables with their original values (if available)
-- Prompt you to enter a value for each variable (press Enter to use original value or skip)
-- Create a profile file with only the variables that have values
-- Automatically save the profile in the `environments` directory with a timestamp
-- Provide the command to run with your new profile
-
-### Manual Installation
-
-| Step | Command |
-|------|---------|
-| 1. Clone the repository | `git clone https://github.com/darmado/postman2burp.git`<br>`cd postman2burp` |
-| 2. Set up the environment | `chmod +x setup_venv.sh`<br>`./setup_venv.sh` |
-| 3. Create directories | `mkdir -p collections environments logs` |
-| 4. Run the tool | `./run_postman_to_burp.sh --collection "your_collection.json"` |
 
 For detailed usage instructions, see the [Wiki](https://github.com/darmado/postman2burp/wiki).
 
-## ✨ Features
+##
+
+### ✨ Features
 
 | Feature | Description | Benefit |
 |---------|-------------|---------|
@@ -213,19 +142,25 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/postm
 | ⚙️ Configuration File | Stores settings in config.json | Reuse configurations across runs including target profiles |
 | 🔑 Variable Extraction | Extracts variables from collections | Easily create environment templates or view all variables |
 
-## 🎯 Use Cases
+##
 
-| Problem | Solution | Example Command | Details |
-|---------|----------|-----------------|---------|
-| **OAuth2 Flows**: Multiple sequential requests with token extraction and reuse | Maintains request sequence and handles token extraction automatically | `python postman2burp.py --collection "oauth_flow.json" --target-profile "oauth_creds.json" --verbose` | [View Details](https://github.com/darmado/postman2burp/wiki/Use-Cases#oauth2-flow-analysis) |
-| **GraphQL Queries**: Complex nested queries difficult to recreate manually | Preserves exact query structure and variables | `python postman2burp.py --collection "graphql_api.json" --target-profile "graphql_vars.json"` | [View Details](https://github.com/darmado/postman2burp/wiki/Use-Cases#graphql-api-security-testing) |
-| **Anti-CSRF Protection**: Tokens from responses must be included in subsequent requests | Extracts tokens from responses and applies them to follow-up requests | `python postman2burp.py --collection "secured_workflow.json" --target-profile "test_env.json" --verbose` | [View Details](https://github.com/darmado/postman2burp/wiki/Use-Cases#anti-csrf-protection-testing) |
-| **BOLA/IDOR Testing**: Requires different user contexts for the same endpoints | Allows running the same collection with different profile files | `python postman2burp.py --collection "user_management.json" --target-profile "admin_profile.json" --output "admin_results.json"` | [View Details](https://github.com/darmado/postman2burp/wiki/Use-Cases#broken-object-level-authorization-testing) |
-| **API Gateway Configurations**: Specific headers, API keys, and request signing | Maintains all headers and authentication mechanisms | `python postman2burp.py --collection "aws_api.json" --target-profile "aws_creds.json"` | [View Details](https://github.com/darmado/postman2burp/wiki/Use-Cases#api-gateway-configuration-testing) |
+### 🎯 Use Cases
+
+| Scenario | Challenge | Solution | Example Command |
+|----------|-----------|----------|-----------------|
+| **Client-Provided API Collection** | Client provides a 200+ endpoint Postman collection for an enterprise API during a time-limited assessment | Quickly import all endpoints into Burp Suite without manual recreation | `python3 postman2burp.py --collection "enterprise_api.json" --extract-keys` |
+| **Privilege Escalation Testing** | Need to test the same API endpoints with admin, user, and guest credentials to identify authorization flaws | Run the same collection with different profile files containing various privilege levels | `python3 postman2burp.py --collection "user_api.json" --target-profile "admin_profile.json"` |
+| **OAuth2 Token Capture** | Need to capture and reuse OAuth tokens that expire during testing | Automatically extract tokens from responses and use them in subsequent requests | `python3 postman2burp.py --collection "oauth_flow.json" --target-profile "oauth_creds.json" --verbose` |
+| **API Key Rotation** | API uses rotating keys that must be captured and reused | Log all requests with key rotation before using Burp Intruder for attacks | `python3 postman2burp.py --collection "key_rotation_api.json" --log --verbose` |
+| **Multi-Step API Attacks** | Complex API vulnerabilities require precise sequencing of requests | Maintain exact request sequence while sending through Burp for inspection | `python3 postman2burp.py --collection "complex_workflow.json" --target-profile "attack_vectors.json"` |
+| **GraphQL Security Testing** | GraphQL endpoints with complex nested queries are difficult to manually recreate | Preserve exact query structure and variables while testing through Burp | `python3 postman2burp.py --collection "graphql_api.json" --target-profile "graphql_vars.json"` |
+| **Report Documentation** | Need to document exact request/response pairs for vulnerability reports | Generate detailed logs of all requests and responses in a reportable format | `python3 postman2burp.py --collection "vulnerable_api.json" --log --verbose` |
 
 For complete examples with code samples and technical details, see our [Use Cases Documentation](https://github.com/darmado/postman2burp/wiki/Use-Cases).
 
-## ⚠️ Limitations
+##
+
+### ⚠️ Limitations
 
 | Limitation | Description | Workaround |
 |------------|-------------|------------|
@@ -233,7 +168,9 @@ For complete examples with code samples and technical details, see our [Use Case
 | WebSocket Requests | No support for WebSocket requests | Use separate WebSocket testing tools |
 | Pre-request Scripts | No execution of Postman pre-request scripts | Manually implement required functionality in your environment |
 
-## 📚 Documentation
+##
+
+### 📚 Documentation
 
 Documentation is available in the [Wiki](https://github.com/darmado/postman2burp/wiki):
 
@@ -249,11 +186,15 @@ Documentation is available in the [Wiki](https://github.com/darmado/postman2burp
 | [Function Map](https://github.com/darmado/postman2burp/wiki/Function-Map) | Overview of all functions and their roles |
 
 
-## 📜 License
+##
+
+### 📜 License
 
 This project is licensed under the [Apache License 2.0](LICENSE).
 
-## 👥 Contributing
+##
+
+### 👥 Contributing
 
 Contributions are welcome! Here's how you can contribute:
 
@@ -265,6 +206,7 @@ Contributions are welcome! Here's how you can contribute:
 
 | Contribution Area | Guidelines |
 |-------------------|------------|
-| **Code Style** | • Follow PEP 8 guidelines for Python code<br>• Use descriptive variable names<br>• Add comments for complex logic<br>• Write tests for new features |
 | **Bug Reports** | • Clear description of the bug<br>• Steps to reproduce<br>• Expected behavior<br>• Screenshots (if applicable)<br>• Environment details |
 | **Feature Requests** | • The problem your feature would solve<br>• How your solution would work<br>• Any alternatives you've considered |
+
+For detailed usage instructions, see the [Wiki](https://github.com/darmado/postman2burp/wiki).
