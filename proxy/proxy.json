@@ -1,0 +1,9 @@
+{
+    "proxy_host": "localhost",
+    "proxy_port": 8080,
+    "verify_ssl": false,
+    "auto_detect_proxy": true,
+    "verbose": false,
+    "collections_dir": "/Users/darmado/Library/Mobile Documents/com~apple~CloudDocs/Opensource/darmado/postman2burp/collections",
+    "target_profile": null
+}

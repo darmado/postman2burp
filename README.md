@@ -1,5 +1,72 @@
 # Postman2Burp
 
+A tool to convert Postman collections to Burp Suite requests, allowing for automated security testing of APIs.
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/darmado/postman2burp.git
+cd postman2burp
+
+# Run the installation script
+./install.sh
+```
+
+## Usage
+
+### Basic Usage
+```bash
+python3 postman2burp.py --collection <collection_file.json> --proxy-host localhost --proxy-port 8080
+```
+
+### Interactive Collection Selection
+```bash
+python3 postman2burp.py --collection
+```
+
+### Extract Variables from Collection
+```bash
+# Interactive mode
+python3 postman2burp.py --collection <collection_file.json> --extract-keys
+
+# Print variables only
+python3 postman2burp.py --collection <collection_file.json> --extract-keys print
+
+# Save to template file
+python3 postman2burp.py --collection <collection_file.json> --extract-keys <output_file.json>
+```
+
+### Using Target Profiles
+```bash
+python3 postman2burp.py --collection <collection_file.json> --target-profile <profile_file.json>
+```
+
+### Using Proxy Configurations
+```bash
+python3 postman2burp.py --collection <collection_file.json> --proxy <host:port>
+```
+
+## Directory Structure
+
+- `collections/`: Store your Postman collection JSON files
+- `profiles/`: Store target profiles with variable values
+- `proxies/`: Store proxy configurations
+- `logs/`: Output logs are saved here
+
+## Features
+
+- Convert Postman collections to Burp Suite requests
+- Extract variables from collections
+- Use target profiles to replace variables
+- Configure proxy settings
+- Interactive mode for selecting collections and profiles
+- Detailed logging of requests and responses
+
+## License
+
+MIT
+
 <div align="center">
 
 [![Python](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/)

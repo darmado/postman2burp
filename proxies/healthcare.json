@@ -1,0 +1,11 @@
+{
+    "proxy_host": "127.0.0.1",
+    "proxy_port": 9091,
+    "verify_ssl": false,
+    "auto_detect_proxy": true,
+    "verbose": true,
+    "log": true,
+    "collection": "collections/healthcare_api.json",
+    "target_profile": "profiles/healthcare_profile.json",
+    "save_config": false
+} 

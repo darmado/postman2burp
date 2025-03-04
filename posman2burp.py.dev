@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Postman2Burp - Loads a Postman collection and sends requests through Burp Suite proxy.
+Postman2Burp - Automated API Endpoint Scanner
 
-Postman2Burp is a tool that reads a Postman collection JSON file and sends all the requests
-through Burp Suite proxy. 
+This tool reads a Postman collection JSON file and sends all the requests
+through Burp Suite proxy. This allows for automated scanning of API endpoints
+defined in a Postman collection during penetration testing.
 
 Usage:
     Basic Usage:
@@ -18,8 +19,8 @@ Usage:
     Log Options:
         python postman2burp.py --collection <collection.json> --log --verbose
     
-    Proxy & Behavior Configuration:
-        python postman2burp.py --collection <collection.json> --save-proxy
+    Configuration:
+        python postman2burp.py --collection <collection.json> --save-config
         
     Extract Variables:
         # Interactive mode - prompts for values for each variable
@@ -46,39 +47,31 @@ import sys
 import urllib3
 import socket
 import re
-from typing import Dict, List, Optional, Any, Tuple, Set, Union
+from typing import Dict, List, Optional, Any, Tuple, Set
 import requests
 import time
 import datetime
 import uuid
-import urllib.parse
-
-#  the select_collection_file function
 
 # Disable SSL warnings when using proxy
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+CONFIG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config")
+CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
+COLLECTIONS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "collections")
 
-# Constants
-VERSION = "1.0.0"
+# Default configuration
 DEFAULT_CONFIG = {
     "proxy_host": "localhost",
     "proxy_port": 8080,
     "verify_ssl": False,
-    "verbose": False
+    "auto_detect_proxy": True,  # This should always be True
+    "verbose": False,
+    "collections_dir": COLLECTIONS_DIR,
+    "target_profile": None
 }
 
-# Path to collections directory
-COLLECTIONS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "collections")
-
-# Path to proxy file
-PROXIES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "proxies")
-PROXY_FILE_PATH = os.path.join(PROXIES_DIR, "default.json")
-
-# Path to variables templates directory
-VARIABLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "profiles")
-
 # Always check common proxies first
-# Common proxy proxys to check
+# Common proxy configurations to check
 COMMON_PROXIES = [
     # Burp Suite default
     {"host": "localhost", "port": 8080},
@@ -97,9 +90,9 @@ COMMON_PROXIES = [
     {"host": "127.0.0.1", "port": 8888}
 ]
 
-# Path to proxy file
-CONFIG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "proxies")
-CONFIG_FILE_PATH = os.path.join(CONFIG_DIR, "default.json")
+# Path to config file
+CONFIG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config")
+CONFIG_FILE_PATH = os.path.join(CONFIG_DIR, "config.json")
 
 # Path to variables templates directory
 VARIABLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "profiles")
@@ -151,62 +144,68 @@ def validate_json_file(file_path: str) -> Tuple[bool, Optional[Dict]]:
         logger.warning(f"Error reading file {os.path.basename(file_path)}: {e}")
         return False, None
 
-def load_proxy(proxy_path: str = None) -> Dict:
+def load_config(config_path: str = None) -> Dict:
     """
-    Load proxy from default.json file if it exists,
-    otherwise return default proxy.
-    If the proxy file exists but is malformed, return an empty dictionary
+    Load configuration from config.json file if it exists,
+    otherwise return default configuration.
+    If the config file exists but is malformed, return an empty dictionary
     to ensure we rely only on command-line arguments.
+    
+    Args:
+        config_path: Optional path to a specific config file
+        
+    Returns:
+        Dict: Configuration dictionary
     """
     logger = logging.getLogger(__name__)
-    proxy = DEFAULT_CONFIG.copy()
+    config = DEFAULT_CONFIG.copy()
     
-    # If no specific proxy path was provided, prompt user to select one if multiple exist
-    if not proxy_path:
-        proxy_path = select_proxy_file()
+    # If no specific config path was provided, prompt user to select one if multiple exist
+    if not config_path:
+        config_path = select_config_file()
     
-    # Use the provided proxy path or the selected one
-    proxy_file_path = proxy_path
+    # Use the provided config path or the selected one
+    config_file_path = config_path
     
     try:
-        # Create proxy directory if it doesn't exist
+        # Create config directory if it doesn't exist
         if not os.path.exists(CONFIG_DIR):
             try:
                 os.makedirs(CONFIG_DIR)
-                logger.debug(f"Created proxies directory at {CONFIG_DIR}")
+                logger.debug(f"Created config directory at {CONFIG_DIR}")
             except Exception as e:
-                logger.warning(f"Could not create proxies directory: {e}")
+                logger.warning(f"Could not create config directory: {e}")
         
-        if os.path.exists(proxy_file_path):
+        if os.path.exists(config_file_path):
             # Validate the JSON file before loading
-            is_valid, parsed_proxy = validate_json_file(proxy_file_path)
+            is_valid, parsed_config = validate_json_file(config_file_path)
             
-            if is_valid and parsed_proxy:
-                proxy.update(parsed_proxy)
+            if is_valid and parsed_config:
+                config.update(parsed_config)
                 # Get just the directory name and filename instead of full path
-                proxy_dir = os.path.basename(os.path.dirname(proxy_file_path))
-                proxy_file = os.path.basename(proxy_file_path)
-                logger.info(f"Loaded proxy from {proxy_dir}/{proxy_file}")
+                config_dir = os.path.basename(os.path.dirname(config_file_path))
+                config_file = os.path.basename(config_file_path)
+                logger.info(f"Loaded configuration from {config_dir}/{config_file}")
             else:
-                logger.warning(f"Proxy file {os.path.basename(proxy_file_path)} is malformed, using default settings")
+                logger.warning(f"Config file {os.path.basename(config_file_path)} is malformed, using default settings")
                 # Return empty dictionary to ensure we rely only on command-line arguments
                 return {}
         else:
-            logger.info(f"No proxy file found at {os.path.basename(proxy_file_path)}, using default settings")
-            # Auto-generate proxy file with default settings if using the default path
-            if proxy_file_path == CONFIG_FILE_PATH:
+            logger.info(f"No config file found at {os.path.basename(config_file_path)}, using default settings")
+            # Auto-generate config file with default settings if using the default path
+            if config_file_path == CONFIG_FILE_PATH:
                 try:
                     with open(CONFIG_FILE_PATH, 'w') as f:
                         json.dump(DEFAULT_CONFIG, f, indent=4)
-                    logger.info(f"Generated default proxy file: {os.path.basename(CONFIG_FILE_PATH)}")
+                    logger.info(f"Generated default configuration file: {os.path.basename(CONFIG_FILE_PATH)}")
                 except Exception as e:
-                    logger.warning(f"Could not create default proxy file: {e}")
+                    logger.warning(f"Could not create default config file: {e}")
     except Exception as e:
-        logger.warning(f"Error loading proxy file: {e}. Using default settings.")
+        logger.warning(f"Error loading config file: {e}. Using default settings.")
         # Return empty dictionary to ensure we rely only on command-line arguments
         return {}
     
-    return proxy
+    return config
 
 # Configure logging
 logging.basicConfig(
@@ -266,7 +265,7 @@ def verify_proxy_with_request(host: str, port: int) -> bool:
         logger.debug(f"Testing proxy with request to {test_url}")
         logger.debug(f"Using proxy settings: {proxies}")
         
-        # Create a new session for this test to avoid any proxy issues
+        # Create a new session for this test to avoid any configuration issues
         test_session = requests.Session()
         test_session.proxies.update(proxies)
         test_session.verify = False
@@ -566,192 +565,47 @@ def generate_variables_template(collection_path: str, output_path: str) -> None:
         logger.error(f"Failed to save profile: {e}")
         sys.exit(1)
 
-def save_proxy(proxy: Dict) -> bool:
+def save_config(config: Dict) -> bool:
     """
-    Save proxy to default.json file.
+    Save configuration to config.json file.
     
     Args:
-        proxy: Configuration dictionary to save
+        config: Configuration dictionary to save
         
     Returns:
-        bool: True if the proxy was saved successfully, False otherwise
+        bool: True if the configuration was saved successfully, False otherwise
     """
-    logger = logging.getLogger(__name__)
     try:
-        # Create proxy directory if it doesn't exist
+        # Create config directory if it doesn't exist
         if not os.path.exists(CONFIG_DIR):
             try:
                 os.makedirs(CONFIG_DIR)
-                logger.debug(f"Created proxies directory at {CONFIG_DIR}")
+                logger.debug(f"Created config directory at {CONFIG_DIR}")
             except Exception as e:
-                logger.warning(f"Could not create proxies directory: {e}")
+                logger.warning(f"Could not create config directory: {e}")
                 return False
-
+        
         # Ensure each argument is saved as a separate JSON item
-        formatted_proxy = {
-            "proxy_host": proxy.get("proxy_host", "localhost"),
-            "proxy_port": proxy.get("proxy_port", 8080),
-            "verify_ssl": proxy.get("verify_ssl", False),
-            "target_profile": proxy.get("target_profile", ""),
-            "verbose": proxy.get("verbose", False)
+        formatted_config = {
+            "proxy_host": config.get("proxy_host", "localhost"),
+            "proxy_port": config.get("proxy_port", 8080),
+            "verify_ssl": config.get("verify_ssl", False),
+            "target_profile": config.get("target_profile", ""),
+            "verbose": config.get("verbose", False)
         }
         
-        # Add any additional proxy items
-        for key, value in proxy.items():
-            if key not in formatted_proxy and value is not None:
-                formatted_proxy[key] = value
+        # Add any additional configuration items
+        for key, value in config.items():
+            if key not in formatted_config and value is not None:
+                formatted_config[key] = value
         
         with open(CONFIG_FILE_PATH, 'w') as f:
-            json.dump(formatted_proxy, f, indent=4)
+            json.dump(formatted_config, f, indent=4)
         logger.info(f"Configuration saved to {os.path.basename(CONFIG_DIR)}/{os.path.basename(CONFIG_FILE_PATH)}")
         return True
     except Exception as e:
-        logger.error(f"Failed to save proxy: {e}")
+        logger.error(f"Failed to save configuration: {e}")
         return False
-
-def select_collection_file() -> str:
-    """
-    List all JSON collection files in the collections directory and allow the user to select one.
-    Returns the path to the selected collection file.
-    """
-    logger = logging.getLogger(__name__)
-    logger.info("Listing available collection files")
-    
-    # Define collections directory
-    COLLECTIONS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "collections")
-    
-    # Create collections directory if it doesn't exist
-    if not os.path.exists(COLLECTIONS_DIR):
-        os.makedirs(COLLECTIONS_DIR)
-        logger.info(f"Created collections directory: {COLLECTIONS_DIR}")
-    
-    try:
-        # List all JSON files in the collections directory
-        collection_files = [f for f in os.listdir(COLLECTIONS_DIR) if f.endswith('.json')]
-    except Exception as e:
-        logger.error(f"Error listing collections directory: {e}")
-        return ""
-    
-    if not collection_files:
-        logger.warning("No collection files found in collections directory")
-        print("No collection files found in the collections directory.")
-        print("Please specify a collection file path:")
-        collection_path = input("> ").strip()
-        return collection_path
-    
-    # If only one collection file is found, use it
-    if len(collection_files) == 1:
-        collection_path = os.path.join(COLLECTIONS_DIR, collection_files[0])
-        logger.info(f"Using the only available collection file: {collection_files[0]}")
-        print(f"Using collection file: {collection_files[0]}")
-        return collection_path
-    
-    # If multiple collection files are found, let the user select one
-    print("\nAvailable collection files:")
-    for i, file in enumerate(collection_files, 1):
-        print(f"{i}. {file}")
-    
-    print("\nSelect a collection file (or enter a path to a different file):")
-    choice = input("> ").strip()
-    
-    # Check if the input is a number (selecting from the list)
-    try:
-        choice_idx = int(choice) - 1
-        if 0 <= choice_idx < len(collection_files):
-            selected_file = collection_files[choice_idx]
-            collection_path = os.path.join(COLLECTIONS_DIR, selected_file)
-            logger.info(f"User selected collection file: {selected_file}")
-            return collection_path
-    except ValueError:
-        # Not a number, treat as a file path
-        pass
-    
-    # If we get here, the input was not a valid number, treat it as a file path
-    if os.path.exists(choice):
-        logger.info(f"User provided custom collection path: {choice}")
-        return choice
-    else:
-        logger.warning(f"File not found: {choice}")
-        print(f"File not found: {choice}")
-        print("Please enter a valid file path:")
-        collection_path = input("> ").strip()
-        return collection_path
-
-def select_proxy_file() -> str:
-    """
-    List all proxy files in the proxies directory and allow the user to select one.
-    Returns the path to the selected proxy file.
-    """
-    logger = logging.getLogger(__name__)
-    
-    # Get all JSON files in the proxies directory
-    proxy_files = []
-    try:
-        for file in os.listdir(CONFIG_DIR):
-            if file.endswith('.json'):
-                proxy_files.append(file)
-    except Exception as e:
-        logger.error(f"Error listing proxies directory: {e}")
-        return CONFIG_FILE_PATH
-    
-    # If no proxy files found, return the default
-    if not proxy_files:
-        logger.info("No proxy files found, using default proxy")
-        return CONFIG_FILE_PATH
-    
-    # If only one proxy file found, use it without prompting
-    if len(proxy_files) == 1:
-        proxy_path = os.path.join(CONFIG_DIR, proxy_files[0])
-        logger.info(f"Using proxy file: {proxy_files[0]}")
-        return proxy_path
-    
-    # Multiple proxy files found, always prompt user to select
-    print("\nMultiple proxy proxy files found. Please select one:")
-    for i, file in enumerate(proxy_files, 1):
-        # Highlight the default proxy file
-        if file == os.path.basename(CONFIG_FILE_PATH):
-            print(f"  {i}. {file} (default)")
-        else:
-            print(f"  {i}. {file}")
-    
-    print("  n. Create a new proxy file")
-    print("  q. Quit")
-    
-    while True:
-        choice = input("\nEnter your choice (1-{0}/n/q): ".format(len(proxy_files)))
-        
-        if choice.lower() == 'q':
-            print("Exiting...")
-            sys.exit(0)
-        elif choice.lower() == 'n':
-            # Create a new proxy file with default settings
-            timestamp = int(time.time())
-            new_proxy_file = f"proxy_{timestamp}.json"
-            new_proxy_path = os.path.join(CONFIG_DIR, new_proxy_file)
-            
-            try:
-                with open(new_proxy_path, 'w') as f:
-                    json.dump(DEFAULT_CONFIG, f, indent=4)
-                logger.info(f"Created new proxy file: {new_proxy_file}")
-                print(f"\nCreated new proxy file: {new_proxy_file}")
-                return new_proxy_path
-            except Exception as e:
-                logger.error(f"Failed to create new proxy file: {e}")
-                print(f"Error: Failed to create new proxy file: {e}")
-                # Fall back to default
-                return CONFIG_FILE_PATH
-        
-        try:
-            choice_idx = int(choice) - 1
-            if 0 <= choice_idx < len(proxy_files):
-                selected_file = proxy_files[choice_idx]
-                proxy_path = os.path.join(CONFIG_DIR, selected_file)
-                logger.info(f"User selected proxy file: {selected_file}")
-                return proxy_path
-            else:
-                print(f"Invalid choice. Please enter a number between 1 and {len(proxy_files)}, 'n', or 'q'.")
-        except ValueError:
-            print("Invalid input. Please enter a number, 'n', or 'q'.")
 
 def resolve_collection_path(collection_path: str) -> str:
     """
@@ -1196,7 +1050,7 @@ class PostmanToBurp:
             self.logger.info(f"Using proxy: {self.session.proxies}")
             # Double-check that proxies are still set in the session
             if not self.session.proxies.get('http') and not self.session.proxies.get('https'):
-                self.logger.warning("Proxy settings appear to be empty. Resetting proxy proxy.")
+                self.logger.warning("Proxy settings appear to be empty. Resetting proxy configuration.")
                 if self.proxy_host and self.proxy_port:
                     self.session.proxies.update({
                         "http": f"http://{self.proxy_host}:{self.proxy_port}",
@@ -1204,8 +1058,8 @@ class PostmanToBurp:
                     })
                     self.logger.info(f"Restored proxy settings: {self.session.proxies}")
         else:
-            self.logger.warning("No proxy proxyured in session. Requests will be sent directly.")
-            # Try to restore proxy settings if they were previously proxyured
+            self.logger.warning("No proxy configured in session. Requests will be sent directly.")
+            # Try to restore proxy settings if they were previously configured
             if self.proxy_host and self.proxy_port:
                 self.logger.info(f"Attempting to restore proxy settings for {self.proxy_host}:{self.proxy_port}")
                 self.session.proxies.update({
@@ -1799,14 +1653,408 @@ class PostmanToBurp:
         # This line should never be reached, but just in case
         return False
             
+def select_config_file() -> str:
+    """
+    List all config files in the config directory and allow the user to select one.
+    Returns the path to the selected config file.
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Get all JSON files in the config directory
+    config_files = []
+    try:
+        for file in os.listdir(CONFIG_DIR):
+            if file.endswith('.json'):
+                config_files.append(file)
+    except Exception as e:
+        logger.error(f"Error listing config directory: {e}")
+        return CONFIG_FILE_PATH
+    
+    # If no config files found, return the default
+    if not config_files:
+        logger.info("No config files found, using default config")
+        return CONFIG_FILE_PATH
+    
+    # If only one config file found, use it without prompting
+    if len(config_files) == 1:
+        config_path = os.path.join(CONFIG_DIR, config_files[0])
+        logger.info(f"Using config file: {config_files[0]}")
+        return config_path
+    
+    # Multiple config files found, always prompt user to select
+    print("\nMultiple configuration files found. Please select one:")
+    for i, file in enumerate(config_files, 1):
+        # Highlight the default config file
+        if file == os.path.basename(CONFIG_FILE_PATH):
+            print(f"  {i}. {file} (default)")
+        else:
+            print(f"  {i}. {file}")
+    
+    print("  n. Create a new configuration file")
+    print("  q. Quit")
+    
+    while True:
+        choice = input("\nEnter your choice (1-{0}/n/q): ".format(len(config_files)))
+        
+        if choice.lower() == 'q':
+            print("Exiting...")
+            sys.exit(0)
+        elif choice.lower() == 'n':
+            # Create a new config file with default settings
+            timestamp = int(time.time())
+            new_config_file = f"config_{timestamp}.json"
+            new_config_path = os.path.join(CONFIG_DIR, new_config_file)
+            
+            try:
+                with open(new_config_path, 'w') as f:
+                    json.dump(DEFAULT_CONFIG, f, indent=4)
+                logger.info(f"Created new configuration file: {new_config_file}")
+                print(f"\nCreated new configuration file: {new_config_file}")
+                return new_config_path
+            except Exception as e:
+                logger.error(f"Failed to create new config file: {e}")
+                print(f"Error: Failed to create new config file: {e}")
+                # Fall back to default
+                return CONFIG_FILE_PATH
+        
+        try:
+            choice_idx = int(choice) - 1
+            if 0 <= choice_idx < len(config_files):
+                selected_file = config_files[choice_idx]
+                config_path = os.path.join(CONFIG_DIR, selected_file)
+                logger.info(f"User selected config file: {selected_file}")
+                return config_path
+            else:
+                print(f"Invalid choice. Please enter a number between 1 and {len(config_files)}, 'n', or 'q'.")
+        except ValueError:
+            print("Invalid input. Please enter a number, 'n', or 'q'.")
+
+def interactive_mode() -> Dict:
+    """
+    Run the script in interactive mode, prompting the user for all necessary options.
+    This is used when the script is run without command-line arguments.
+    
+    Returns:
+        Dict: A dictionary of options to use for the PostmanToBurp class
+    """
+    logger = logging.getLogger(__name__)
+    options = {}
+    
+    print("\n=== Postman to Burp Suite Converter - Interactive Mode ===\n")
+    
+    # Step 1: Select configuration file
+    print("Step 1: Configuration Selection")
+    config_path = select_config_file()
+    config = load_config(config_path)
+    
+    # Step 2: Select collection file
+    print("\nStep 2: Collection Selection")
+    collections = []
+    
+    # Look for collections in the collections directory
+    if os.path.exists("collections"):
+        try:
+            for file in os.listdir("collections"):
+                if file.endswith('.json'):
+                    collections.append(os.path.join("collections", file))
+        except Exception as e:
+            logger.error(f"Error listing collections directory: {e}")
+    
+    # Also look for collections in the current directory
+    try:
+        for file in os.listdir("."):
+            if file.endswith('.json') and "collection" in file.lower():
+                collections.append(file)
+    except Exception as e:
+        logger.error(f"Error listing current directory: {e}")
+    
+    if not collections:
+        print("No collection files found.")
+        collection_path = input("Please enter the path to a Postman collection file: ")
+        if not os.path.exists(collection_path):
+            print(f"Error: File not found: {collection_path}")
+            sys.exit(1)
+    else:
+        print("Available collection files:")
+        for i, collection in enumerate(collections, 1):
+            print(f"  {i}. {collection}")
+        
+        print("  m. Manually enter a path")
+        
+        while True:
+            choice = input("\nEnter your choice (1-{0}/m): ".format(len(collections)))
+            
+            if choice.lower() == 'm':
+                collection_path = input("Enter the path to a Postman collection file: ")
+                if not os.path.exists(collection_path):
+                    print(f"Error: File not found: {collection_path}")
+                    continue
+                break
+            
+            try:
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(collections):
+                    collection_path = collections[choice_idx]
+                    break
+                else:
+                    print(f"Invalid choice. Please enter a number between 1 and {len(collections)}.")
+            except ValueError:
+                print("Invalid input. Please enter a number or 'm'.")
+    
+    options["collection_path"] = collection_path
+    
+    # Step 3: Select target profile
+    print("\nStep 3: Target Profile Selection")
+    profiles = []
+    
+    # Look for profiles in the profiles directory
+    if os.path.exists("profiles"):
+        try:
+            for file in os.listdir("profiles"):
+                if file.endswith('.json'):
+                    profiles.append(os.path.join("profiles", file))
+        except Exception as e:
+            logger.error(f"Error listing profiles directory: {e}")
+    
+    if not profiles:
+        print("No profile files found.")
+        use_profile = input("Do you want to extract variables from the collection? (y/n): ")
+        if use_profile.lower() == 'y':
+            print("\nExtracting variables from collection...")
+            variables, collection_id, _ = extract_variables_from_collection(collection_path)
+            
+            if variables:
+                print(f"\nFound {len(variables)} variables in collection:")
+                for var in sorted(variables):
+                    print(f"  - {var}")
+                
+                create_profile = input("\nDo you want to create a profile with these variables? (y/n): ")
+                if create_profile.lower() == 'y':
+                    # Generate a profile interactively
+                    profile = {}
+                    print("\nEnter values for variables (leave empty to skip):")
+                    for var in sorted(variables):
+                        value = input(f"  {var}: ")
+                        if value:
+                            profile[var] = value
+                    
+                    # Save the profile
+                    filename = f"{collection_id}_{int(time.time())}.json" if collection_id else f"profile_{int(time.time())}.json"
+                    profile_path = os.path.join(VARIABLES_DIR, filename)
+                    
+                    try:
+                        os.makedirs(VARIABLES_DIR, exist_ok=True)
+                        with open(profile_path, 'w') as f:
+                            json.dump(profile, f, indent=2)
+                        print(f"\nProfile saved to {profile_path}")
+                        options["target_profile"] = profile_path
+                    except Exception as e:
+                        logger.error(f"Failed to save profile: {e}")
+                        print(f"Error: Failed to save profile: {e}")
+            else:
+                print("No variables found in the collection.")
+        else:
+            print("Continuing without a target profile.")
+    else:
+        print("Available profile files:")
+        for i, profile in enumerate(profiles, 1):
+            print(f"  {i}. {profile}")
+        
+        print("  n. None (don't use a profile)")
+        print("  e. Extract variables from collection")
+        
+        while True:
+            choice = input("\nEnter your choice (1-{0}/n/e): ".format(len(profiles)))
+            
+            if choice.lower() == 'n':
+                print("Continuing without a target profile.")
+                break
+            elif choice.lower() == 'e':
+                print("\nExtracting variables from collection...")
+                variables, collection_id, _ = extract_variables_from_collection(collection_path)
+                
+                if variables:
+                    print(f"\nFound {len(variables)} variables in collection:")
+                    for var in sorted(variables):
+                        print(f"  - {var}")
+                    
+                    create_profile = input("\nDo you want to create a profile with these variables? (y/n): ")
+                    if create_profile.lower() == 'y':
+                        # Generate a profile interactively
+                        profile = {}
+                        print("\nEnter values for variables (leave empty to skip):")
+                        for var in sorted(variables):
+                            value = input(f"  {var}: ")
+                            if value:
+                                profile[var] = value
+                        
+                        # Save the profile
+                        filename = f"{collection_id}_{int(time.time())}.json" if collection_id else f"profile_{int(time.time())}.json"
+                        profile_path = os.path.join(VARIABLES_DIR, filename)
+                        
+                        try:
+                            os.makedirs(VARIABLES_DIR, exist_ok=True)
+                            with open(profile_path, 'w') as f:
+                                json.dump(profile, f, indent=2)
+                            print(f"\nProfile saved to {profile_path}")
+                            options["target_profile"] = profile_path
+                        except Exception as e:
+                            logger.error(f"Failed to save profile: {e}")
+                            print(f"Error: Failed to save profile: {e}")
+                else:
+                    print("No variables found in the collection.")
+                break
+            
+            try:
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(profiles):
+                    options["target_profile"] = profiles[choice_idx]
+                    break
+                else:
+                    print(f"Invalid choice. Please enter a number between 1 and {len(profiles)}, 'n', or 'e'.")
+            except ValueError:
+                print("Invalid input. Please enter a number, 'n', or 'e'.")
+    
+    # Step 4: Proxy Selection
+    print("\nStep 4: Proxy Selection")
+    print("Checking for available proxies...")
+    
+    available_proxies = []
+    for proxy in COMMON_PROXIES:
+        host, port = proxy["host"], proxy["port"]
+        if check_proxy_connection(host, port):
+            available_proxies.append((host, port))
+    
+    if not available_proxies:
+        print("No proxies detected on common ports.")
+        print("Please start a proxy server (Burp Suite, ZAP, etc.) and try again.")
+        print("Common proxy ports checked: " + ", ".join(str(proxy["port"]) for proxy in COMMON_PROXIES[:4]))
+        sys.exit(1)
+    else:
+        print("Available proxies:")
+        for i, (host, port) in enumerate(available_proxies, 1):
+            print(f"  {i}. {host}:{port}")
+        
+        print("  m. Manually enter proxy details")
+        
+        while True:
+            choice = input("\nEnter your choice (1-{0}/m): ".format(len(available_proxies)))
+            
+            if choice.lower() == 'm':
+                proxy_host = input("Enter proxy host (default: localhost): ") or "localhost"
+                
+                while True:
+                    try:
+                        proxy_port = int(input("Enter proxy port (default: 8080): ") or "8080")
+                        break
+                    except ValueError:
+                        print("Invalid port. Please enter a number.")
+                
+                if check_proxy_connection(proxy_host, proxy_port):
+                    print(f"Proxy connection successful at {proxy_host}:{proxy_port}")
+                    options["proxy_host"] = proxy_host
+                    options["proxy_port"] = proxy_port
+                else:
+                    print(f"Warning: Could not connect to proxy at {proxy_host}:{proxy_port}")
+                    use_anyway = input("Use this proxy anyway? (y/n): ")
+                    if use_anyway.lower() == 'y':
+                        options["proxy_host"] = proxy_host
+                        options["proxy_port"] = proxy_port
+                    else:
+                        continue
+                break
+            
+            try:
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(available_proxies):
+                    options["proxy_host"], options["proxy_port"] = available_proxies[choice_idx]
+                    break
+                else:
+                    print(f"Invalid choice. Please enter a number between 1 and {len(available_proxies)} or 'm'.")
+            except ValueError:
+                print("Invalid input. Please enter a number or 'm'.")
+    
+    # Step 5: Additional Options
+    print("\nStep 5: Additional Options")
+    
+    # Verify SSL
+    verify_ssl = input("Verify SSL certificates? (y/n, default: n): ")
+    options["verify_ssl"] = verify_ssl.lower() == 'y'
+    
+    # Verbose logging
+    verbose = input("Enable verbose logging? (y/n, default: n): ")
+    options["verbose"] = verbose.lower() == 'y'
+    
+    # Log to file
+    log = input("Save detailed request results to log file? (y/n, default: y): ")
+    options["log"] = log.lower() != 'n'
+    
+    # Save configuration
+    save_config_option = input("Save these settings as default configuration? (y/n, default: n): ")
+    if save_config_option.lower() == 'y':
+        config_to_save = {
+            "proxy_host": options.get("proxy_host"),
+            "proxy_port": options.get("proxy_port"),
+            "verify_ssl": options.get("verify_ssl", False),
+            "verbose": options.get("verbose", False),
+            "log": options.get("log", True),
+            "collection_path": os.path.basename(options.get("collection_path", "")),
+            "target_profile": os.path.basename(options.get("target_profile", ""))
+        }
+        
+        if save_config(config_to_save):
+            print("Configuration saved successfully.")
+        else:
+            print("Failed to save configuration.")
+    
+    print("\n=== Configuration Complete ===\n")
+    return options
+
 def main():
     """
     Main entry point for the script.
-    Parses command line arguments, loads proxy, and runs the Postman to Burp conversion.
+    Parses command line arguments, loads configuration, and runs the Postman to Burp conversion.
+    If no arguments are provided, runs in interactive mode.
     """
-    # Parse command line arguments first to check for proxy option
+    # Check if any arguments were provided (other than the script name)
+    if len(sys.argv) == 1:
+        # No arguments provided, run in interactive mode
+        print("No arguments provided. Running in interactive mode...")
+        options = interactive_mode()
+        
+        # Create and run the PostmanToBurp instance with the options from interactive mode
+        converter = PostmanToBurp(
+            collection_path=options["collection_path"],
+            target_profile=options.get("target_profile"),
+            proxy_host=options.get("proxy_host"),
+            proxy_port=options.get("proxy_port"),
+            verify_ssl=options.get("verify_ssl", False),
+            verbose=options.get("verbose", False)
+        )
+        
+        # Configure logging to file if requested
+        if options.get("log", True):
+            # Set up file logging
+            os.makedirs(LOG_DIR, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            log_file = os.path.join(LOG_DIR, f"postman2burp_{timestamp}.log")
+            file_handler = logging.FileHandler(log_file)
+            file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+            logging.getLogger().addHandler(file_handler)
+            logging.getLogger().info(f"Logging to file: {log_file}")
+        
+        # Run the converter
+        results = converter.run()
+        return
+    
+    # Resolve collection path from arguments
+    logger.debug(f"Collection path from args: {args.collection}")
+    collection_path = resolve_collection_path(args.collection)
+    logger.debug(f"Resolved collection path: {collection_path}")
+    
+    # Parse command line arguments first to check for config option
     parser = argparse.ArgumentParser(description="Convert Postman collections to Burp Suite requests")
-    parser.add_argument("--collection", nargs="?", const="select", help="Path to Postman collection JSON file. If no path is provided, you will be prompted to select a collection.")
+    parser.add_argument("--collection", help="Path to Postman collection JSON file")
     
     # Environment options
     env_group = parser.add_argument_group("Environment Options")
@@ -1825,13 +2073,13 @@ def main():
     output_group = parser.add_argument_group("Output Options")
     output_group.add_argument("--log", action="store_true", help="Enable logging to file (saves detailed request results to logs directory)")
     output_group.add_argument("--verbose", action="store_true", help="Enable verbose logging")
-    output_group.add_argument("--save-proxy", action="store_true", help="Save current settings as default proxy")
+    output_group.add_argument("--save-config", action="store_true", help="Save current settings as default configuration")
     
-    # Proxy options
-    proxy_group = parser.add_argument_group("Configuration Options")
-    proxy_group.add_argument("-profile", nargs="?", const="select", 
-                             help="Use a specific proxy file or select from available proxys if no file specified. "
-                                  "If omitted, you will be prompted to select a proxy when multiple are available.")
+    # Config options
+    config_group = parser.add_argument_group("Configuration Options")
+    config_group.add_argument("--config", nargs="?", const="select", 
+                             help="Use a specific config file or select from available configs if no file specified. "
+                                  "If omitted, you will be prompted to select a config when multiple are available.")
     
     args = parser.parse_args()
     
@@ -1842,151 +2090,276 @@ def main():
                         format=log_format, datefmt=log_date_format)
     logger = logging.getLogger(__name__)
     
-    # Handle proxy selection
-    proxy_path = None
-    if args.proxy == "select":
-        proxy_path = select_proxy_file()
-    elif args.proxy:
-        proxy_path = args.proxy
-    else:
-        # Check if multiple proxy files exist
-        try:
-            proxy_files = [f for f in os.listdir(CONFIG_DIR) if f.endswith('.json')]
-            if len(proxy_files) > 1:
-                logger.info("Multiple proxy files found, prompting user to select")
-                proxy_path = select_proxy_file()
-            elif len(proxy_files) == 1:
-                proxy_path = os.path.join(CONFIG_DIR, proxy_files[0])
-                logger.info(f"Using the only available proxy file: {proxy_files[0]}")
+    # Handle config selection
+    config_path = None
+    
+    if args.config:
+        if args.config == "select":
+            # Interactive selection of config file
+            config_path = select_config_file()
+        else:
+            # Use the specified config file
+            if os.path.isabs(args.config):
+                config_path = args.config
             else:
-                logger.info("No proxy files found, using default proxy")
-        except Exception as e:
-            logger.warning(f"Error listing proxies directory: {e}")
-            logger.info("Using default proxy")
+                # Try to find the config file in the config directory
+                potential_path = os.path.join(CONFIG_DIR, args.config)
+                if os.path.exists(potential_path):
+                    config_path = potential_path
+                else:
+                    # Try to find the config file as-is
+                    if os.path.exists(args.config):
+                        config_path = args.config
+                    else:
+                        logger.error(f"Config file not found: {args.config}")
+                        print(f"Config file not found: {args.config}")
+                        sys.exit(1)
     
-    # Load proxy
-    proxy = load_proxy(proxy_path)
+    # Load configuration - this will now prompt for config selection if multiple exist and none was specified
+    config = load_config(config_path)
     
-    # Handle collection selection if --collection is provided without a value
-    collection_path = None
-    if args.collection == "select":
-        collection_path = select_collection_file()
-    elif args.collection:
-        collection_path = args.collection
-    else:
-        logger.error("No collection specified. Use --collection to specify a collection file.")
-        print("Error: No collection specified. Use --collection to specify a collection file.")
-        print("       Or run with --collection without a value to select from available collections.")
-        sys.exit(1)
+    # Check if collection path was provided
+    if not args.collection:
+        # No collection path provided, run in interactive mode
+        print("\nNo collection path provided. Running in interactive mode...")
+        options = interactive_mode()
+        
+        # Create and run the PostmanToBurp instance with the options from interactive mode
+        converter = PostmanToBurp(
+            collection_path=options["collection_path"],
+            target_profile=options.get("target_profile"),
+            proxy_host=options.get("proxy_host"),
+            proxy_port=options.get("proxy_port"),
+            verify_ssl=options.get("verify_ssl", False),
+            verbose=options.get("verbose", False)
+        )
+        
+        # Configure logging to file if requested
+        if options.get("log", True):
+            # Set up file logging
+            os.makedirs(LOG_DIR, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            log_file = os.path.join(LOG_DIR, f"postman2burp_{timestamp}.log")
+            file_handler = logging.FileHandler(log_file)
+            file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+            logging.getLogger().addHandler(file_handler)
+            logging.getLogger().info(f"Logging to file: {log_file}")
+        
+        # Run the converter
+        results = converter.run()
+        return
     
-    # Resolve collection path
-    collection_path = resolve_collection_path(collection_path)
+    # Resolve collection path from arguments
+    logger.debug(f"Collection path from args: {args.collection}")
+    collection_path = resolve_collection_path(args.collection)
     logger.debug(f"Resolved collection path: {collection_path}")
     
-    # Extract variables from collection if requested
-    if args.extract_keys is not None:
-        variables, collection_id, collection_data = extract_variables_from_collection(collection_path)
-        
-        if args.extract_keys == "interactive":
-            # Interactive mode - prompt for values
-            generate_variables_template(collection_path, "interactive")
-            # Exit after interactive mode
-            sys.exit(0)
-        elif args.extract_keys == "print":
-            # Print the list of keys
-            print(f"\nFound {len(variables)} variables in collection {os.path.basename(collection_path)}:")
-            for var in sorted(variables):
-                print(f"  - {var}")
-            print("\nTo create a template file with these variables:")
-            print(f"python3 postman2burp.py --collection {os.path.basename(collection_path)} --extract-keys variables_template.json")
-            print("\nOr use interactive mode to create a profile with values:")
-            print(f"python3 postman2burp.py --collection {os.path.basename(collection_path)} --extract-keys")
-            # Exit after printing variables
-            sys.exit(0)
-        else:
-            # Generate template file
-            generate_variables_template(collection_path, args.extract_keys)
-            # Exit after generating template
-            sys.exit(0)
+    # Step 3: Select target profile
+    print("\nStep 3: Target Profile Selection")
+    profiles = []
     
-    # Parse proxy settings - prioritize command line arguments over proxy
-    # If proxy is empty (due to malformed proxy file), use DEFAULT_CONFIG values only if no command line args
-    proxy_host = args.proxy_host or proxy.get("proxy_host") or DEFAULT_CONFIG["proxy_host"]
-    proxy_port = args.proxy_port or proxy.get("proxy_port") or DEFAULT_CONFIG["proxy_port"]
-    
-    # Get target profile from args or proxy
-    target_profile = args.target_profile or proxy.get("target_profile")
-    if target_profile and not args.target_profile:
-        logger.info(f"Using target profile from proxy: {target_profile}")
-    
-    if args.proxy:
+    # Look for profiles in the profiles directory
+    if os.path.exists("profiles"):
         try:
-            proxy_parts = args.proxy.split(":")
-            proxy_host = proxy_parts[0]
-            proxy_port = int(proxy_parts[1])
-        except (IndexError, ValueError):
-            logger.error("Invalid proxy format. Use host:port")
-            return
-    
-    # Create the converter
-    converter = PostmanToBurp(
-        collection_path=collection_path,
-        target_profile=target_profile,
-        proxy_host=proxy_host,
-        proxy_port=proxy_port,
-        verify_ssl=args.verify_ssl or proxy.get("verify_ssl", False),
-        auto_detect_proxy=True,  # Always enable auto-detection
-        verbose=args.verbose or proxy.get("verbose", False)
-    )
-    
-    # Set up logging to file if requested
-    if args.log or proxy.get("log", False):
-        # Create logs directory if it doesn't exist
-        logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
-        try:
-            os.makedirs(logs_dir, exist_ok=True)
-            logger.debug(f"Created logs directory: {logs_dir}")
+            for file in os.listdir("profiles"):
+                if file.endswith('.json'):
+                    profiles.append(os.path.join("profiles", file))
         except Exception as e:
-            logger.warning(f"Could not create logs directory: {e}")
-        
-        # Generate log filename based on collection name and timestamp
-        collection_name = os.path.splitext(os.path.basename(collection_path))[0]
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_path = os.path.join(logs_dir, f"{collection_name}_{timestamp}.json")
-        
-        converter.log_path = log_path
-        logger.info(f"Results will be logged to: {log_path}")
+            logger.error(f"Error listing profiles directory: {e}")
     
-    # Run the converter
-    result = converter.run()
-    if result["success"]:
-        # Save proxy if requested
-        if args.save_proxy:
-            proxy_to_save = {
-                "proxy_host": converter.proxy_host,
-                "proxy_port": converter.proxy_port,
-                "verify_ssl": args.verify_ssl,
-                "verbose": args.verbose
-            }
+    if not profiles:
+        print("No profile files found.")
+        use_profile = input("Do you want to extract variables from the collection? (y/n): ")
+        if use_profile.lower() == 'y':
+            print("\nExtracting variables from collection...")
+            variables, collection_id, _ = extract_variables_from_collection(collection_path)
             
-            # Save target_profile if provided
-            if args.target_profile:
-                proxy_to_save["target_profile"] = args.target_profile
+            if variables:
+                print(f"\nFound {len(variables)} variables in collection:")
+                for var in sorted(variables):
+                    print(f"  - {var}")
                 
-            # Save collection_path if provided
-            if collection_path:
-                proxy_to_save["collection_path"] = os.path.basename(collection_path)
-                
-            # Save log option if enabled
-            if args.log:
-                proxy_to_save["log"] = True
-            
-            if save_proxy(proxy_to_save):
-                logger.info("Configuration saved successfully")
-                if args.target_profile:
-                    logger.info(f"Target profile '{args.target_profile}' saved in proxy")
+                create_profile = input("\nDo you want to create a profile with these variables? (y/n): ")
+                if create_profile.lower() == 'y':
+                    # Generate a profile interactively
+                    profile = {}
+                    print("\nEnter values for variables (leave empty to skip):")
+                    for var in sorted(variables):
+                        value = input(f"  {var}: ")
+                        if value:
+                            profile[var] = value
+                    
+                    # Save the profile
+                    filename = f"{collection_id}_{int(time.time())}.json" if collection_id else f"profile_{int(time.time())}.json"
+                    profile_path = os.path.join(VARIABLES_DIR, filename)
+                    
+                    try:
+                        os.makedirs(VARIABLES_DIR, exist_ok=True)
+                        with open(profile_path, 'w') as f:
+                            json.dump(profile, f, indent=2)
+                        print(f"\nProfile saved to {profile_path}")
+                        options["target_profile"] = profile_path
+                    except Exception as e:
+                        logger.error(f"Failed to save profile: {e}")
+                        print(f"Error: Failed to save profile: {e}")
             else:
-                logger.error("Failed to save proxy")
+                print("No variables found in the collection.")
+        else:
+            print("Continuing without a target profile.")
+    else:
+        print("Available profile files:")
+        for i, profile in enumerate(profiles, 1):
+            print(f"  {i}. {profile}")
+        
+        print("  n. None (don't use a profile)")
+        print("  e. Extract variables from collection")
+        
+        while True:
+            choice = input("\nEnter your choice (1-{0}/n/e): ".format(len(profiles)))
+            
+            if choice.lower() == 'n':
+                print("Continuing without a target profile.")
+                break
+            elif choice.lower() == 'e':
+                print("\nExtracting variables from collection...")
+                variables, collection_id, _ = extract_variables_from_collection(collection_path)
+                
+                if variables:
+                    print(f"\nFound {len(variables)} variables in collection:")
+                    for var in sorted(variables):
+                        print(f"  - {var}")
+                    
+                    create_profile = input("\nDo you want to create a profile with these variables? (y/n): ")
+                    if create_profile.lower() == 'y':
+                        # Generate a profile interactively
+                        profile = {}
+                        print("\nEnter values for variables (leave empty to skip):")
+                        for var in sorted(variables):
+                            value = input(f"  {var}: ")
+                            if value:
+                                profile[var] = value
+                        
+                        # Save the profile
+                        filename = f"{collection_id}_{int(time.time())}.json" if collection_id else f"profile_{int(time.time())}.json"
+                        profile_path = os.path.join(VARIABLES_DIR, filename)
+                        
+                        try:
+                            os.makedirs(VARIABLES_DIR, exist_ok=True)
+                            with open(profile_path, 'w') as f:
+                                json.dump(profile, f, indent=2)
+                            print(f"\nProfile saved to {profile_path}")
+                            options["target_profile"] = profile_path
+                        except Exception as e:
+                            logger.error(f"Failed to save profile: {e}")
+                            print(f"Error: Failed to save profile: {e}")
+                else:
+                    print("No variables found in the collection.")
+                break
+            
+            try:
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(profiles):
+                    options["target_profile"] = profiles[choice_idx]
+                    break
+                else:
+                    print(f"Invalid choice. Please enter a number between 1 and {len(profiles)}, 'n', or 'e'.")
+            except ValueError:
+                print("Invalid input. Please enter a number, 'n', or 'e'.")
+    
+    # Step 4: Proxy Selection
+    print("\nStep 4: Proxy Selection")
+    print("Checking for available proxies...")
+    
+    available_proxies = []
+    for proxy in COMMON_PROXIES:
+        host, port = proxy["host"], proxy["port"]
+        if check_proxy_connection(host, port):
+            available_proxies.append((host, port))
+    
+    if not available_proxies:
+        print("No proxies detected on common ports.")
+        print("Please start a proxy server (Burp Suite, ZAP, etc.) and try again.")
+        print("Common proxy ports checked: " + ", ".join(str(proxy["port"]) for proxy in COMMON_PROXIES[:4]))
+        sys.exit(1)
+    else:
+        print("Available proxies:")
+        for i, (host, port) in enumerate(available_proxies, 1):
+            print(f"  {i}. {host}:{port}")
+        
+        print("  m. Manually enter proxy details")
+        
+        while True:
+            choice = input("\nEnter your choice (1-{0}/m): ".format(len(available_proxies)))
+            
+            if choice.lower() == 'm':
+                proxy_host = input("Enter proxy host (default: localhost): ") or "localhost"
+                
+                while True:
+                    try:
+                        proxy_port = int(input("Enter proxy port (default: 8080): ") or "8080")
+                        break
+                    except ValueError:
+                        print("Invalid port. Please enter a number.")
+                
+                if check_proxy_connection(proxy_host, proxy_port):
+                    print(f"Proxy connection successful at {proxy_host}:{proxy_port}")
+                    options["proxy_host"] = proxy_host
+                    options["proxy_port"] = proxy_port
+                else:
+                    print(f"Warning: Could not connect to proxy at {proxy_host}:{proxy_port}")
+                    use_anyway = input("Use this proxy anyway? (y/n): ")
+                    if use_anyway.lower() == 'y':
+                        options["proxy_host"] = proxy_host
+                        options["proxy_port"] = proxy_port
+                    else:
+                        continue
+                break
+            
+            try:
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(available_proxies):
+                    options["proxy_host"], options["proxy_port"] = available_proxies[choice_idx]
+                    break
+                else:
+                    print(f"Invalid choice. Please enter a number between 1 and {len(available_proxies)} or 'm'.")
+            except ValueError:
+                print("Invalid input. Please enter a number or 'm'.")
+    
+    # Step 5: Additional Options
+    print("\nStep 5: Additional Options")
+    
+    # Verify SSL
+    verify_ssl = input("Verify SSL certificates? (y/n, default: n): ")
+    options["verify_ssl"] = verify_ssl.lower() == 'y'
+    
+    # Verbose logging
+    verbose = input("Enable verbose logging? (y/n, default: n): ")
+    options["verbose"] = verbose.lower() == 'y'
+    
+    # Log to file
+    log = input("Save detailed request results to log file? (y/n, default: y): ")
+    options["log"] = log.lower() != 'n'
+    
+    # Save configuration
+    save_config = input("Save these settings as default configuration? (y/n, default: n): ")
+    if save_config.lower() == 'y':
+        config_to_save = {
+            "proxy_host": options.get("proxy_host"),
+            "proxy_port": options.get("proxy_port"),
+            "verify_ssl": options.get("verify_ssl", False),
+            "verbose": options.get("verbose", False),
+            "log": options.get("log", True),
+            "collection_path": os.path.basename(options.get("collection_path", "")),
+            "target_profile": os.path.basename(options.get("target_profile", ""))
+        }
+        
+        if save_config(config_to_save):
+            print("Configuration saved successfully.")
+        else:
+            print("Failed to save configuration.")
+    
+    print("\n=== Configuration Complete ===\n")
+    return options
 
 if __name__ == "__main__":
     main() 

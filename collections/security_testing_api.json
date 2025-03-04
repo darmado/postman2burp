@@ -1,0 +1,592 @@
+{
+	"info": {
+		"_postman_id": "e5f6g7h8-i9j0-1234-klmn-op5678901234",
+		"name": "Security Testing API",
+		"description": "Collection for testing API security vulnerabilities",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45678901"
+	},
+	"item": [
+		{
+			"name": "Authentication Tests",
+			"item": [
+				{
+					"name": "Brute Force Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"username\": \"{{username}}\",    \"password\": \"{{password}}\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Test for brute force protection by attempting multiple login requests"
+					},
+					"response": []
+				},
+				{
+					"name": "JWT Token Test",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manipulated_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						},
+						"description": "Test JWT token validation by using manipulated tokens"
+					},
+					"response": []
+				},
+				{
+					"name": "Session Fixation Test",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "session_id={{fixed_session_id}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						},
+						"description": "Test for session fixation vulnerabilities"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Injection Tests",
+			"item": [
+				{
+					"name": "SQL Injection Test",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users?id={{sql_injection_payload}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{sql_injection_payload}}"
+								}
+							]
+						},
+						"description": "Test for SQL injection vulnerabilities in query parameters"
+					},
+					"response": []
+				},
+				{
+					"name": "NoSQL Injection Test",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"username\": {\"$ne\": null},    \"password\": {\"$ne\": null}}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Test for NoSQL injection vulnerabilities in request body"
+					},
+					"response": []
+				},
+				{
+					"name": "Command Injection Test",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"domain\": \"{{command_injection_payload}}\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/tools/ping",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tools",
+								"ping"
+							]
+						},
+						"description": "Test for command injection vulnerabilities in tools endpoints"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Access Control Tests",
+			"item": [
+				{
+					"name": "IDOR Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{other_user_id}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{other_user_id}}",
+								"profile"
+							]
+						},
+						"description": "Test for Insecure Direct Object References by accessing other user's data"
+					},
+					"response": []
+				},
+				{
+					"name": "Privilege Escalation Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"role\": \"admin\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/role",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}",
+								"role"
+							]
+						},
+						"description": "Test for privilege escalation vulnerabilities"
+					},
+					"response": []
+				},
+				{
+					"name": "Mass Assignment Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"name\": \"{{user_name}}\",    \"email\": \"{{user_email}}\",    \"is_admin\": true,    \"account_balance\": 999999}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}"
+							]
+						},
+						"description": "Test for mass assignment vulnerabilities by including privileged fields"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Data Validation Tests",
+			"item": [
+				{
+					"name": "XSS Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"name\": \"{{xss_payload}}\",    \"description\": \"{{xss_payload}}\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"comments"
+							]
+						},
+						"description": "Test for Cross-Site Scripting vulnerabilities in user input"
+					},
+					"response": []
+				},
+				{
+					"name": "SSRF Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \"webhook_url\": \"{{ssrf_payload}}\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/webhooks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"webhooks"
+							]
+						},
+						"description": "Test for Server-Side Request Forgery vulnerabilities"
+					},
+					"response": []
+				},
+				{
+					"name": "XXE Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{xxe_payload}}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/import",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"import"
+							]
+						},
+						"description": "Test for XML External Entity vulnerabilities"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rate Limiting Tests",
+			"item": [
+				{
+					"name": "API Flooding Test",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products"
+							]
+						},
+						"description": "Test for rate limiting by sending multiple requests in quick succession"
+					},
+					"response": []
+				},
+				{
+					"name": "Resource Exhaustion Test",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/search?query={{large_search_query}}&limit=1000",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "{{large_search_query}}"
+								},
+								{
+									"key": "limit",
+									"value": "1000"
+								}
+							]
+						},
+						"description": "Test for resource exhaustion vulnerabilities by requesting large datasets"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://api.example.com"
+		},
+		{
+			"key": "username",
+			"value": "testuser"
+		},
+		{
+			"key": "password",
+			"value": "password123"
+		},
+		{
+			"key": "manipulated_token",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiYWRtaW4ifQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+		},
+		{
+			"key": "fixed_session_id",
+			"value": "abcdef123456"
+		},
+		{
+			"key": "sql_injection_payload",
+			"value": "1' OR '1'='1"
+		},
+		{
+			"key": "command_injection_payload",
+			"value": "example.com; cat /etc/passwd"
+		},
+		{
+			"key": "user_id",
+			"value": "123456"
+		},
+		{
+			"key": "other_user_id",
+			"value": "789012"
+		},
+		{
+			"key": "user_name",
+			"value": "Test User"
+		},
+		{
+			"key": "user_email",
+			"value": "test@example.com"
+		},
+		{
+			"key": "xss_payload",
+			"value": "<script>alert('XSS')</script>"
+		},
+		{
+			"key": "ssrf_payload",
+			"value": "http://169.254.169.254/latest/meta-data/"
+		},
+		{
+			"key": "xxe_payload",
+			"value": "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM \"file:///etc/passwd\" >]><foo>&xxe;</foo>"
+		},
+		{
+			"key": "large_search_query",
+			"value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+		}
+	]
+} 
