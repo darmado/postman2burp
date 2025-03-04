@@ -16,18 +16,14 @@ Postman2Burp bridges the gap between API development and security testing by aut
 
 ## 📋 Table of Contents
 
-- [Postman2Burp](#postman2burp)
-  - [📋 Table of Contents](#-table-of-contents)
-  - [🎯 Purpose](#-purpose)
-  - [🔮 Assumptions](#-assumptions)
-  - [📦 Requirements](#-requirements)
-  - [🚀 Quick Start](#-quick-start)
-  - [✨ Features](#-features)
-  - [🎯 Use Cases](#-use-cases)
-  - [⚠️ Limitations](#️-limitations)
-  - [📚 Documentation](#-documentation)
-  - [📜 License](#-license)
-  - [👥 Contributing](#-contributing)
+<div align="center">
+
+| [🎯 Purpose](#-purpose) | [🔮 Assumptions](#-assumptions) | [📦 Requirements](#-requirements) | [🚀 Quick Start](#-quick-start) |
+|:----------------------:|:------------------------------:|:--------------------------------:|:-------------------------------:|
+| [✨ Features](#-features) | [🎯 Use Cases](#-use-cases) | [⚠️ Limitations](#️-limitations) | [📚 Documentation](#-documentation) |
+| [🏆 Credits](#-credits) | [📜 License](#-license) | [👥 Contributing](#-contributing) | |
+
+</div>
 
 ## 🎯 Purpose
 
@@ -104,7 +100,7 @@ For complete examples with code samples and technical details, see our [Use Case
 
 ## 📚 Documentation
 
-Comprehensive documentation is available in the [Wiki](https://github.com/darmado/postman2burp/wiki):
+Documentation is available in the [Wiki](https://github.com/darmado/postman2burp/wiki):
 
 | Documentation | Description |
 |---------------|-------------|
@@ -115,6 +111,8 @@ Comprehensive documentation is available in the [Wiki](https://github.com/darmad
 | [Additional Features](https://github.com/darmado/postman2burp/wiki/Features) | Extended features and techniques |
 | [Configuration](https://github.com/darmado/postman2burp/wiki/Configuration) | Configuration options and settings |
 | [Troubleshooting](https://github.com/darmado/postman2burp/wiki/Troubleshooting) | Solutions for common issues |
+| [Function Map](https://github.com/darmado/postman2burp/wiki/Function-Map) | Overview of all functions and their roles |
+
 
 ## 📜 License
 

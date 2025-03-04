@@ -1,8 +1,7 @@
-# Additional Features
 
-This guide covers additional features and techniques for getting the most out of Postman2Burp.
+##
 
-## Batch Processing
+### Batch Processing
 
 Process multiple collections at once using shell scripting:
 
@@ -11,22 +10,23 @@ for collection in ./collections/*.json; do
   python postman2burp.py --collection "$collection" --target-profile "your_profile.json"
 done
 ```
+##
 
-## Custom Proxy Configuration
+### Custom Proxy Configuration
 
-### Combined Host:Port Format
+**Combined Host:Port Format**
 
 ```bash
 python postman2burp.py --collection "your_collection.json" --proxy 127.0.0.1:8888
 ```
 
-### Separate Host and Port
+**Separate Host and Port**
 
 ```bash
 python postman2burp.py --collection "your_collection.json" --proxy-host 127.0.0.1 --proxy-port 8888
 ```
 
-## SSL Verification
+**SSL Verification**
 
 Enable SSL certificate verification (disabled by default):
 
@@ -34,7 +34,7 @@ Enable SSL certificate verification (disabled by default):
 python postman2burp.py --collection "your_collection.json" --verify-ssl
 ```
 
-## Output Saving
+**Saving requests to a log file**
 
 Save request and response details to a JSON file for later analysis:
 
@@ -51,9 +51,11 @@ The output file contains an array of request/response pairs with details like:
 - Response body
 - Timing information
 
-## Configuration Management
+##
 
-### Saving Configuration
+### Configuration Management
+
+**Saving Configuration**
 
 Save your current settings to the config file for future use:
 
@@ -61,7 +63,7 @@ Save your current settings to the config file for future use:
 python postman2burp.py --collection "your_collection.json" --proxy localhost:8080 --save-config
 ```
 
-### Loading Configuration
+**Loading Configuration**
 
 The tool automatically loads settings from `config.json` if it exists. You can override specific settings with command-line arguments:
 
@@ -70,9 +72,11 @@ The tool automatically loads settings from `config.json` if it exists. You can o
 python postman2burp.py --collection "different_collection.json"
 ```
 
-## CI/CD Integration
+## 
 
-### Jenkins Pipeline Example
+### CI/CD Integration
+
+**Jenkins Pipeline Example**
 
 ```groovy
 pipeline {
@@ -105,8 +109,9 @@ pipeline {
     }
 }
 ```
+##
 
-## Environment Variables
+### Environment Variables
 
 Use environment variables in your profile file:
 
@@ -129,7 +134,7 @@ export PASSWORD="your-password"
 python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json"
 ```
 
-## Handling Large Collections
+**Handling Large Collections**
 
 For large collections, you can:
 

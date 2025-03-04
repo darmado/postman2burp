@@ -41,8 +41,8 @@ Edit the generated profile file and fill in the values for each variable:
 
 ### 4. Running the Tool
 
-#### Basic Usage
-
+** Basic Usage
+**
 ```bash
 python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json"
 ```
@@ -53,16 +53,16 @@ python postman2burp.py --collection "your_collection.json" --target-profile "you
 python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --proxy localhost:8080
 ```
 
-#### Skip Proxy Check
-
+** Skip Proxy Check
+**
 Useful if you're sure the proxy is running:
 
 ```bash
 python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --skip-proxy-check
 ```
 
-#### Save Configuration for Future Use
-
+** Save Configuration for Future Use
+**
 ```bash
 python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --proxy localhost:8080 --save-config
 ```

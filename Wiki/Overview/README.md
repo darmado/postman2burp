@@ -1,6 +1,4 @@
-# Overview
-
-## Introduction
+## Introducton
 
 Postman2Burp bridges the gap between API development and security testing by automatically sending Postman collection requests through Burp Suite proxy. The tool solves the critical problem of translating existing API test collections into security testing workflows without manual recreation of complex request sequences.
 

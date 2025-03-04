@@ -1,0 +1,11 @@
+{
+    "proxy_host": "localhost",
+    "proxy_port": 9090,
+    "verify_ssl": false,
+    "skip_proxy_check": false,
+    "auto_detect_proxy": true,
+    "output_path": "asdf",
+    "verbose": true,
+    "last_collection": "postman_collection.json",
+    "last_target_profile": "f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json"
+}

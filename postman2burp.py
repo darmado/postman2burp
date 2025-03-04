@@ -239,6 +239,9 @@ def verify_proxy_with_request(host: str, port: int) -> bool:
     except requests.exceptions.RequestException as e:
         logger.warning(f"Proxy test request failed: {str(e)}")
         return False
+    except Exception as e:
+        logger.warning(f"Unexpected error during proxy test: {str(e)}")
+        return False
 
 def extract_variables_from_text(text: str) -> Set[str]:
     """

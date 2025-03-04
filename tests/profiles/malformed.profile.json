@@ -1,0 +1,21 @@
+{
+    "name": "Development Environment",
+    "variables": {
+        "base_url": "https://api-dev.example.com",
+        "username": "testuser",
+        "password": "password123",
+        "api_key": "dev-api-key-12345"
+    },
+    "proxy": {
+        "host": "localhost",
+        "port": 8080
+    },
+    "ssl_verification": false,
+    "timeout": 30,
+    "headers": {
+        "User-Agent": "PostmanRuntime/7.28.4",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive"
+    },
+    "retry_count": 3
+} 

@@ -1,4 +1,4 @@
-# Postman2Burp v1.0.0 Release
+# Postman2Burp v0.0.6.9-alpha Release
 
 ## Changes
 
@@ -16,22 +16,6 @@
 - Specify custom proxy with `--proxy host:port`
 - Save results to file with `--output filename`
 
-## Usage
-
-Basic usage:
-```bash
-python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json"
-```
-
-With proxy:
-```bash
-python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --proxy localhost:8080
-```
-
-Extract variables:
-```bash
-python postman2burp.py --collection "your_collection.json" --extract-keys
-```
 
 ## Bug Fixes
 
