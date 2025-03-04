@@ -21,6 +21,9 @@ Usage:
     
     Configuration:
         python postman2burp.py --collection <collection.json> --save-config
+        
+    Extract Variables:
+        python postman2burp.py --collection <collection.json> --extract-keys [output_file.json]
 
 Requirements:
     - requests
@@ -36,7 +39,8 @@ import os
 import sys
 import urllib3
 import socket
-from typing import Dict, List, Optional, Any, Tuple
+import re
+from typing import Dict, List, Optional, Any, Tuple, Set
 import requests
 import time
 
@@ -65,7 +69,7 @@ COMMON_PROXIES = [
     # Charles Proxy default
     {"host": "localhost", "port": 8888},
     {"host": "127.0.0.1", "port": 8888},
-    # Fiddler default
+    # Fiddler defaultclear
     {"host": "localhost", "port": 8888},
     {"host": "127.0.0.1", "port": 8888},
 ]
@@ -85,14 +89,17 @@ def load_config() -> Dict:
             with open(CONFIG_FILE_PATH, 'r') as f:
                 file_config = json.load(f)
                 config.update(file_config)
-                logger.info(f"Loaded configuration from {CONFIG_FILE_PATH}")
+                # Get just the directory name and filename instead of full path
+                config_dir = os.path.basename(os.path.dirname(CONFIG_FILE_PATH))
+                config_file = os.path.basename(CONFIG_FILE_PATH)
+                logger.info(f"Loaded configuration from {config_dir}/{config_file}")
         else:
-            logger.info(f"No config file found at {CONFIG_FILE_PATH}, using default settings")
+            logger.info(f"No config file found at {os.path.basename(CONFIG_FILE_PATH)}, using default settings")
             # Auto-generate config file with default settings
             try:
                 with open(CONFIG_FILE_PATH, 'w') as f:
                     json.dump(DEFAULT_CONFIG, f, indent=4)
-                logger.info(f"Generated default configuration file at {CONFIG_FILE_PATH}")
+                logger.info(f"Generated default configuration file: {os.path.basename(CONFIG_FILE_PATH)}")
             except Exception as e:
                 logger.warning(f"Could not create default config file: {e}")
     except Exception as e:
@@ -188,6 +195,197 @@ def verify_proxy_with_request(host: str, port: int) -> bool:
     except requests.exceptions.RequestException as e:
         logger.warning(f"Proxy test request failed: {str(e)}")
         return False
+
+def extract_variables_from_text(text: str) -> Set[str]:
+    """
+    Extract all variables in the format {{variable_name}} from the given text.
+    Returns a set of variable names without the curly braces.
+    """
+    if not text:
+        return set()
+    
+    # Match {{variable}} pattern, but not {{{variable}}} (triple braces)
+    pattern = r'{{([^{}]+)}}'
+    matches = re.findall(pattern, text)
+    
+    # Filter out any matches that start with $ (these are usually Postman's built-in variables)
+    return {match for match in matches if not match.startswith('$')}
+
+def extract_variables_from_collection(collection_path: str) -> Set[str]:
+    """
+    Extract all variables used in a Postman collection.
+    Returns a set of variable names.
+    """
+    logger.info(f"Extracting variables from collection: {collection_path}")
+    
+    try:
+        with open(collection_path, 'r') as f:
+            collection = json.load(f)
+    except Exception as e:
+        logger.error(f"Failed to load collection: {e}")
+        sys.exit(1)
+    
+    variables = set()
+    
+    def process_url(url):
+        if isinstance(url, dict):
+            if "raw" in url:
+                variables.update(extract_variables_from_text(url["raw"]))
+            if "host" in url:
+                for part in url["host"]:
+                    variables.update(extract_variables_from_text(part))
+            if "path" in url:
+                for part in url["path"]:
+                    variables.update(extract_variables_from_text(part))
+            if "query" in url:
+                for query in url["query"]:
+                    if "key" in query:
+                        variables.update(extract_variables_from_text(query["key"]))
+                    if "value" in query:
+                        variables.update(extract_variables_from_text(query["value"]))
+        else:
+            variables.update(extract_variables_from_text(url))
+    
+    def process_body(body):
+        if not body:
+            return
+            
+        mode = body.get("mode")
+        
+        if mode == "raw":
+            variables.update(extract_variables_from_text(body.get("raw", "")))
+        elif mode == "urlencoded":
+            for param in body.get("urlencoded", []):
+                if "key" in param:
+                    variables.update(extract_variables_from_text(param["key"]))
+                if "value" in param:
+                    variables.update(extract_variables_from_text(param["value"]))
+        elif mode == "formdata":
+            for param in body.get("formdata", []):
+                if "key" in param:
+                    variables.update(extract_variables_from_text(param["key"]))
+                if "value" in param and param.get("type") == "text":
+                    variables.update(extract_variables_from_text(param["value"]))
+    
+    def process_headers(headers):
+        if not headers:
+            return
+            
+        for header in headers:
+            if "key" in header:
+                variables.update(extract_variables_from_text(header["key"]))
+            if "value" in header:
+                variables.update(extract_variables_from_text(header["value"]))
+    
+    def process_request(request):
+        if "url" in request:
+            process_url(request["url"])
+        if "header" in request:
+            process_headers(request["header"])
+        if "body" in request:
+            process_body(request["body"])
+    
+    def process_item(item):
+        if "request" in item:
+            process_request(item["request"])
+        
+        # Process any scripts that might contain variables
+        if "event" in item:
+            for event in item["event"]:
+                if "script" in event and "exec" in event["script"]:
+                    for line in event["script"]["exec"]:
+                        variables.update(extract_variables_from_text(line))
+        
+        # Process nested items recursively
+        if "item" in item:
+            for sub_item in item["item"]:
+                process_item(sub_item)
+    
+    # Process collection-level variables
+    if "variable" in collection:
+        for var in collection["variable"]:
+            if "value" in var:
+                variables.update(extract_variables_from_text(str(var["value"])))
+    
+    # Process all items
+    if "item" in collection:
+        for item in collection["item"]:
+            process_item(item)
+    
+    # Process auth if present
+    if "auth" in collection:
+        auth = collection["auth"]
+        if isinstance(auth, dict) and "bearer" in auth:
+            for item in auth["bearer"]:
+                if "value" in item:
+                    variables.update(extract_variables_from_text(item["value"]))
+    
+    # Process pre-request and test scripts
+    if "event" in collection:
+        for event in collection["event"]:
+            if "script" in event and "exec" in event["script"]:
+                for line in event["script"]["exec"]:
+                    variables.update(extract_variables_from_text(line))
+    
+    logger.info(f"Found {len(variables)} unique variables in collection")
+    return variables
+
+def generate_variables_template(variables: Set[str], output_path: str) -> None:
+    """
+    Generate a Postman environment template file with the extracted variables.
+    """
+    template = {
+        "id": f"auto-generated-{int(time.time())}",
+        "name": "Auto-Generated Environment",
+        "values": [],
+        "_postman_variable_scope": "environment",
+        "_postman_exported_at": time.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+        "_postman_exported_using": "Postman2Burp/Extract"
+    }
+    
+    for var in sorted(variables):
+        template["values"].append({
+            "key": var,
+            "value": "",
+            "type": "default",
+            "enabled": True
+        })
+    
+    try:
+        with open(output_path, 'w') as f:
+            json.dump(template, f, indent=2)
+        logger.info(f"Variables template saved to {output_path}")
+        
+        # Print a more detailed summary with the actual variable names
+        print(f"\n[✓] Successfully extracted {len(variables)} variables to {output_path}")
+        print("\n[Variables Found]")
+        print("----------------")
+        # Group variables in columns if there are many
+        var_list = sorted(variables)
+        if len(var_list) > 6:
+            # Create columns for better readability
+            col_width = max(len(var) for var in var_list) + 4  # Add padding
+            cols = 3  # Number of columns
+            rows = (len(var_list) + cols - 1) // cols  # Ceiling division
+            
+            for i in range(rows):
+                row = []
+                for j in range(cols):
+                    idx = i + j * rows
+                    if idx < len(var_list):
+                        row.append(var_list[idx].ljust(col_width))
+                    else:
+                        row.append("")
+                print("".join(row))
+        else:
+            # For a small number of variables, just list them one per line
+            for var in var_list:
+                print(f"- {var}")
+        
+        print("\n[✓] Edit this file to add your values, then use it with --environment")
+    except Exception as e:
+        logger.error(f"Failed to save variables template: {e}")
+        sys.exit(1)
 
 class PostmanToBurp:
     def __init__(
@@ -507,6 +705,9 @@ Examples:
   
   Save results and configuration:
     python postman2burp.py --collection api_collection.json --output results.json --save-config
+    
+  Extract variables:
+    python postman2burp.py --collection api_collection.json --extract-keys variables_template.json
 """
     )
     
@@ -518,6 +719,8 @@ Examples:
     env_group = parser.add_argument_group('Environment Options')
     env_group.add_argument("--environment", 
                          help="Path to Postman environment JSON file")
+    env_group.add_argument("--extract-keys", nargs='?', const="variables_template.json", metavar="OUTPUT_FILE",
+                         help="Extract all variables from collection and save to template file (default: variables_template.json)")
     
     # Proxy options
     proxy_group = parser.add_argument_group('Proxy Options')
@@ -550,6 +753,12 @@ Examples:
     
     if args.verbose:
         logger.setLevel(logging.DEBUG)
+    
+    # Handle extract-keys mode
+    if args.extract_keys is not None:
+        variables = extract_variables_from_collection(args.collection)
+        generate_variables_template(variables, args.extract_keys)
+        return
     
     # Extract host and port from the combined proxy argument if provided
     proxy_host = args.proxy_host
