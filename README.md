@@ -5,7 +5,7 @@
 </h1>
 <div align="center">
 
-<h1>Modify, load and replay Postman collections through any proxy tool in seconds.
+<h1>Modify, load,  and replay Postman collections through any proxy tool in seconds.
 </h1>
 
 [![Python](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/)
@@ -25,25 +25,13 @@ Repl makes it easy to modify, load, and replay Postman collections through any p
 
 <div align="center">
 
-| [🎯 Purpose](#-purpose) | [🔮 Assumptions](#-assumptions) | [✨ Features](#-features) | [🎯 Use Cases](#-use-cases) |
+| [🎯 Purpose](#-purpose)  | [✨ Features](#-features) | [🎯 Use Cases](#-use-cases) |  [📚 Documentation](#-documentation) | 
 |:----------------------:|:------------------------------:|:-------------------------:|:----------------------------:|
-| [⚠️ Limitations](#️-limitations) | [📚 Documentation](#-documentation) | [📜 License](#-license) | [👥 Contributing](#-contributing) |
+| [⚠️ Limitations](#️-limitations) | [📜 License](#-license) | [👥 Contributing](#-contributing) || 
 
 </div>
 
 ##
-
-### 🔮 Assumptions
-
-The tool operates under the following assumptions:
-
-| Assumption | Description |
-|------------|-------------|
-| 📁 Collection Location | User has exported a Postman collection to the `/collections` directory of this repository |
-| 🧩 Collection Format | The exported collection follows Postman Collection v2.1 format |
-| 🔄 Variable Usage | Collection may contain environment variables that need resolution |
-| 🌐 Proxy Availability | A proxy (like any proxy) is running and accessible |
-| 🔒 Authentication | Any required authentication tokens can be provided via environment variables |
 
 
 ##
