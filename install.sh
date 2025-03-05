@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 # Repl Installation Script
 # Automate the installation and setup of Repl
+# Supports direct installation or execution via curl
+# 
+#
 
 # Error handling function
 error_exit() {
@@ -12,7 +15,7 @@ error_exit() {
 trap 'error_exit "An unexpected error occurred. Installation failed."' ERR
 
 # Banner
-echo "\U0001F680 Installing Repl..."
+echo "[+] Installing Repl..."
 
 # Check if script has execute permissions
 if [ ! -x "$0" ] && [ -t 0 ]; then
@@ -44,7 +47,7 @@ fi
 INSTALL_DIR="$(pwd)/repl"
 
 # Clone the repository
-echo "\U0001F4E6 Cloning repository..."
+echo "[+] Cloning repository..."
 if [ -d "$INSTALL_DIR" ]; then
     echo "[!] Directory 'repl' already exists."
     printf "[?] Do you want to overwrite it? (y/N): "
@@ -64,8 +67,12 @@ if ! cd repl; then
     error_exit "[x] Failed to change directory to 'repl'. Installation failed."
 fi
 
+# Store the repo path for later use
+REPO_PATH="$(pwd)"
+echo "[+] Successfully changed to repository directory: $REPO_PATH"
+
 # Create virtual environment and install dependencies
-echo "\U0001F527 Setting up virtual environment and installing dependencies..."
+echo "[+] Setting up virtual environment and installing dependencies..."
 if ! python3 -m venv venv; then
     error_exit "[x] Failed to create virtual environment. Please ensure python3-venv is installed."
 fi
@@ -150,7 +157,7 @@ EOF
 fi
 
 # Make the main script executable
-echo "\U0001F511 Making scripts executable..."
+echo "Making scripts executable..."
 if [ -f "repl.py" ]; then
     if ! chmod +x repl.py; then
         error_exit "[x] Failed to make repl.py executable. Please check permissions."
@@ -168,10 +175,33 @@ echo "3. Configure proxy settings in the 'proxies' directory"
 echo ""
 echo "For more information, visit: https://github.com/darmado/repl/wiki"
 echo ""
-echo "To start using Repl, activate the virtual environment:"
-echo "  - For bash/zsh: source venv/bin/activate"
-echo "  - For sh: . venv/bin/activate"
+echo "[+] Current status:"
+echo "  - Repository installed at: $REPO_PATH"
+echo "  - Virtual environment is activated for this session"
 echo ""
-# Reset trap before exiting successfully
+echo "[+] You can now run repl directly with:"
+echo "  ./repl.py [options]"
+echo ""
+echo "[+] For future sessions, activate the virtual environment from the repository directory:"
+echo "  cd $REPO_PATH"
+echo "  source venv/bin/activate  # For bash/zsh"
+echo "  . venv/bin/activate       # For sh"
+echo ""
+echo "[+] To test if the installation was successful, run:"
+echo "  ./repl.py --help"
+echo ""
+
+# Create a convenience script for activating the environment
+cat > "$REPO_PATH/activate_repl.sh" << EOF
+#!/usr/bin/env sh
+# Convenience script to activate the Repl environment
+cd "$REPO_PATH" && . venv/bin/activate
+echo "[+] Repl environment activated. You can now run ./repl.py"
+EOF
+
+chmod +x "$REPO_PATH/activate_repl.sh"
+echo "[+] Created convenience script: $REPO_PATH/activate_repl.sh"
+echo "    In the future, you can run: source $REPO_PATH/activate_repl.sh"
+echo ""
 trap - ERR
 exit 0
