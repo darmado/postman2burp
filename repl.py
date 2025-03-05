@@ -1,35 +1,35 @@
 #!/usr/bin/env python3
 """
-Postman2Burp - Loads a Postman collection and sends requests through Burp Suite proxy.
+Repl - Loads a Postman collection and sends requests through Burp Suite proxy.
 
-Postman2Burp is a tool that reads a Postman collection JSON file and sends all the requests
+Repl is a tool that reads a Postman collection JSON file and sends all the requests
 through Burp Suite proxy. 
 
 Usage:
     Basic Usage:
-        python postman2burp.py --collection <collection.json>
+        python repl.py --collection <collection.json>
     
     Environment Variables:
-        python postman2burp.py --collection <collection.json> --target-profile <environment.json>
+        python repl.py --collection <collection.json> --target-profile <environment.json>
     
     Proxy Settings:
-        python postman2burp.py --collection <collection.json> --proxy-host <host> --proxy-port <port>
+        python repl.py --collection <collection.json> --proxy-host <host> --proxy-port <port>
     
     Log Options:
-        python postman2burp.py --collection <collection.json> --log --verbose
+        python repl.py --collection <collection.json> --log --verbose
     
     Proxy & Behavior Configuration:
-        python postman2burp.py --collection <collection.json> --save-proxy
+        python repl.py --collection <collection.json> --save-proxy
         
     Extract Variables:
         # Interactive mode - prompts for values for each variable
-        python postman2burp.py --collection <collection.json> --extract-keys
+        python repl.py --collection <collection.json> --extract-keys
         
         # Print all variables in the collection
-        python postman2burp.py --collection <collection.json> --extract-keys print
+        python repl.py --collection <collection.json> --extract-keys print
         
         # Generate a template environment file with all variables
-        python postman2burp.py --collection <collection.json> --extract-keys <output_file.json>
+        python repl.py --collection <collection.json> --extract-keys <output_file.json>
 
 Requirements:
     - requests
@@ -273,7 +273,7 @@ def verify_proxy_with_request(host: str, port: int) -> bool:
         
         # Add a custom header to help identify if the request went through the proxy
         headers = {
-            "X-Proxy-Test": "postman2burp-proxy-test"
+            "X-Proxy-Test": "repl-proxy-test"
         }
         
         response = test_session.get(
@@ -449,7 +449,7 @@ def generate_variables_template(collection_path: str, output_path: str) -> None:
         "values": [],
         "_postman_variable_scope": "environment",
         "_postman_exported_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000Z"),
-        "_postman_exported_using": "Postman2Burp/Interactive",
+        "_postman_exported_using": "Repl/Interactive",
         "_postman_collection_id": collection_id if collection_id else "",
         "_exporter_id": "12345678",
         "description": f"Environment for: {collection_data.get('info', {}).get('name', 'Unknown Collection')}"
@@ -557,7 +557,7 @@ def generate_variables_template(collection_path: str, output_path: str) -> None:
         
         print(f"\n[✓] Successfully created target profile with {variables_with_values} variables at {relative_path}")
         print(f"\nNext command to run:")
-        print(f"python3 postman2burp.py --collection \"{collection_name}\" --target-profile \"{filename}\"")
+        print(f"python3 repl.py --collection \"{collection_name}\" --target-profile \"{filename}\"")
         
         # Exit after creating the profile
         sys.exit(0)
@@ -1311,9 +1311,9 @@ class PostmanToBurp:
                 "info": {
                     "name": self.collection.get("info", {}).get("name", "Unknown Collection"),
                     "_postman_id": self.collection.get("info", {}).get("_postman_id", ""),
-                    "description": f"Results of scanning {self.collection.get('info', {}).get('name', 'Unknown Collection')} with postman2burp",
+                    "description": f"Results of scanning {self.collection.get('info', {}).get('name', 'Unknown Collection')} with repl",
                     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-                    "_exporter_id": "postman2burp"
+                    "_exporter_id": "repl"
                 },
                 "item": []
             }
@@ -1896,9 +1896,9 @@ def main():
             for var in sorted(variables):
                 print(f"  - {var}")
             print("\nTo create a template file with these variables:")
-            print(f"python3 postman2burp.py --collection {os.path.basename(collection_path)} --extract-keys variables_template.json")
+            print(f"python3 repl.py --collection {os.path.basename(collection_path)} --extract-keys variables_template.json")
             print("\nOr use interactive mode to create a profile with values:")
-            print(f"python3 postman2burp.py --collection {os.path.basename(collection_path)} --extract-keys")
+            print(f"python3 repl.py --collection {os.path.basename(collection_path)} --extract-keys")
             # Exit after printing variables
             sys.exit(0)
         else:

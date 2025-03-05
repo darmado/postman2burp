@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Postman2Burp Installation Script
-# This script automates the installation and setup of Postman2Burp
+# Repl Installation Script
+# This script automates the installation and setup of Repl
 
 set -e
 
-echo "🚀 Installing Postman2Burp..."
+echo "🚀 Installing Repl..."
 
 # Check if git is installed
 if ! command -v git &> /dev/null; then
@@ -21,8 +21,8 @@ fi
 
 # Clone the repository
 echo "📦 Cloning repository..."
-git clone https://github.com/darmado/postman2burp.git
-cd postman2burp
+git clone https://github.com/darmado/repl.git
+cd repl
 
 # Create virtual environment and install dependencies
 echo "🔧 Setting up virtual environment and installing dependencies..."
@@ -79,7 +79,7 @@ fi
 
 # Make the main script executable
 echo "🔑 Making scripts executable..."
-chmod +x postman2burp.py
+chmod +x repl.py
 
 echo "✅ Installation complete!"
 echo ""
@@ -88,4 +88,4 @@ echo "1. Place your Postman collection JSON files in the 'collections' directory
 echo "2. Place your target profiles in the 'profiles' directory"
 echo "3. Configure proxy settings in the 'proxies' directory"
 echo ""
-echo "📚 For more information, visit: https://github.com/darmado/postman2burp/wiki" 
+echo "📚 For more information, visit: https://github.com/darmado/repl/wiki" 

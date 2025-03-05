@@ -1,6 +1,6 @@
 # Configuration Files
 
-This directory contains configuration files for the postman2burp tool. Each configuration file is designed for a specific API testing scenario.
+This directory contains configuration files for the repl tool. Each configuration file is designed for a specific API testing scenario.
 
 ## Configuration Structure
 
@@ -74,16 +74,16 @@ Configuration for testing security vulnerabilities using:
 
 ## Using Configurations
 
-Configurations can be used with the postman2burp tool in several ways:
+Configurations can be used with the repl tool in several ways:
 
 1. Specified directly via command line:
    ```bash
-   python postman2burp.py --config config/config_ecommerce.json
+   python repl.py --config config/config_ecommerce.json
    ```
 
 2. Selected through the interactive menu:
    ```bash
-   python postman2burp.py --config select
+   python repl.py --config select
    ```
 
 ## Customizing Configurations
@@ -92,7 +92,7 @@ You can customize these configurations by:
 1. Editing the JSON file directly
 2. Using command-line arguments to override specific settings:
    ```bash
-   python postman2burp.py --config config/config_ecommerce.json --proxy localhost:9090 --verbose
+   python repl.py --config config/config_ecommerce.json --proxy localhost:9090 --verbose
    ```
 
 ## Creating New Configurations
@@ -104,5 +104,5 @@ To create a new configuration:
 
 You can also create a configuration from command-line arguments and save it:
 ```bash
-python postman2burp.py --collection your_collection.json --target-profile your_profile.json --proxy localhost:8080 --save-config
+python repl.py --collection your_collection.json --target-profile your_profile.json --proxy localhost:8080 --save-config
 ``` 

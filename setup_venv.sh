@@ -1,5 +1,5 @@
 #!/bin/bash
-# Setup script for creating a Python virtual environment for Postman2Burp
+# Setup script for creating a Python virtual environment for Repl
 
 # Check if Python 3 is installed
 if ! command -v python3 &> /dev/null; then
@@ -51,7 +51,7 @@ echo "  source venv/bin/activate"
 echo ""
 echo "To run the script with the virtual environment:"
 echo "  source venv/bin/activate"
-echo "  python postman2burp.py --collection example_postman_collection.json"
+echo "  python repl.py --collection example_postman_collection.json"
 echo ""
 echo "To deactivate the virtual environment when finished:"
 echo "  deactivate"

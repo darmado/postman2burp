@@ -1,17 +1,17 @@
 ## Introducton
 
-Postman2Burp bridges the gap between API development and security testing by automatically sending Postman collection requests through Burp Suite proxy. The tool solves the critical problem of translating existing API test collections into security testing workflows without manual recreation of complex request sequences.
+Repl bridges the gap between API development and security testing by automatically sending Postman collection requests through Burp Suite proxy. The tool solves the critical problem of translating existing API test collections into security testing workflows without manual recreation of complex request sequences.
 
-Postman2Burp directly addresses these technical challenges:
+Repl directly addresses these technical challenges:
 - Converting Postman's request format to work with Burp Suite's proxy
 - Maintaining session state across multi-step API flows
 - Substituting environment variables with actual values
 - Preserving authentication headers and tokens across requests
 - Handling complex data structures in both requests and responses
 
-## Who is Postman2Burp For?
+## Who is Repl For?
 
-Postman2Burp serves:
+Repl serves:
 
 - **Security Engineers** testing APIs for OWASP Top 10 vulnerabilities using existing collections
 - **Penetration Testers** who need to analyze API traffic for injection points and authentication bypasses
@@ -21,7 +21,7 @@ Postman2Burp serves:
 
 ## Key Use Cases
 
-Postman2Burp addresses several critical API security testing challenges:
+Repl addresses several critical API security testing challenges:
 
 | Use Case | Problem | Solution |
 |----------|---------|----------|
@@ -35,14 +35,14 @@ For detailed examples, code samples, and technical implementation details for ea
 
 ## Get Started
 
-Ready to enhance your API security testing? Follow these steps to get started with Postman2Burp:
+Ready to enhance your API security testing? Follow these steps to get started with Repl:
 
 1. **Install the Tool**
    
    Clone the repository and set up the environment:
    ```bash
-   git clone https://github.com/darmado/postman2burp.git
-   cd postman2burp
+   git clone https://github.com/darmado/repl.git
+   cd repl
    ./setup_venv.sh
    ```
 
@@ -54,7 +54,7 @@ Ready to enhance your API security testing? Follow these steps to get started wi
    
    Generate a profile template from your collection:
    ```bash
-   python postman2burp.py --collection "your_collection.json" --extract-keys
+   python repl.py --collection "your_collection.json" --extract-keys
    ```
 
 4. **Configure Your Environment**
@@ -65,7 +65,7 @@ Ready to enhance your API security testing? Follow these steps to get started wi
    
    Send your collection through Burp Suite:
    ```bash
-   python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --proxy localhost:8080
+   python repl.py --collection "your_collection.json" --target-profile "your_profile.json" --proxy localhost:8080
    ```
 
 6. **Analyze Results in Burp Suite**

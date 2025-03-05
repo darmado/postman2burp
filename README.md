@@ -1,6 +1,12 @@
+<h1 align="center">
+<br>
+<img src="./img/repl.png" atl="Repl - Load and Send Postman Collections through any proxy tool"></a>
+<br>
+</h1>
 <div align="center">
-<h1>Postman2Burp</h1>
-A tool to convert Postman collections to Burp Suite requests, allowing for automated security testing of APIs.
+
+<h1>Modify, load and replay Postman collections through any proxy tool in seconds.
+</h1>
 
 [![Python](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -9,7 +15,7 @@ A tool to convert Postman collections to Burp Suite requests, allowing for autom
 [![Postman Collections](https://img.shields.io/badge/Postman%20Collections-v2.1-orange.svg)](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
 
 
-Postman2Burp bridges the gap between API development and security testing by automatically sending Postman collection requests through Burp Suite proxy, supporting Postman 2.1 schema exports.
+Repl makes it easy to modify, load, and replay Postman collections through any proxy tool.
 
 </div>
 
@@ -27,19 +33,6 @@ Postman2Burp bridges the gap between API development and security testing by aut
 
 ##
 
-
-| Problem | Solution |
-|---------|----------|
-| During engagements, clients provide large Postman collections with complex API flows that are difficult to manually recreate in Burp Suite | Postman2Burp automatically sends all requests through Burp Suite while maintaining the exact structure and sequence |
-| Security testers need to log requests that rotate admin roles or API keys before using Burp Intruder, which doesn't log in history | Postman2Burp logs all requests with detailed information, preserving the complete testing context |
-| API security testing requires multiple authentication flows with different tokens | Extracts and reuses tokens across requests in the correct sequence, maintaining proper authentication context |
-| Penetration testers need to test the same endpoints with different privilege levels | Allows running identical collections with different profile files to test authorization boundaries |
-| Security teams need to document findings with exact request/response pairs | Generates comprehensive logs in Postman-compatible format that can be included in reports |
-
-##
-
-###
-
 ### 🔮 Assumptions
 
 The tool operates under the following assumptions:
@@ -49,7 +42,7 @@ The tool operates under the following assumptions:
 | 📁 Collection Location | User has exported a Postman collection to the `/collections` directory of this repository |
 | 🧩 Collection Format | The exported collection follows Postman Collection v2.1 format |
 | 🔄 Variable Usage | Collection may contain environment variables that need resolution |
-| 🌐 Proxy Availability | A proxy (like Burp Suite) is running and accessible |
+| 🌐 Proxy Availability | A proxy (like any proxy) is running and accessible |
 | 🔒 Authentication | Any required authentication tokens can be provided via environment variables |
 
 
@@ -58,7 +51,7 @@ The tool operates under the following assumptions:
 ### Installation
 
 ```bash
-curl -L https://github.com/darmado/postman2burp/install.sh | sh
+curl -L https://github.com/darmado/repl/install.sh | sh
 ```
 
 ##
@@ -71,20 +64,20 @@ curl -L https://github.com/darmado/postman2burp/install.sh | sh
 **2. Move your Postman collections directory.** 
 
   ```bash
-   mv postman_collection.json ./postman2burp/collections/
+   mv postman_collection.json ./repl/collections/
    ```
    `./collections` 
    
 **3. Exract keys from the Postman collection. The interactive prompt helps you **replace and store new parameter values** in the `./profiles` directory.**
 
 ```bash
-python3 postman2burp.py --collection  postmanCollection.json --extract-keys 
+python3 repl.py --collection  postmanCollection.json --extract-keys 
 ```
 
-**1. Excute postman2Burp**
+**1. Excute Repl**
 
 ```bash
-python3 postman2burp.py --collection "postman_collection.json" --target-profile "f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2_1741124383.json"
+python3 repl.py --collection "postman_collection.json" --target-profile "f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2_1741124383.json"
 ```
 
 ##
@@ -128,24 +121,24 @@ Custom Headers:
 ```
 
 
-For detailed usage instructions, see the [Wiki](https://github.com/darmado/postman2burp/wiki).
+For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/wiki).
 
 ##
 
 ### ✨ Features
 
-| Feature | Description | Benefit |
-|---------|-------------|---------|
-| 🔍 Proxy Auto-detection | Automatically detects running proxies on common ports | No manual proxy configuration needed |
-| 📁 Nested Folders | Handles nested folders in collections | Works with complex collection structures |
-| 🔄 Environment Variables | Supports environment variables | Reuse collections across different environments |
-| 📝 Multiple Body Types | Processes multiple request body types | Works with JSON, form data, raw text, etc. |
-| 🔐 Authentication | Handles authentication headers | Maintains security context across requests |
-| 📊 Logging | Logs request results | Easy troubleshooting and verification |
-| 📋 Postman-Compatible Logs | Generates logs in Postman Collection format | Logs can be imported directly into Postman |
-| 🔍 Proxy Verification | Verifies proxy before sending requests | Prevents failed test runs |
-| ⚙️ Configuration File | Stores settings in config.json | Reuse configurations across runs including target profiles |
-| 🔑 Variable Extraction | Extracts variables from collections | Easily create environment templates or view all variables |
+| Feature | Command-line Arguments | Description |
+|---------|------------------------|-------------|
+| 🔍 Proxy Auto-detection | `--proxy-host`, `--proxy-port` | Detects running proxies on ports 8080, 8081, and 8082 when no proxy is specified |
+| 🔄 Custom Proxy Configuration | `--proxy host:port` | Specifies proxy in combined host:port format |
+| 💾 Proxy Profile Management | `-profile [PROFILE]` | Loads and saves proxy configurations for reuse |
+| 🔐 Variable Replacement | `--target-profile PROFILE` | Replaces Postman variables with values from specified profile |
+| 🔑 Variable Extraction | `--extract-keys [OUTPUT_FILE]` | Extracts variables from collections to create profile templates |
+| 📊 Request Logging | `--log`, `--verbose` | Records detailed request/response data to the logs directory |
+| 🧩 Interactive Mode | Run without arguments | Provides interactive prompts for collection and profile selection |
+| 🔍 Proxy Verification | Automatic | Validates proxy connectivity before executing requests |
+| 🔤 Custom Headers | `--header KEY:VALUE` | Adds specified headers to all requests in the collection |
+| 🔒 SSL Verification | `--verify-ssl` | Enables SSL certificate verification for secure connections |
 
 ##
 
@@ -153,15 +146,18 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/postm
 
 | Scenario | Challenge | Solution | Example Command |
 |----------|-----------|----------|-----------------|
-| **Client-Provided API Collection** | Client provides a 200+ endpoint Postman collection for an enterprise API during a time-limited assessment | Quickly import all endpoints into Burp Suite without manual recreation | `python3 postman2burp.py --collection "enterprise_api.json" --extract-keys` |
-| **Privilege Escalation Testing** | Need to test the same API endpoints with admin, user, and guest credentials to identify authorization flaws | Run the same collection with different profile files containing various privilege levels | `python3 postman2burp.py --collection "user_api.json" --target-profile "admin_profile.json"` |
-| **OAuth2 Token Capture** | Need to capture and reuse OAuth tokens that expire during testing | Automatically extract tokens from responses and use them in subsequent requests | `python3 postman2burp.py --collection "oauth_flow.json" --target-profile "oauth_creds.json" --verbose` |
-| **API Key Rotation** | API uses rotating keys that must be captured and reused | Log all requests with key rotation before using Burp Intruder for attacks | `python3 postman2burp.py --collection "key_rotation_api.json" --log --verbose` |
-| **Multi-Step API Attacks** | Complex API vulnerabilities require precise sequencing of requests | Maintain exact request sequence while sending through Burp for inspection | `python3 postman2burp.py --collection "complex_workflow.json" --target-profile "attack_vectors.json"` |
-| **GraphQL Security Testing** | GraphQL endpoints with complex nested queries are difficult to manually recreate | Preserve exact query structure and variables while testing through Burp | `python3 postman2burp.py --collection "graphql_api.json" --target-profile "graphql_vars.json"` |
-| **Report Documentation** | Need to document exact request/response pairs for vulnerability reports | Generate detailed logs of all requests and responses in a reportable format | `python3 postman2burp.py --collection "vulnerable_api.json" --log --verbose` |
+| **Client-Provided API Collection** | Client provides a 200+ endpoint Postman collection for an enterprise API during a time-limited assessment | Replay all endpoints through any proxy while maintaining request sequence and context | `python3 repl.py --collection "enterprise_api.json" --extract-keys` |
+| **Privilege Escalation Testing** | Need to test API endpoints with admin, user, and guest credentials to identify authorization flaws | Execute the same collection with different profile files containing various privilege levels | `python3 repl.py --collection "user_api.json" --target-profile "admin_profile.json"` |
+| **OAuth2 Token Capture** | Need to capture and reuse OAuth tokens that expire during testing | Extract tokens from responses and apply them to subsequent requests automatically | `python3 repl.py --collection "oauth_flow.json" --target-profile "oauth_creds.json" --verbose` |
+| **API Key Rotation** | API uses rotating keys that must be captured and reused | Record all requests with key rotation before using Burp Intruder for attacks | `python3 repl.py --collection "key_rotation_api.json" --log --verbose` |
+| **Multi-Step API Workflows** | API vulnerabilities require specific request sequencing | Execute requests in the exact defined sequence while sending through Burp for inspection | `python3 repl.py --collection "workflow.json" --target-profile "attack_vectors.json"` |
+| **GraphQL Security Testing** | GraphQL endpoints with nested queries require specific formatting | Maintain query structure and variables while testing through Burp | `python3 repl.py --collection "graphql_api.json" --target-profile "graphql_vars.json"` |
+| **Report Documentation** | Need to document request/response pairs for vulnerability reports | Generate structured logs of all requests and responses in a reportable format | `python3 repl.py --collection "vulnerable_api.json" --log --verbose` |
+| **Large API Assessment** | Need to efficiently test hundreds of endpoints in a time-constrained engagement | Execute all requests through any proxy while preserving the exact sequence and context | `python3 repl.py --collection "large_api.json" --verbose` |
+| **Token Context Preservation** | Need to maintain authentication state across multiple API calls | Extract and reuse tokens across requests in the correct sequence | `python3 repl.py --collection "stateful_api.json" --log` |
+| **Evidence Sharing** | Need to provide reproducible evidence to clients | Generate logs in Postman Collection format that clients can replay | `python3 repl.py --collection "evidence.json" --log --verbose` |
 
-For complete examples with code samples and technical details, see our [Use Cases Documentation](https://github.com/darmado/postman2burp/wiki/Use-Cases).
+For complete examples with code samples and technical details, see our [Use Cases Documentation](https://github.com/darmado/repl/wiki/Use-Cases).
 
 ##
 
@@ -171,33 +167,25 @@ For complete examples with code samples and technical details, see our [Use Case
 |------------|-------------|------------|
 | File Uploads | Limited support for multipart/form-data file uploads | Use simple file uploads with base64-encoded content |
 | WebSocket Requests | No support for WebSocket requests | Use separate WebSocket testing tools |
-| Pre-request Scripts | No execution of Postman pre-request scripts | Manually implement required functionality in your environment |
 
 ##
 
 ### 📚 Documentation
 
-Documentation is available in the [Wiki](https://github.com/darmado/postman2burp/wiki):
+Documentation is available in the [Wiki](https://github.com/darmado/repl/wiki):
 
 | Documentation | Description |
 |---------------|-------------|
-| [Overview](https://github.com/darmado/postman2burp/wiki/Overview) | High-level understanding of Postman2Burp |
-| [Installation](https://github.com/darmado/postman2burp/wiki/Installation) | How to install and set up the tool |
-| [Usage](https://github.com/darmado/postman2burp/wiki/Usage) | Basic operations and commands |
-| [Use Cases](https://github.com/darmado/postman2burp/wiki/Use-Cases) | Detailed examples for specific scenarios |
-| [Additional Features](https://github.com/darmado/postman2burp/wiki/Features) | Extended features and techniques |
-| [Configuration](https://github.com/darmado/postman2burp/wiki/Configuration) | Configuration options and settings |
-| [Troubleshooting](https://github.com/darmado/postman2burp/wiki/Troubleshooting) | Solutions for common issues |
-| [Function Map](https://github.com/darmado/postman2burp/wiki/Function-Map) | Overview of all functions and their roles |
+| [Overview](https://github.com/darmado/repl/wiki/Overview) | High-level understanding of Repl |
+| [Installation](https://github.com/darmado/repl/wiki/Installation) | How to install and set up the tool |
+| [Usage](https://github.com/darmado/repl/wiki/Usage) | Basic operations and commands |
+| [Use Cases](https://github.com/darmado/repl/wiki/Use-Cases) | Detailed examples for specific scenarios |
+| [Additional Features](https://github.com/darmado/repl/wiki/Features) | Extended features and techniques |
+| [Configuration](https://github.com/darmado/repl/wiki/Configuration) | Configuration options and settings |
+| [Troubleshooting](https://github.com/darmado/repl/wiki/Troubleshooting) | Solutions for common issues |
+| [Function Map](https://github.com/darmado/repl/wiki/Function-Map) | Overview of all functions and their roles |
 
 
-##
-
-### 📜 License
-
-This project is licensed under the [Apache License 2.0](LICENSE).
-
-##
 
 ### 👥 Contributing
 
@@ -214,4 +202,12 @@ Contributions are welcome! Here's how you can contribute:
 | **Bug Reports** | • Clear description of the bug<br>• Steps to reproduce<br>• Expected behavior<br>• Screenshots (if applicable)<br>• Environment details |
 | **Feature Requests** | • The problem your feature would solve<br>• How your solution would work<br>• Any alternatives you've considered |
 
-For detailed usage instructions, see the [Wiki](https://github.com/darmado/postman2burp/wiki).
+For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/wiki).
+
+##
+
+### 📜 License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
+
+##

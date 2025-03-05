@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-This guide helps you diagnose and resolve common issues with Postman2Burp.
+This guide helps you diagnose and resolve common issues with Repl.
 
 ## Common Issues and Solutions
 
@@ -12,11 +12,11 @@ This guide helps you diagnose and resolve common issues with Postman2Burp.
 - Ensure Burp Suite is running and the proxy is listening on the specified port
 - Use `--proxy` to specify a different proxy address:
   ```bash
-  python postman2burp.py --collection "your_collection.json" --proxy localhost:9090
+  python repl.py --collection "your_collection.json" --proxy localhost:9090
   ```
 - Use `--skip-proxy-check` to bypass the proxy check:
   ```bash
-  python postman2burp.py --collection "your_collection.json" --skip-proxy-check
+  python repl.py --collection "your_collection.json" --skip-proxy-check
   ```
 
 #### Problem: "Failed to connect to proxy"
@@ -35,7 +35,7 @@ This guide helps you diagnose and resolve common issues with Postman2Burp.
 - Ensure variable names match exactly (case-sensitive)
 - Use `--verbose` to see detailed logs of variable substitution:
   ```bash
-  python postman2burp.py --collection "your_collection.json" --target-profile "your_profile.json" --verbose
+  python repl.py --collection "your_collection.json" --target-profile "your_profile.json" --verbose
   ```
 - Verify the profile file is valid JSON
 
@@ -56,7 +56,7 @@ This guide helps you diagnose and resolve common issues with Postman2Burp.
 **Solutions:**
 - Wrap filenames in quotes:
   ```bash
-  python postman2burp.py --collection "My Collection.json" --target-profile "My Profile.json"
+  python repl.py --collection "My Collection.json" --target-profile "My Profile.json"
   ```
 - Rename files to use underscores instead of spaces
 
@@ -68,7 +68,7 @@ This guide helps you diagnose and resolve common issues with Postman2Burp.
 - By default, SSL verification is disabled. If you've enabled it and are experiencing issues, you can disable it again:
   ```bash
   # Remove the --verify-ssl flag if you were using it
-  python postman2burp.py --collection "your_collection.json"
+  python repl.py --collection "your_collection.json"
   ```
 - If you need to keep SSL verification enabled, ensure the necessary CA certificates are installed on your system
 
@@ -100,7 +100,7 @@ This guide helps you diagnose and resolve common issues with Postman2Burp.
 Use the `--verbose` flag to get detailed information about what's happening:
 
 ```bash
-python postman2burp.py --collection "your_collection.json" --verbose
+python repl.py --collection "your_collection.json" --verbose
 ```
 
 ### Check Proxy Connection Manually
@@ -132,7 +132,7 @@ python --version
 
 If you're still experiencing issues:
 
-1. Check the [GitHub Issues](https://github.com/darmado/postman2burp/issues) to see if your problem has been reported
+1. Check the [GitHub Issues](https://github.com/darmado/repl/issues) to see if your problem has been reported
 2. Open a new issue with:
    - A clear description of the problem
    - Steps to reproduce

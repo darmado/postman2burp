@@ -1,6 +1,6 @@
 # Installation Guide
 
-This guide explains how to install and set up Postman2Burp on your system.
+This guide explains how to install and set up Repl on your system.
 
 ## Prerequisites
 
@@ -13,8 +13,8 @@ This guide explains how to install and set up Postman2Burp on your system.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/darmado/postman2burp.git
-cd postman2burp
+git clone https://github.com/darmado/repl.git
+cd repl
 ```
 
 ### 2. Set Up the Environment
@@ -51,7 +51,7 @@ pip install -r requirements.txt
 Verify that the installation was successful by running:
 
 ```bash
-python postman2burp.py --help
+python repl.py --help
 ```
 
 You should see the help message with available options.

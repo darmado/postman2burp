@@ -1,12 +1,12 @@
 # Configuration Guide
 
-This guide explains how to configure Postman2Burp using configuration files and command-line options.
+This guide explains how to configure Repl using configuration files and command-line options.
 
 ##
 
 ### Configuration File
 
-Postman2Burp supports configuration via a `config.json` file, making it easier to maintain consistent settings across multiple runs.
+Repl supports configuration via a `config.json` file, making it easier to maintain consistent settings across multiple runs.
 
 ***Location***
 
@@ -47,7 +47,7 @@ Create a `config.json` file in the `config` directory using the sample above.
 Run the script with your desired settings and add the `--save-config` flag:
 
 ```bash
-python postman2burp.py --collection your_collection.json --proxy-host your-proxy-host --proxy-port 9090 --save-config
+python repl.py --collection your_collection.json --proxy-host your-proxy-host --proxy-port 9090 --save-config
 ```
 
 ##
@@ -67,50 +67,50 @@ Command-line arguments always take precedence over configuration file settings. 
 
 ```bash
 # Assuming config.json exists with your settings
-python postman2burp.py --collection your_collection.json
+python repl.py --collection your_collection.json
 ```
 
 ***Overriding Configuration File***
 
 ```bash
 # Override proxy host from config file
-python postman2burp.py --collection your_collection.json --proxy-host different-proxy
+python repl.py --collection your_collection.json --proxy-host different-proxy
 
 # Override proxy port from config file
-python postman2burp.py --collection your_collection.json --proxy-port 9090
+python repl.py --collection your_collection.json --proxy-port 9090
 ```
 
 ***Saving New Configuration***
 
 ```bash
 # Save current settings to config.json
-python postman2burp.py --collection your_collection.json --proxy-host your-proxy --proxy-port 9090 --save-config
+python repl.py --collection your_collection.json --proxy-host your-proxy --proxy-port 9090 --save-config
 ```
 
 ##
 
 ### Environment Variables
 
-Postman2Burp also supports environment variables for configuration. These take precedence over the configuration file but are overridden by command-line arguments.
+Repl also supports environment variables for configuration. These take precedence over the configuration file but are overridden by command-line arguments.
 
 ***Supported Environment Variables***
 
 | Environment Variable | Description |
 |----------------------|-------------|
-| `POSTMAN2BURP_PROXY_HOST` | Proxy hostname/IP |
-| `POSTMAN2BURP_PROXY_PORT` | Proxy port number |
-| `POSTMAN2BURP_VERIFY_SSL` | Set to "true" to verify SSL certificates |
-| `POSTMAN2BURP_SKIP_PROXY_CHECK` | Set to "true" to skip proxy check |
+| `PROXY_HOST` | Proxy hostname/IP |
+| `PROXY_PORT` | Proxy port number |
+| `VERIFY_SSL` | Set to "true" to verify SSL certificates |
+| `SKIP_PROXY_CHECK` | Set to "true" to skip proxy check |
 
 ***Example Usage***
 
 ```bash
 # Set environment variables
-export POSTMAN2BURP_PROXY_HOST=localhost
-export POSTMAN2BURP_PROXY_PORT=8080
+export PROXY_HOST=localhost
+export PROXY_PORT=8080
 
 # Run the tool (will use environment variables)
-python postman2burp.py --collection your_collection.json
+python repl.py --collection your_collection.json
 ```
 
 ##

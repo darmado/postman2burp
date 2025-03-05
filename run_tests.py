@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Postman2Burp Test Runner
+Repl Test Runner
 -----------------------
-A simple script to run all tests for Postman2Burp.
+A simple script to run all tests for Repl.
 """
 
 import os
@@ -59,7 +59,7 @@ def run_tests(test_type=None, verbose=False):
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Run tests for Postman2Burp")
+    parser = argparse.ArgumentParser(description="Run tests for Repl")
     parser.add_argument("--type", choices=["all", "environment", "core_functions", "json", "schema", "lint", "proxy"], default="all",
                         help="Type of tests to run (default: all)")
     parser.add_argument("--verbose", action="store_true", help="Verbose output")

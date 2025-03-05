@@ -1,6 +1,6 @@
 # Features
 
-This document provides a technical overview of the core features in Postman2Burp, focusing on implementation details and code logic.
+This document provides a technical overview of the core features in Repl, focusing on implementation details and code logic.
 
 ## Core Features
 
@@ -121,7 +121,7 @@ def add_custom_headers(self, headers: Dict, custom_headers: Dict) -> Dict:
 Usage example:
 
 ```bash
-python postman2burp.py --collection "your_collection.json" --header "X-API-Key:your-key" --header "User-Agent:Custom-Agent"
+python repl.py --collection "your_collection.json" --header "X-API-Key:your-key" --header "User-Agent:Custom-Agent"
 ```
 
 ### Proxy Support
@@ -207,7 +207,7 @@ The tool uses a structured file naming convention and directory organization:
    - Naming pattern: `[proxy_name].json`
 
 4. **Logs Directory**: Stores execution logs
-   - Naming pattern: `postman2burp_[timestamp].log`
+   - Naming pattern: `repl_[timestamp].log`
 
 This organization allows for easy management of multiple projects and environments.
 
@@ -217,7 +217,7 @@ Comprehensive logging system with configurable verbosity levels. Logs are stored
 
 ```python
 def setup_logging(self, log_level=logging.INFO):
-    self.logger = logging.getLogger("postman2burp")
+    self.logger = logging.getLogger("repl")
     self.logger.setLevel(log_level)
     
     # Create logs directory if it doesn't exist
@@ -227,7 +227,7 @@ def setup_logging(self, log_level=logging.INFO):
     
     # File handler with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = os.path.join(logs_dir, f"postman2burp_{timestamp}.log")
+    log_file = os.path.join(logs_dir, f"repl_{timestamp}.log")
     file_handler = logging.FileHandler(log_file)
     
     # Console handler
@@ -516,7 +516,7 @@ Process multiple collections at once using shell scripting:
 
 ```bash
 for collection in ./collections/*.json; do
-  python postman2burp.py --collection "$collection" --target-profile "your_profile.json"
+  python repl.py --collection "$collection" --target-profile "your_profile.json"
 done
 ```
 
@@ -525,13 +525,13 @@ done
 **Combined Host:Port Format**
 
 ```bash
-python postman2burp.py --collection "your_collection.json" --proxy 127.0.0.1:8888
+python repl.py --collection "your_collection.json" --proxy 127.0.0.1:8888
 ```
 
 **Separate Host and Port**
 
 ```bash
-python postman2burp.py --collection "your_collection.json" --proxy-host 127.0.0.1 --proxy-port 8888
+python repl.py --collection "your_collection.json" --proxy-host 127.0.0.1 --proxy-port 8888
 ```
 
 **SSL Verification**
@@ -539,7 +539,7 @@ python postman2burp.py --collection "your_collection.json" --proxy-host 127.0.0.
 Enable SSL certificate verification (disabled by default):
 
 ```bash
-python postman2burp.py --collection "your_collection.json" --verify-ssl
+python repl.py --collection "your_collection.json" --verify-ssl
 ```
 
 **Saving requests to a log file**
@@ -547,7 +547,7 @@ python postman2burp.py --collection "your_collection.json" --verify-ssl
 Save request and response details to a JSON file for later analysis:
 
 ```bash
-python postman2burp.py --collection "your_collection.json" --output "results.json"
+python repl.py --collection "your_collection.json" --output "results.json"
 ```
 
 The output file contains an array of request/response pairs with details like:
@@ -566,7 +566,7 @@ The output file contains an array of request/response pairs with details like:
 Save your current settings to the config file for future use:
 
 ```bash
-python postman2burp.py --collection "your_collection.json" --proxy localhost:8080 --save-config
+python repl.py --collection "your_collection.json" --proxy localhost:8080 --save-config
 ```
 
 **Loading Configuration**
@@ -575,5 +575,5 @@ The tool automatically loads settings from `config.json` if it exists. You can o
 
 ```bash
 # Uses proxy from config.json but specifies a different collection
-python postman2burp.py --collection "different_collection.json"
+python repl.py --collection "different_collection.json"
 ``` 

@@ -1,6 +1,6 @@
 # Function Map
 
-This page provides a comprehensive overview of all functions in the Postman2Burp tool, organized by category. This map helps developers understand the codebase structure and the role of each function.
+This page provides a comprehensive overview of all functions in the Repl tool, organized by category. This map helps developers understand the codebase structure and the role of each function.
 
 ## Core Functions
 

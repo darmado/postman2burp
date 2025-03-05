@@ -87,16 +87,16 @@ Contains endpoints specifically designed for testing security vulnerabilities in
 
 ## Using Collections
 
-These collections can be used with the postman2burp tool to send requests through a proxy server (like Burp Suite or OWASP ZAP) for security testing:
+These collections can be used with the repl tool to send requests through a proxy server (like Burp Suite or OWASP ZAP) for security testing:
 
 ```bash
-python postman2burp.py --collection collections/ecommerce_api.json
+python repl.py --collection collections/ecommerce_api.json
 ```
 
 You can also use them with a specific profile to provide variable values:
 
 ```bash
-python postman2burp.py --collection collections/ecommerce_api.json --target-profile profiles/ecommerce_profile.json
+python repl.py --collection collections/ecommerce_api.json --target-profile profiles/ecommerce_profile.json
 ```
 
 ## Customizing Collections

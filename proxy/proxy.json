@@ -4,6 +4,6 @@
     "verify_ssl": false,
     "auto_detect_proxy": true,
     "verbose": false,
-    "collections_dir": "/Users/darmado/Library/Mobile Documents/com~apple~CloudDocs/Opensource/darmado/postman2burp/collections",
+    "collections_dir": "/Users/darmado/Library/Mobile Documents/com~apple~CloudDocs/Opensource/darmado/repl/collections",
     "target_profile": null
 }
