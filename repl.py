@@ -266,15 +266,26 @@ def load_proxy(proxy_path: str = None) -> Dict:
         
     return proxy
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger(__name__)
+def configure_logging(log_level=logging.INFO):
+    """
+    Configure the logging system with the specified log level.
+    
+    Args:
+        log_level: The logging level to use (default: logging.INFO)
+        
+    Returns:
+        logger: Configured logger instance
+    """
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+    
+    # Get and return the logger for the calling module
+    return logging.getLogger(__name__)
 
 def check_proxy_connection(host: str, port: int) -> bool:
     """

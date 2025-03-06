@@ -1,9 +1,9 @@
 {
   "label": "test-collection-id_apikey_header",
   "type": "apikey",
-  "key": "mykey",
+  "key": "api-key-123",
   "location": "header",
-  "param_name": "X-API-Key",
+  "param_name": "Custom-API-Key",
   "is_dynamic": false,
   "auth_url": null,
   "auth_method": "POST",
