@@ -50,7 +50,30 @@ import datetime
 import uuid
 import urllib.parse
 
-#  the select_collection_file function
+# Configure logging
+def configure_logging(log_level=logging.INFO):
+    """
+    Configure the logging system with the specified log level.
+    
+    Args:
+        log_level: The logging level to use (default: logging.INFO)
+        
+    Returns:
+        logger: Configured logger instance
+    """
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+    
+    # Get and return the logger for the module
+    return logging.getLogger(__name__)
+
+# Initialize logger at module level
+logger = configure_logging()
 
 # Disable SSL warnings when using proxy
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -153,7 +176,6 @@ def validate_json_file(file_path: str) -> Tuple[bool, Optional[Dict]]:
     Returns:
         Tuple[bool, Optional[Dict]]: Tuple of (is_valid, parsed_json)
     """
-    logger = logging.getLogger(__name__)
     logger.debug(f"validate_json_file called with path: {file_path}")
     
     # Ensure we have an absolute path
@@ -195,7 +217,8 @@ def load_proxy(proxy_path: str = None) -> Dict:
     If the proxy file exists but is malformed, return an empty dictionary
     to ensure we rely only on command-line arguments.
     """
-    logger = logging.getLogger(__name__)
+    logger.debug(f"load_proxy called with proxy_path: {proxy_path}")
+    
     proxy = DEFAULT_CONFIG.copy()
     
     # If no specific proxy path was provided, prompt user to select one if multiple exist
@@ -266,53 +289,35 @@ def load_proxy(proxy_path: str = None) -> Dict:
         
     return proxy
 
-def configure_logging(log_level=logging.INFO):
-    """
-    Configure the logging system with the specified log level.
-    
-    Args:
-        log_level: The logging level to use (default: logging.INFO)
-        
-    Returns:
-        logger: Configured logger instance
-    """
-    logging.basicConfig(
-        level=log_level,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
-    
-    # Get and return the logger for the calling module
-    return logging.getLogger(__name__)
-
 def check_proxy_connection(host: str, port: int) -> bool:
     """
-    Check if the proxy is running and accessible.
-    Returns True if proxy is running, False otherwise.
+    Check if a proxy is running at the specified host and port.
+    
+    Args:
+        host: Proxy host
+        port: Proxy port
+        
+    Returns:
+        bool: True if the proxy is running, False otherwise
     """
     try:
-        # Resolve hostname to IP if needed
-        try:
-            # Try to resolve the hostname to handle cases where 'localhost' or other hostnames are used
-            ip_address = socket.gethostbyname(host)
-            logger.debug(f"Resolved {host} to IP: {ip_address}")
-        except socket.gaierror:
-            # If hostname resolution fails, use the original host (might be an IP already)
-            logger.warning(f"Could not resolve hostname {host}, using as-is")
-            ip_address = host
-            
+        # Try to resolve the hostname to an IP address
+        ip_address = socket.gethostbyname(host)
+        logger.debug(f"Resolved {host} to IP: {ip_address}")
+        
+        # Create a socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(2)
+        sock.settimeout(2)  # 2 second timeout
+        
+        # Try to connect to the proxy
         result = sock.connect_ex((ip_address, port))
         sock.close()
         
         if result == 0:
-            logger.info(f"Proxy connection successful at {host}:{port}")
+            logger.debug(f"Proxy connection successful at {host}:{port}")
             return True
         else:
-            logger.debug(f"No proxy detected at {host}:{port}")
+            logger.debug(f"Proxy connection failed at {host}:{port} with error code {result}")
             return False
     except Exception as e:
         logger.debug(f"Error checking proxy at {host}:{port}: {str(e)}")
@@ -320,69 +325,42 @@ def check_proxy_connection(host: str, port: int) -> bool:
 
 def verify_proxy_with_request(host: str, port: int) -> bool:
     """
-    Verify proxy by making a test request through it.
-    Returns True if the proxy works, False otherwise.
+    Verify proxy connection by making a test request.
+    
+    Args:
+        host: Proxy host
+        port: Proxy port
+        
+    Returns:
+        bool: True if the proxy is working, False otherwise
     """
     try:
+        # Set up proxy
+        proxy_url = f"http://{host}:{port}"
         proxies = {
-            "http": f"http://{host}:{port}",
-            "https": f"http://{host}:{port}"
+            "http": proxy_url,
+            "https": proxy_url
         }
         
-        # Use a reliable test endpoint
-        test_url = "https://httpbin.org/get"
-        
-        logger.debug(f"Testing proxy with request to {test_url}")
-        logger.debug(f"Using proxy settings: {proxies}")
-        
-        # Create a new session for this test to avoid any proxy issues
-        test_session = requests.Session()
-        test_session.proxies.update(proxies)
-        test_session.verify = False
-        
-        # Add a custom header to help identify if the request went through the proxy
-        headers = {
-            "X-Proxy-Test": "repl-proxy-test"
-        }
-        
-        response = test_session.get(
-            test_url, 
-            headers=headers,
-            timeout=5
+        # Make a test request to a reliable endpoint
+        logger.debug(f"Testing proxy with request to httpbin.org through {proxy_url}")
+        response = requests.get(
+            "http://httpbin.org/get",
+            proxies=proxies,
+            timeout=5,
+            verify=False  # Disable SSL verification for the test
         )
         
-        # Check if the response contains our custom header in the returned data
-        # httpbin.org/get returns all headers in the response JSON
-        try:
-            response_json = response.json()
-            headers_in_response = response_json.get('headers', {})
-            if 'X-Proxy-Test' in headers_in_response:
-                logger.debug("Found our test header in the response, proxy is working")
-            else:
-                logger.warning("Test header not found in response, proxy might not be working correctly")
-        except:
-            logger.warning("Could not parse response JSON to verify headers")
+        # Check if the response contains the proxy information
+        response_json = response.json()
+        origin = response_json.get("origin", "")
         
-        if response.status_code == 200:
-            logger.info(f"Proxy test request successful through {host}:{port}")
-            return True
-        else:
-            logger.warning(f"Proxy test request failed with status code {response.status_code}")
-            return False
-    except requests.exceptions.ProxyError as e:
-        logger.warning(f"Proxy error during test: {str(e)}")
-        return False
-    except requests.exceptions.ConnectionError as e:
-        logger.warning(f"Connection error during proxy test: {str(e)}")
-        return False
-    except requests.exceptions.Timeout as e:
-        logger.warning(f"Timeout during proxy test: {str(e)}")
-        return False
-    except requests.exceptions.RequestException as e:
-        logger.warning(f"Request error during proxy test: {str(e)}")
-        return False
+        logger.debug(f"Response from httpbin.org: status={response.status_code}, origin={origin}")
+        
+        # If the response contains the proxy information, the proxy is working
+        return response.status_code == 200
     except Exception as e:
-        logger.warning(f"Unexpected error during proxy test: {str(e)}")
+        logger.debug(f"Error verifying proxy with request: {str(e)}")
         return False
 
 def extract_variables_from_text(text: str) -> Set[str]:
@@ -645,7 +623,8 @@ def save_proxy(proxy: Dict) -> bool:
     Returns:
         bool: True if the proxy was saved successfully, False otherwise
     """
-    logger = logging.getLogger(__name__)
+    logger.debug(f"save_proxy called with proxy: {proxy}")
+    
     try:
         # Create proxy directory if it doesn't exist
         if not os.path.exists(CONFIG_DIR):
@@ -683,7 +662,6 @@ def select_collection_file() -> str:
     List all JSON collection files in the collections directory and allow the user to select one.
     Returns the path to the selected collection file.
     """
-    logger = logging.getLogger(__name__)
     logger.info("Listing available collection files")
     
     # Define collections directory
@@ -751,7 +729,7 @@ def select_proxy_file() -> str:
     List all proxy files in the config/proxies directory and allow the user to select one.
     Returns the path to the selected proxy file.
     """
-    logger = logging.getLogger(__name__)
+    logger.info("Listing available proxy files")
     
     # Get all JSON files in the config/proxies directory
     proxy_profiles = []
@@ -833,7 +811,6 @@ def resolve_collection_path(collection_path: str) -> str:
     Returns:
         str: Resolved path to the collection file
     """
-    logger = logging.getLogger(__name__)
     logger.debug(f"resolve_collection_path called with: {collection_path}")
     logger.debug(f"Current working directory: {os.getcwd()}")
     logger.debug(f"Collections directory: {COLLECTIONS_DIR}")
