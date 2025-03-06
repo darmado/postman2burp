@@ -1,6 +1,6 @@
 # API Collections
 
-This directory contains Postman collection files for various API testing scenarios. Each collection is designed for testing a specific type of API.
+contains Postman collection files for various API testing scenarios. Each collection is designed for testing a specific type of API.
 
 ## Collection Structure
 
@@ -93,10 +93,10 @@ These collections can be used with the repl tool to send requests through a prox
 python repl.py --collection collections/ecommerce_api.json
 ```
 
-You can also use them with a specific profile to provide variable values:
+You can also use them with a specific insertion point to provide variable values:
 
 ```bash
-python repl.py --collection collections/ecommerce_api.json --target-profile profiles/ecommerce_profile.json
+python repl.py --collection collections/ecommerce_api.json --insertion-pointprofiles/ecommerce_profile.json
 ```
 
 ## Customizing Collections

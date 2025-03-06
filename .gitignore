@@ -1,9 +1,11 @@
-#Dynamically generated logs and test files 
+#Dynamically generated logs, test files, and temp startup scripts 
 /logs/*   
 /MagicMock/*
 /profiles/*
 *.dev
 tests/
+run_tests.py
+activate
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

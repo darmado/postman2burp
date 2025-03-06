@@ -15,7 +15,7 @@ echo "Building for $(uname -s)..."
 pyinstaller --onefile --clean --name=repl repl.py
 
 # Copy additional files
-mkdir -p dist/collections dist/profiles dist/config
+mkdir -p dist/collections dist/insertion_points dist/config
 cp -r README.md LICENSE dist/
 
 echo "Build complete! Executable is in the dist directory."

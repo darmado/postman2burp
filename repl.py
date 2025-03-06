@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 """
-Repl - Loads a Postman collection and sends requests through Burp Suite proxy.
-
-Repl is a tool that reads a Postman collection JSON file and sends all the requests
-through Burp Suite proxy. 
+Repl makes it easy to replace, load, and replay Postman collections through any proxy tool.
 
 Usage:
     Basic Usage:
         python repl.py --collection <collection.json>
     
     Environment Variables:
-        python repl.py --collection <collection.json> --target-profile <environment.json>
+        python repl.py --collection <collection.json> --insertion-point<environment.json>
     
     Proxy Settings:
         python repl.py --collection <collection.json> --proxy-host <host> --proxy-port <port>
@@ -71,11 +68,15 @@ DEFAULT_CONFIG = {
 COLLECTIONS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "collections")
 
 # Path to proxy file
-PROXIES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "proxies")
+PROXIES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "proxies")
 PROXY_FILE_PATH = os.path.join(PROXIES_DIR, "default.json")
 
 # Path to variables templates directory
-VARIABLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "profiles")
+VARIABLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "insertion_points")
+
+# ANSI color codes
+COLOR_ORANGE = "\033[38;5;208m"  # Orange color
+COLOR_RESET = "\033[0m"          # Reset to default
 
 # Always check common proxies first
 # Common proxy proxys to check
@@ -98,11 +99,47 @@ COMMON_PROXIES = [
 ]
 
 # Path to proxy file
-CONFIG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "proxies")
+CONFIG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "proxies")
 CONFIG_FILE_PATH = os.path.join(CONFIG_DIR, "default.json")
 
 # Path to variables templates directory
-VARIABLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "profiles")
+VARIABLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "insertion_points")
+
+# Function to check if terminal supports colors
+def supports_colors():
+    """Check if the terminal supports colors."""
+    if not sys.stdout.isatty():
+        return False
+    
+    # Check platform-specific color support
+    plat = sys.platform
+    supported_platform = plat != 'Pocket PC' and (plat != 'win32' or 'ANSICON' in os.environ)
+    
+    # isatty is not always implemented, so we fallback to supported_platform
+    return supported_platform
+
+BANNER_TEXT = """
+                                                                                ████       
+             ██████████                                                         ████       
+          ████████████████                                                      ████       
+        ███████████████████       ████████    ████████████    █████████████     ████       
+       ███████        ██████      ████████  ███████████████   ███████████████   ████       
+      ███  █  ███████  █  ███     █████     █████      █████  ████       ████   ████       
+      ██  █  ████ ████  █  ██     █████     ████████████████  ████       ████   ████       
+      █████  ████ ████  ██████    █████     ████████████████  ████       ████   ████       
+      ██████  ███████   █████     █████     ████              ████       ████   ████       
+       ██████    ██   ███████     █████     ████████████████  ███████████████   ████       
+        ████           █████      █████     ████████████████  ███████████████   ████       
+         ██              █                                    ████                         
+                                                              ████                         
+                                                              ████           
+
+              Replace, Load, and Replay Postman Collections | Author: @daramdo
+                      Version 1.0.0 | Apache License, Version 2.0
+"""
+
+# Define colored banner (will be used if terminal supports colors)
+BANNER = f"{COLOR_ORANGE}{BANNER_TEXT}{COLOR_RESET}" if supports_colors() else BANNER_TEXT
 
 def validate_json_file(file_path: str) -> Tuple[bool, Optional[Dict]]:
     """
@@ -173,9 +210,10 @@ def load_proxy(proxy_path: str = None) -> Dict:
         if not os.path.exists(CONFIG_DIR):
             try:
                 os.makedirs(CONFIG_DIR)
-                logger.debug(f"Created proxies directory at {CONFIG_DIR}")
+                logger.debug(f"Created config/proxies directory at {CONFIG_DIR}")
             except Exception as e:
-                logger.warning(f"Could not create proxies directory: {e}")
+                logger.warning(f"Could not create config/proxies directory: {e}")
+                return False
         
         if os.path.exists(proxy_file_path):
             # Validate the JSON file before loading
@@ -442,8 +480,8 @@ def generate_variables_template(collection_path: str, output_path: str) -> None:
         logger.warning("No variables found in collection")
         return
     
-    # Create a simple target profile with direct key-value pairs
-    profile = {
+    # Create a simple target insertion_point with direct key-value pairs
+    insertion_point = {
         "id": f"auto-generated-{int(time.time())}",
         "name": collection_data.get("info", {}).get("name", "Environment"),
         "values": [],
@@ -486,7 +524,7 @@ def generate_variables_template(collection_path: str, output_path: str) -> None:
     print("\n=== Enter Values for Variables ===")
     print("- Press Enter to use the original value or skip")
     print("- Variables with empty values will use collection defaults if available")
-    print("- Target profile values take precedence over collection variables")
+    print("- Target insertion_point values take precedence over collection variables")
     
     # First prompt for collection-level variables
     if collection_variables:
@@ -507,7 +545,7 @@ def generate_variables_template(collection_path: str, output_path: str) -> None:
                 value = input(f"{var}: ").strip()
             
             if value.strip():  # Only add if value is not empty
-                profile["values"].append({
+                insertion_point["values"].append({
                     "key": var,
                     "value": value,
                     "type": "string",
@@ -522,7 +560,7 @@ def generate_variables_template(collection_path: str, output_path: str) -> None:
             value = input(f"{var}: ").strip()
             
             if value.strip():  # Only add if value is not empty
-                profile["values"].append({
+                insertion_point["values"].append({
                     "key": var,
                     "value": value,
                     "type": "default",
@@ -541,29 +579,29 @@ def generate_variables_template(collection_path: str, output_path: str) -> None:
             return
     
     # Automatically generate filename based on collection ID
-    filename = f"{collection_id}_{int(time.time())}.json" if collection_id else f"profile_{int(time.time())}.json"
+    filename = f"{collection_id}_{int(time.time())}.json" if collection_id else f"insertion_point_{int(time.time())}.json"
     
-    # Save to profiles directory
+    # Save to insertion_points directory
     output_path = os.path.join(VARIABLES_DIR, filename)
     
     try:
-        # Save profile
+        # Save insertion_point
         with open(output_path, 'w') as f:
-            json.dump(profile, f, indent=2)
+            json.dump(insertion_point, f, indent=2)
         
         # Print success message
         relative_path = os.path.relpath(output_path)
         collection_name = os.path.basename(collection_path)
         
-        print(f"\n[✓] Successfully created target profile with {variables_with_values} variables at {relative_path}")
+        print(f"\n[✓] Successfully created target insertion_point with {variables_with_values} variables at {relative_path}")
         print(f"\nNext command to run:")
-        print(f"python3 repl.py --collection \"{collection_name}\" --target-profile \"{filename}\"")
+        print(f"python3 repl.py --collection \"{collection_name}\" --insertion-point\"{filename}\"")
         
-        # Exit after creating the profile
+        # Exit after creating the insertion_point
         sys.exit(0)
         
     except Exception as e:
-        logger.error(f"Failed to save profile: {e}")
+        logger.error(f"Failed to save insertion_point: {e}")
         sys.exit(1)
 
 def save_proxy(proxy: Dict) -> bool:
@@ -592,7 +630,7 @@ def save_proxy(proxy: Dict) -> bool:
             "proxy_host": proxy.get("proxy_host", "localhost"),
             "proxy_port": proxy.get("proxy_port", 8080),
             "verify_ssl": proxy.get("verify_ssl", False),
-            "target_profile": proxy.get("target_profile", ""),
+            "target_insertion_point": proxy.get("target_insertion_point", ""),
             "verbose": proxy.get("verbose", False)
         }
         
@@ -679,35 +717,35 @@ def select_collection_file() -> str:
 
 def select_proxy_file() -> str:
     """
-    List all proxy files in the proxies directory and allow the user to select one.
+    List all proxy files in the config/proxies directory and allow the user to select one.
     Returns the path to the selected proxy file.
     """
     logger = logging.getLogger(__name__)
     
-    # Get all JSON files in the proxies directory
-    proxy_files = []
+    # Get all JSON files in the config/proxies directory
+    proxy_profiles = []
     try:
         for file in os.listdir(CONFIG_DIR):
             if file.endswith('.json'):
-                proxy_files.append(file)
+                proxy_profiles.append(file)
     except Exception as e:
-        logger.error(f"Error listing proxies directory: {e}")
+        logger.error(f"Error listing config/proxies directory: {e}")
         return CONFIG_FILE_PATH
     
-    # If no proxy files found, return the default
-    if not proxy_files:
-        logger.info("No proxy files found, using default proxy")
+    # If no proxy profiles found, return the default
+    if not proxy_profiles:
+        logger.info("No proxy profiles found, using default proxy")
         return CONFIG_FILE_PATH
     
     # If only one proxy file found, use it without prompting
-    if len(proxy_files) == 1:
-        proxy_path = os.path.join(CONFIG_DIR, proxy_files[0])
-        logger.info(f"Using proxy file: {proxy_files[0]}")
+    if len(proxy_profiles) == 1:
+        proxy_path = os.path.join(CONFIG_DIR, proxy_profiles[0])
+        logger.info(f"Using proxy file: {proxy_profiles[0]}")
         return proxy_path
     
-    # Multiple proxy files found, always prompt user to select
-    print("\nMultiple proxy proxy files found. Please select one:")
-    for i, file in enumerate(proxy_files, 1):
+    # Multiple proxy profiles found, always prompt user to select
+    print("\nMultiple proxy proxy profiles found. Please select one:")
+    for i, file in enumerate(proxy_profiles, 1):
         # Highlight the default proxy file
         if file == os.path.basename(CONFIG_FILE_PATH):
             print(f"  {i}. {file} (default)")
@@ -718,7 +756,7 @@ def select_proxy_file() -> str:
     print("  q. Quit")
     
     while True:
-        choice = input("\nEnter your choice (1-{0}/n/q): ".format(len(proxy_files)))
+        choice = input("\nEnter your choice (1-{0}/n/q): ".format(len(proxy_profiles)))
         
         if choice.lower() == 'q':
             print("Exiting...")
@@ -743,13 +781,13 @@ def select_proxy_file() -> str:
         
         try:
             choice_idx = int(choice) - 1
-            if 0 <= choice_idx < len(proxy_files):
-                selected_file = proxy_files[choice_idx]
+            if 0 <= choice_idx < len(proxy_profiles):
+                selected_file = proxy_profiles[choice_idx]
                 proxy_path = os.path.join(CONFIG_DIR, selected_file)
                 logger.info(f"User selected proxy file: {selected_file}")
                 return proxy_path
             else:
-                print(f"Invalid choice. Please enter a number between 1 and {len(proxy_files)}, 'n', or 'q'.")
+                print(f"Invalid choice. Please enter a number between 1 and {len(proxy_profiles)}, 'n', or 'q'.")
         except ValueError:
             print("Invalid input. Please enter a number, 'n', or 'q'.")
 
@@ -801,25 +839,49 @@ def resolve_collection_path(collection_path: str) -> str:
     logger.warning(f"Collection file not found in collections directory: {basename}")
     return collection_path
 
-class PostmanToBurp:
-    def __init__(self, collection_path: str, target_profile: str = None, proxy_host: str = None, proxy_port: int = None,
+def extract_collection_id(collection_path: str) -> Optional[str]:
+    """
+    Extract the Postman collection ID from a collection file.
+    
+    Args:
+        collection_path: Path to the collection file
+        
+    Returns:
+        The collection ID if found, None otherwise
+    """
+    if not collection_path:
+        return None
+        
+    try:
+        with open(collection_path, 'r') as f:
+            collection_data = json.load(f)
+            if "info" in collection_data and "_postman_id" in collection_data["info"]:
+                return collection_data["info"]["_postman_id"]
+    except Exception as e:
+        logger.debug(f"Could not extract collection ID: {e}")
+    
+    return None
+
+class Repl:
+    def __init__(self, collection_path: str, target_insertion_point: str = None, proxy_host: str = None, proxy_port: int = None,
                  verify_ssl: bool = False, auto_detect_proxy: bool = True,
-                 verbose: bool = False, custom_headers: List[str] = None):
+                 verbose: bool = False, custom_headers: List[str] = None, auth_method: Dict = None):
         """
-        Initialize the PostmanToBurp converter.
+        Initialize the Repl converter.
         
         Args:
             collection_path: Path to the Postman collection JSON file
-            target_profile: Path to the Postman environment JSON file
+            target_insertion_point: Path to the Postman environment JSON file
             proxy_host: Proxy host
             proxy_port: Proxy port
             verify_ssl: Whether to verify SSL certificates
             auto_detect_proxy: Whether to auto-detect proxy settings
             verbose: Whether to enable verbose logging
             custom_headers: List of custom headers in format "Key:Value"
+            auth_method: Label of the authentication method to use
         """
         self.collection_path = collection_path
-        self.target_profile = target_profile
+        self.target_insertion_point = target_insertion_point
         self.proxy_host = proxy_host
         self.proxy_port = proxy_port
         self.verify_ssl = verify_ssl
@@ -827,6 +889,7 @@ class PostmanToBurp:
         self.log_path = None
         self.verbose = verbose
         self.custom_headers = {}
+        self.auth_method = auth_method
         
         # Process custom headers if provided
         if custom_headers:
@@ -864,7 +927,7 @@ class PostmanToBurp:
         self.collection_id = self.collection.get("info", {}).get("_postman_id", "unknown")
         self.collection_name = self.collection.get("info", {}).get("name", "Unknown Collection")
         
-        # Store collection variables in a separate dictionary to avoid overriding target profile variables
+        # Store collection variables in a separate dictionary to avoid overriding target insertion_point variables
         collection_variables = {}
         
         # Extract collection variables
@@ -881,7 +944,7 @@ class PostmanToBurp:
                         else:
                             self.logger.debug(f"Loaded collection variable: {var_key} = {var_value}")
         
-        # Only add collection variables if they don't exist in the environment (target profile takes precedence)
+        # Only add collection variables if they don't exist in the environment (target insertion_point takes precedence)
         for key, value in collection_variables.items():
             if key not in self.environment:
                 self.environment[key] = value
@@ -889,53 +952,53 @@ class PostmanToBurp:
                     self.logger.debug(f"Using collection variable: {key} = {value}")
             else:
                 if self.verbose:
-                    self.logger.debug(f"Ignoring collection variable '{key}' as it's already defined in target profile")
+                    self.logger.debug(f"Ignoring collection variable '{key}' as it's already defined in target insertion_point")
         
         self.logger.info(f"Loaded collection: {self.collection_name} ({self.collection_id})")
         return True
     
-    def load_profile(self) -> bool:
-        """Load variables from a target profile file."""
-        if not self.target_profile:
-            self.logger.debug("No target profile specified")
+    def load_insertion_point(self) -> bool:
+        """Load variables from a target insertion_point file."""
+        if not self.target_insertion_point:
+            self.logger.debug("No target insertion_point specified")
             return True
 
         # First try the path as provided
-        profile_path = self.target_profile
+        insertion_point_path = self.target_insertion_point
         
-        # If the file doesn't exist, try looking in the profiles directory
-        if not os.path.exists(profile_path):
-            profiles_dir_path = os.path.join(VARIABLES_DIR, os.path.basename(profile_path))
-            if os.path.exists(profiles_dir_path):
-                self.logger.debug(f"Profile not found at {profile_path}, using {profiles_dir_path} instead")
-                profile_path = profiles_dir_path
+        # If the file doesn't exist, try looking in the insertion_points directory
+        if not os.path.exists(insertion_point_path):
+            insertion_points_dir_path = os.path.join(VARIABLES_DIR, os.path.basename(insertion_point_path))
+            if os.path.exists(insertion_points_dir_path):
+                self.logger.debug(f"Insertion Point not found at {insertion_point_path}, using {insertion_points_dir_path} instead")
+                insertion_point_path = insertion_points_dir_path
             else:
-                self.logger.warning(f"Profile not found at {profile_path} or in profiles directory")
+                self.logger.warning(f"Insertion Point not found at {insertion_point_path} or in insertion_points directory")
 
-        # Validate profile file
-        valid, profile_data = validate_json_file(profile_path)
-        if not valid or not profile_data:
-            self.logger.error(f"Invalid profile file: {self.target_profile}")
+        # Validate insertion_point file
+        valid, insertion_point_data = validate_json_file(insertion_point_path)
+        if not valid or not insertion_point_data:
+            self.logger.error(f"Invalid insertion_point file: {self.target_insertion_point}")
             return False
 
         if self.verbose:
-            self.logger.debug(f"Loading profile: {profile_path}")
-            self.logger.debug(f"Profile structure: {list(profile_data.keys())}")
+            self.logger.debug(f"Loading insertion_point: {insertion_point_path}")
+            self.logger.debug(f"Insertion Point structure: {list(insertion_point_data.keys())}")
 
         # Check if this is a Postman environment format (with values array)
-        if "values" in profile_data and isinstance(profile_data["values"], list):
-            self.logger.debug("Loading Postman environment format profile")
-            for var in profile_data["values"]:
+        if "values" in insertion_point_data and isinstance(insertion_point_data["values"], list):
+            self.logger.debug("Loading Postman environment format insertion_point")
+            for var in insertion_point_data["values"]:
                 if "key" in var and "value" in var and var.get("enabled", True):
                     key = var["key"]
                     value = var["value"]
                     self.environment[key] = value
                     if self.verbose:
-                        self.logger.debug(f"Loaded variable from profile: {key}")
+                        self.logger.debug(f"Loaded variable from insertion_point: {key}")
         else:
-            # Load variables from profile - simple key-value structure
-            self.logger.debug("Loading simple key-value format profile")
-            for key, value in profile_data.items():
+            # Load variables from insertion_point - simple key-value structure
+            self.logger.debug("Loading simple key-value format insertion_point")
+            for key, value in insertion_point_data.items():
                 # Skip metadata fields
                 if key in ["id", "collection_id", "created_at", "name", "description"]:
                     continue
@@ -943,7 +1006,7 @@ class PostmanToBurp:
                 # Add to environment dictionary
                 self.environment[key] = value
                 if self.verbose:
-                    self.logger.debug(f"Loaded variable from profile: {key}")
+                    self.logger.debug(f"Loaded variable from insertion_point: {key}")
 
         # Check if base_url is in environment
         if "base_url" not in self.environment:
@@ -1229,6 +1292,89 @@ class PostmanToBurp:
                     "https": f"http://{self.proxy_host}:{self.proxy_port}"
                 })
         
+        # Parse URL query parameters
+        params = {}
+        cookies = {}
+        
+        # Parse URL query parameters
+        url_parts = url.split('?', 1)
+        if len(url_parts) > 1:
+            query_string = url_parts[1]
+            for param in query_string.split('&'):
+                if '=' in param:
+                    key, value = param.split('=', 1)
+                    params[key] = value
+        
+        # Get authentication object if configured
+        auth = None
+        if hasattr(self, 'auth_method') and self.auth_method:
+            try:
+                # Import auth module here to avoid circular imports
+                from modules.auth import auth_manager
+                
+                # Handle dictionary format for direct auth methods
+                if isinstance(self.auth_method, dict):
+                    auth_type = self.auth_method.get('type')
+                    
+                    if auth_type == 'basic':
+                        username = self.auth_method.get('username', '')
+                        password = self.auth_method.get('password', '')
+                        auth = requests.auth.HTTPBasicAuth(username, password)
+                        self.logger.info(f"Applied Basic Authentication for user: {username}")
+                    
+                    elif auth_type == 'bearer':
+                        token = self.auth_method.get('token', '')
+                        headers['Authorization'] = f"Bearer {token}"
+                        self.logger.info("Applied Bearer Token Authentication")
+                    
+                    elif auth_type == 'api_key':
+                        key = self.auth_method.get('key', '')
+                        location = self.auth_method.get('location', 'header')
+                        name = self.auth_method.get('name', 'X-API-Key')
+                        
+                        if location.lower() == 'header':
+                            headers[name] = key
+                        elif location.lower() == 'query':
+                            params[name] = key
+                        elif location.lower() == 'cookie':
+                            cookies[name] = key
+                        
+                        self.logger.info(f"Applied API Key Authentication ({location})")
+                    
+                    elif auth_type == 'profile':
+                        profile = self.auth_method.get('profile')
+                        if auth_manager.get_auth_method(profile):
+                            auth_manager.set_active_method(profile)
+                            auth = auth_manager.get_auth()
+                            if not auth:
+                                headers, params, cookies = auth_manager.apply_auth(headers, params, cookies)
+                            self.logger.info(f"Applied authentication profile: {profile}")
+                        else:
+                            self.logger.warning(f"Authentication profile not found: {profile}")
+                
+                # Legacy string format for profile names
+                elif isinstance(self.auth_method, str) and auth_manager.get_auth_method(self.auth_method):
+                    auth_manager.set_active_method(self.auth_method)
+                    
+                    # Get the auth object for requests
+                    auth = auth_manager.get_auth()
+                    
+                    # If auth object is not available, apply auth manually
+                    if not auth:
+                        headers, params, cookies = auth_manager.apply_auth(headers, params, cookies)
+                    
+                    self.logger.info(f"Applied authentication method: {self.auth_method}")
+                else:
+                    self.logger.warning(f"Authentication method not recognized: {self.auth_method}")
+            except Exception as e:
+                self.logger.error(f"Error applying authentication: {str(e)}")
+                self.logger.debug(f"Authentication error details:", exc_info=True)
+        
+        # Rebuild URL with updated query parameters
+        if params:
+            query_string = '&'.join([f"{key}={value}" for key, value in params.items()])
+            url = f"{url_parts[0]}?{query_string}" if len(url_parts) > 1 else f"{url}?{query_string}"
+        
         # Prepare response data
         response_data = {
             "name": name,
@@ -1248,12 +1394,20 @@ class PostmanToBurp:
             self.logger.debug(f"Request details: URL={url}, Method={method}, Headers={headers}, Body={body}")
             self.logger.debug(f"Session proxy settings: {self.session.proxies}")
             
+            # Log authentication details
+            if auth:
+                self.logger.debug(f"Using authentication object: {type(auth).__name__}")
+            elif 'Authorization' in headers:
+                self.logger.debug(f"Using Authorization header: {headers['Authorization'][:10]}...")
+            
             # Send request (using session's proxy settings)
             response = self.session.request(
                 method=method,
                 url=url,
                 headers=headers,
                 data=body,
+                cookies=cookies,
+                auth=auth,
                 timeout=30,
                 allow_redirects=True
             )
@@ -1415,7 +1569,7 @@ class PostmanToBurp:
                         "collection_name": self.collection.get("info", {}).get("name", "Unknown Collection"),
                         "collection_id": self.collection.get("info", {}).get("_postman_id", ""),
                         "collection_path": self.collection_path,
-                        "target_profile": self.target_profile,
+                        "target_insertion_point": self.target_insertion_point,
                         "proxy": f"{self.proxy_host}:{self.proxy_port}" if self.proxy_host and self.proxy_port else "None",
                         "timestamp": datetime.datetime.now().isoformat(),
                         "total_requests": len(self.results["requests"]),
@@ -1542,13 +1696,13 @@ class PostmanToBurp:
         if not self.load_collection():
             return {"success": False, "message": "Failed to load collection"}
         
-        # Load profile
-        if not self.load_profile():
-            return {"success": False, "message": "Failed to load profile"}
+        # Load insertion_point
+        if not self.load_insertion_point():
+            return {"success": False, "message": "Failed to load insertion_point"}
         
         # Print all variables for reference
         print("\n=== Available Variables ===")
-        print("Target Profile Variables (these take precedence):")
+        print("Target Insertion Point Variables (these take precedence):")
         if self.environment:
             for key, value in sorted(self.environment.items()):
                 # Mask sensitive values
@@ -1557,18 +1711,18 @@ class PostmanToBurp:
                 else:
                     print(f"  {key} = {value} (will be used)")
         else:
-            print("  No target profile variables found")
+            print("  No target insertion_point variables found")
         
         # Print collection variables
-        print("\nCollection Variables (used only if not in target profile):")
+        print("\nCollection Variables (used only if not in target insertion_point):")
         if "variable" in self.collection and self.collection["variable"]:
             for var in sorted(self.collection["variable"], key=lambda x: x.get("key", "")):
                 if "key" in var and "value" in var:
                     key = var["key"]
                     value = var["value"]
-                    # Check if this variable is overridden by target profile
+                    # Check if this variable is overridden by target insertion_point
                     is_overridden = key in self.environment
-                    status = "(overridden by target profile)" if is_overridden else "(will be used)"
+                    status = "(overridden by target insertion_point)" if is_overridden else "(will be used)"
                     
                     # Mask sensitive values
                     if "token" in key.lower() or "key" in key.lower() or "secret" in key.lower() or "password" in key.lower():
@@ -1578,8 +1732,8 @@ class PostmanToBurp:
         else:
             print("  No collection variables found")
         
-        print("\nNote: Target profile variables take precedence over collection variables.")
-        print("To override a collection variable, add it to your target profile.")
+        print("\nNote: Target insertion_point variables take precedence over collection variables.")
+        print("To override a collection variable, add it to your target insertion_point.")
         print("===========================\n")
         
         # Check proxy connection
@@ -1635,7 +1789,7 @@ class PostmanToBurp:
                 
                 # Wrap filenames in single quotes to handle spaces
                 collection_name = f"'{os.path.basename(self.collection_path)}'" if ' ' in os.path.basename(self.collection_path) else os.path.basename(self.collection_path)
-                profile_arg = f"--target-profile '{os.path.basename(self.target_profile)}'" if self.target_profile else ""
+                insertion_point_arg = f"--insertion-point'{os.path.basename(self.target_insertion_point)}'" if self.target_insertion_point else ""
                 
                 print(f"\nSpecified proxy at {self.proxy_host}:{self.proxy_port} is not running.")
                 
@@ -1818,42 +1972,67 @@ class PostmanToBurp:
 def main():
     """
     Main entry point for the script.
-    Parses command line arguments, loads proxy, and runs the Postman to Burp conversion.
     """
     # Parse command line arguments first to check for proxy option
-    parser = argparse.ArgumentParser(description="Convert Postman collections to Burp Suite requests")
+    parser = argparse.ArgumentParser(description="Replace, Load, and Replay Postman collections through any proxy tool")
     parser.add_argument("--collection", nargs="?", const="select", help="Path to Postman collection JSON file (supports Postman 2.1 schema). Specify no path to select interactively.")
     
-    # Profile options
-    env_group = parser.add_argument_group("Profile Options")
-    env_group.add_argument("--target-profile", help="Path to profile JSON file with values to replace variables in the collection")
+    # Insertion Point options
+    env_group = parser.add_argument_group("INSERTION POINT OPTIONS")
+    env_group.add_argument("--insertion-point", help="Path to insertion_point JSON file with values to replace variables in the collection")
     env_group.add_argument("--extract-keys", nargs="?", const="interactive", metavar="OUTPUT_FILE",
                           help="Extract variables from collection. Specify no file to enter interactive mode. Specify 'print' to display variables. Specify a filename to save template.")
     
+    # Authentication options
+    auth_group = parser.add_argument_group("AUTHENTICATION OPTIONS")
+    auth_group.add_argument("--auth", nargs="?", const="select", help="Use a saved authentication profile. Specify no value to select interactively.")
+    auth_group.add_argument("--list-auth", action="store_true", help="List all saved authentication profiles")
+    auth_group.add_argument("--create-auth", action="store_true", help="Create a new authentication profile interactively")
+    auth_group.add_argument("--auth-basic", nargs=2, metavar=("USERNAME", "PASSWORD"), help="Use Basic Authentication with the specified username and password")
+    auth_group.add_argument("--auth-bearer", help="Use Bearer Token Authentication with the specified token")
+    auth_group.add_argument("--auth-api-key", nargs=2, metavar=("KEY", "LOCATION"), help="Use API Key Authentication with the specified key and location (header, query, or cookie)")
+    auth_group.add_argument("--auth-api-key-name", help="Name of the API Key header/parameter/cookie (default: X-API-Key)")
+    
+    # OAuth1 arguments
+    auth_group.add_argument("--auth-oauth1", nargs=2, metavar=("CONSUMER_KEY", "CONSUMER_SECRET"), help="Use OAuth1 Authentication with the specified consumer key and secret")
+    auth_group.add_argument("--auth-oauth1-token", nargs=2, metavar=("TOKEN", "TOKEN_SECRET"), help="OAuth1 token and token secret (required for OAuth1)")
+    auth_group.add_argument("--auth-oauth1-signature", help="OAuth1 signature method (default: HMAC-SHA1)")
+    
+    # OAuth2 arguments
+    auth_group.add_argument("--auth-oauth2", nargs=2, metavar=("CLIENT_ID", "CLIENT_SECRET"), help="Use OAuth2 Authentication with the specified client ID and secret")
+    auth_group.add_argument("--auth-oauth2-token-url", help="OAuth2 token endpoint URL (required for OAuth2)")
+    auth_group.add_argument("--auth-oauth2-refresh-url", help="OAuth2 refresh token endpoint URL")
+    auth_group.add_argument("--auth-oauth2-grant", choices=["client_credentials", "password", "refresh_token"], default="client_credentials", help="OAuth2 grant type (default: client_credentials)")
+    auth_group.add_argument("--auth-oauth2-username", help="Username for OAuth2 password grant")
+    auth_group.add_argument("--auth-oauth2-password", help="Password for OAuth2 password grant")
+    auth_group.add_argument("--auth-oauth2-scope", help="Space-separated list of OAuth2 scopes")
+    
     # Proxy options
-    proxy_group = parser.add_argument_group("Proxy Options")
+    proxy_group = parser.add_argument_group("PROXY OPTIONS")
     proxy_group.add_argument("--proxy", help="Proxy in host:port format")
     proxy_group.add_argument("--proxy-host", help="Proxy host")
     proxy_group.add_argument("--proxy-port", type=int, help="Proxy port")
     proxy_group.add_argument("--verify-ssl", action="store_true", help="Verify SSL certificates")
     
     # Output options
-    output_group = parser.add_argument_group("Output Options")
+    output_group = parser.add_argument_group("OUTPUT OPTIONS")
     output_group.add_argument("--log", action="store_true", help="Enable logging to file (saves detailed request results to logs directory)")
     output_group.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     output_group.add_argument("--save-proxy", action="store_true", help="Save current settings as default proxy")
     
-    # Proxy profile options
-    proxy_group = parser.add_argument_group("Proxy Profiles")
-    proxy_group.add_argument("-profile", nargs="?", const="select", 
-                             help="Use specific proxy profile or select from available profiles if no file specified. Omit to select when multiple profiles exist.")
+    # Proxy insertion_point options
+    proxy_group = parser.add_argument_group("PROXY INSERTION POINTS")
+    proxy_group.add_argument("--proxy-profile", nargs="?", const="select", 
+                             help="Use specific proxy insertion_point or select from available insertion_points if no file specified. Omit to select when multiple insertion_points exist.")
     
     # Custom header options
-    header_group = parser.add_argument_group("Custom Headers")
+    header_group = parser.add_argument_group("CUSTOM HEADERS")
     header_group.add_argument("--header", action="append", 
                              help="Add custom header in format 'Key:Value'. Can be specified multiple times. "
                                   "These headers will be added to all requests and will override any existing headers with the same name."
-                                  " Example: --header 'X-API-Key:12345' --header 'User-Agent:PostmanToBurp'")
+                                  " Example: --header 'X-API-Key:12345' --header 'User-Agent:Repl'")
+
+    print_banner = parser.add_argument("--banner", action="store_true", help="Print the banner")
     
     args = parser.parse_args()
     
@@ -1863,6 +2042,137 @@ def main():
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format=log_format, datefmt=log_date_format)
     logger = logging.getLogger(__name__)
+    
+    # Import auth module
+    try:
+        from modules.auth import auth_manager, BasicAuth, BearerToken, ApiKey, OAuth1, OAuth2
+    except ImportError:
+        logger.error("Failed to import authentication module. Authentication features will not be available.")
+        auth_manager = None
+    
+    # List authentication profiles if requested (independent of other options)
+    if args.list_auth and auth_manager:
+        auth_methods = auth_manager.get_auth_methods()
+        if auth_methods:
+            print("\nAvailable authentication profiles:")
+            for i, method in enumerate(auth_methods, 1):
+                auth_obj = auth_manager.get_auth_method(method)
+                auth_type = auth_obj.type if auth_obj else "unknown"
+                print(f"  {i}. {method} ({auth_type})")
+        else:
+            print("\nNo authentication profiles found.")
+            print("Create one with --create-auth or use direct authentication options.")
+        sys.exit(0)
+    
+    # Create authentication profile if requested (independent of other options)
+    if args.create_auth and auth_manager:
+        print("\nCreate a new authentication profile:")
+        print("1. Basic Authentication")
+        print("2. Bearer Token (Fixed)")
+        print("3. Bearer Token (Dynamic)")
+        print("4. API Key / Custom Token (Fixed)")
+        print("5. API Key / Custom Token (Dynamic)")
+        
+        while True:
+            choice = input("\nSelect authentication type (1-5): ")
+            if choice in ["1", "2", "3", "4", "5"]:
+                break
+            print("Invalid choice. Please enter a number between 1 and 5.")
+        
+        # Get collection ID if available
+        collection_id = None
+        if args.collection:
+            collection_path = resolve_collection_path(args.collection)
+            collection_id = extract_collection_id(collection_path)
+        
+        # Suggest a label based on collection ID if available
+        suggested_label = ""
+        if collection_id:
+            auth_type_suffix = {
+                "1": "basic",
+                "2": "bearer",
+                "3": "bearer_dynamic",
+                "4": "apikey",
+                "5": "apikey_dynamic"
+            }
+            suggested_label = f"{collection_id}_{auth_type_suffix[choice]}"
+            label = input(f"Enter a unique label for this authentication profile [{suggested_label}]: ")
+            if not label:
+                label = suggested_label
+        else:
+            label = input("Enter a unique label for this authentication profile: ")
+        
+        if choice == "1":  # Basic Authentication
+            username = input("Enter username: ")
+            password = input("Enter password: ")
+            auth_manager.create_basic_auth(label, username, password)
+            print(f"Basic Authentication profile '{label}' created successfully.")
+        
+        elif choice == "2":  # Bearer Token (Fixed)
+            token = input("Enter Bearer token: ")
+            auth_manager.create_bearer_token(label, token)
+            print(f"Bearer Token profile '{label}' created successfully.")
+        
+        elif choice == "3":  # Bearer Token (Dynamic)
+            token_url = input("Enter token URL: ")
+            auth_manager.create_bearer_token(label, None, True, token_url)
+            print(f"Dynamic Bearer Token profile '{label}' created successfully.")
+        
+        elif choice == "4":  # API Key (Fixed)
+            key = input("Enter API key: ")
+            print("\nSelect API key location:")
+            print("1. Header")
+            print("2. Query Parameter")
+            print("3. Cookie")
+            
+            while True:
+                location_choice = input("\nSelect location (1-3): ")
+                if location_choice in ["1", "2", "3"]:
+                    break
+                print("Invalid choice. Please enter a number between 1 and 3.")
+            
+            location_map = {"1": "header", "2": "query", "3": "cookie"}
+            location = location_map[location_choice]
+            
+            param_name = input(f"Enter {location} parameter name [X-API-Key]: ")
+            if not param_name:
+                param_name = "X-API-Key"
+            
+            auth_manager.create_api_key(label, key, location, param_name)
+            print(f"API Key profile '{label}' created successfully.")
+        
+        elif choice == "5":  # API Key (Dynamic)
+            key_url = input("Enter API key URL: ")
+            print("\nSelect API key location:")
+            print("1. Header")
+            print("2. Query Parameter")
+            print("3. Cookie")
+            
+            while True:
+                location_choice = input("\nSelect location (1-3): ")
+                if location_choice in ["1", "2", "3"]:
+                    break
+                print("Invalid choice. Please enter a number between 1 and 3.")
+            
+            location_map = {"1": "header", "2": "query", "3": "cookie"}
+            location = location_map[location_choice]
+            
+            param_name = input(f"Enter {location} parameter name [X-API-Key]: ")
+            if not param_name:
+                param_name = "X-API-Key"
+            
+            auth_manager.create_api_key_dynamic(label, key_url, location, param_name)
+            print(f"Dynamic API Key profile '{label}' created successfully.")
+        
+        sys.exit(0)
+    
+    # Print banner if requested (independent of other options)
+    if args.banner:
+        # Use colored banner if terminal supports colors, otherwise use plain text
+        print(BANNER)
+        # If only the banner was requested, exit
+        if not args.collection and not args.extract_keys:
+            sys.exit(0)
     
     # Handle collection selection if --collection is provided without a value
     collection_path = None
@@ -1879,6 +2189,103 @@ def main():
     # Resolve collection path
     collection_path = resolve_collection_path(collection_path)
     logger.debug(f"Resolved collection path: {collection_path}")
+    
+    # Handle authentication options
+    
+    # Import auth module
+    try:
+        from modules.auth import auth_manager, BasicAuth, BearerToken, ApiKey, OAuth1, OAuth2
+    except ImportError:
+        logger.error("Failed to import authentication module. Authentication features will not be available.")
+        auth_manager = None
+    
+    # Select authentication profile if requested
+    if args.auth == "select" and auth_manager:
+        auth_methods = auth_manager.get_auth_methods()
+        if auth_methods:
+            print("\nSelect an authentication profile:")
+            for i, method in enumerate(auth_methods, 1):
+                auth_obj = auth_manager.get_auth_method(method)
+                auth_type = auth_obj.type if auth_obj else "unknown"
+                print(f"  {i}. {method} ({auth_type})")
+            
+            while True:
+                choice = input("\nEnter profile number (or 'q' to quit): ")
+                if choice.lower() == 'q':
+                    sys.exit(0)
+                
+                try:
+                    index = int(choice) - 1
+                    if 0 <= index < len(auth_methods):
+                        auth_method = auth_methods[index]
+                        break
+                    else:
+                        print("Invalid choice. Please enter a valid number.")
+                except ValueError:
+                    print("Invalid input. Please enter a number or 'q'.")
+        else:
+            print("\nNo authentication profiles found.")
+            print("Create one with --create-auth or use direct authentication options.")
+            sys.exit(1)
+    elif args.auth and auth_manager:
+        # Use specified profile
+        if auth_manager.get_auth_method(args.auth):
+            auth_method = args.auth
+        else:
+            logger.error(f"Authentication profile not found: {args.auth}")
+            print(f"Error: Authentication profile not found: {args.auth}")
+            print("Use --list-auth to see available profiles or --create-auth to create a new one.")
+            sys.exit(1)
+    
+    # Handle direct authentication options
+    if args.auth_basic and auth_manager:
+        username, password = args.auth_basic
+        
+        # Get collection ID if available
+        collection_id = extract_collection_id(collection_path)
+        
+        # Use collection ID in the label if available
+        if collection_id:
+            temp_label = f"{collection_id}_basic"
+        else:
+            temp_label = f"temp_basic_{int(time.time())}"
+            
+        auth_manager.create_basic_auth(temp_label, username, password)
+        auth_method = temp_label
+    
+    if args.auth_bearer and auth_manager:
+        # Get collection ID if available
+        collection_id = extract_collection_id(collection_path)
+        
+        # Use collection ID in the label if available
+        if collection_id:
+            temp_label = f"{collection_id}_bearer"
+        else:
+            temp_label = f"temp_bearer_{int(time.time())}"
+            
+        auth_manager.create_bearer_token(temp_label, args.auth_bearer)
+        auth_method = temp_label
+    
+    if args.auth_api_key and auth_manager:
+        key, location = args.auth_api_key
+        if location.lower() not in ["header", "query", "cookie"]:
+            logger.error(f"Invalid API key location: {location}. Must be 'header', 'query', or 'cookie'.")
+            print(f"Error: Invalid API key location: {location}. Must be 'header', 'query', or 'cookie'.")
+            sys.exit(1)
+        
+        # Get collection ID if available
+        collection_id = extract_collection_id(collection_path)
+        
+        param_name = args.auth_api_key_name or "X-API-Key"
+        
+        # Use collection ID in the label if available
+        if collection_id:
+            temp_label = f"{collection_id}_apikey_{location.lower()}"
+        else:
+            temp_label = f"temp_apikey_{int(time.time())}"
+            
+        auth_manager.create_api_key(temp_label, key, location.lower(), param_name)
+        auth_method = temp_label
     
     # Extract variables from collection if requested - do this before proxy selection
     # since we don't need a proxy for extraction
@@ -1897,7 +2304,7 @@ def main():
                 print(f"  - {var}")
             print("\nTo create a template file with these variables:")
             print(f"python3 repl.py --collection {os.path.basename(collection_path)} --extract-keys variables_template.json")
-            print("\nOr use interactive mode to create a profile with values:")
+            print("\nOr use interactive mode to create a insertion_point with values:")
             print(f"python3 repl.py --collection {os.path.basename(collection_path)} --extract-keys")
             # Exit after printing variables
             sys.exit(0)
@@ -1917,15 +2324,15 @@ def main():
     else:
         # Check if multiple proxy files exist
         try:
-            proxy_files = [f for f in os.listdir(CONFIG_DIR) if f.endswith('.json')]
-            if len(proxy_files) > 1:
-                logger.info("Multiple proxy files found, prompting user to select")
+            proxy_profiles = [f for f in os.listdir(CONFIG_DIR) if f.endswith('.json')]
+            if len(proxy_profiles) > 1:
+                logger.info("Multiple proxy profiles found, prompting user to select")
                 proxy_path = select_proxy_file()
-            elif len(proxy_files) == 1:
-                proxy_path = os.path.join(CONFIG_DIR, proxy_files[0])
-                logger.info(f"Using the only available proxy file: {proxy_files[0]}")
+            elif len(proxy_profiles) == 1:
+                proxy_path = os.path.join(CONFIG_DIR, proxy_profiles[0])
+                logger.info(f"Using the only available proxy file: {proxy_profiles[0]}")
             else:
-                logger.info("No proxy files found, using default proxy")
+                logger.info("No proxy profiles found, using default proxy")
         except Exception as e:
             logger.warning(f"Error listing proxies directory: {e}")
             logger.info("Using default proxy")
@@ -1938,10 +2345,10 @@ def main():
     proxy_host = args.proxy_host or proxy.get("proxy_host") or DEFAULT_CONFIG["proxy_host"]
     proxy_port = args.proxy_port or proxy.get("proxy_port") or DEFAULT_CONFIG["proxy_port"]
     
-    # Get target profile from args or proxy
-    target_profile = args.target_profile or proxy.get("target_profile")
-    if target_profile and not args.target_profile:
-        logger.info(f"Using target profile from proxy: {target_profile}")
+    # Get target insertion_point from args or proxy
+    target_insertion_point = args.insertion_point or proxy.get("target_insertion_point")
+    if target_insertion_point and not args.insertion_point:
+        logger.info(f"Using target insertion_point from proxy: {target_insertion_point}")
     
     if args.proxy:
         try:
@@ -1952,16 +2359,29 @@ def main():
             logger.error("Invalid proxy format. Use host:port")
             return
     
+    # Initialize auth_method
+    auth_method = None
+    if args.auth:
+        auth_method = {"type": "profile", "profile": args.auth}
+    elif args.auth_basic:
+        auth_method = {"type": "basic", "username": args.auth_basic[0], "password": args.auth_basic[1]}
+    elif args.auth_bearer:
+        auth_method = {"type": "bearer", "token": args.auth_bearer}
+    elif args.auth_api_key:
+        key_name = args.auth_api_key_name or "X-API-Key"
+        auth_method = {"type": "api_key", "key": args.auth_api_key[0], "location": args.auth_api_key[1], "name": key_name}
+    
     # Create the converter
-    converter = PostmanToBurp(
+    converter = Repl(
         collection_path=collection_path,
-        target_profile=target_profile,
+        target_insertion_point=target_insertion_point,
         proxy_host=proxy_host,
         proxy_port=proxy_port,
         verify_ssl=args.verify_ssl or proxy.get("verify_ssl", False),
         auto_detect_proxy=True,  # Always enable auto-detection
         verbose=args.verbose or proxy.get("verbose", False),
-        custom_headers=args.header
+        custom_headers=args.header,
+        auth_method=auth_method
     )
     
     # Set up logging to file if requested
@@ -1994,9 +2414,9 @@ def main():
                 "verbose": args.verbose
             }
             
-            # Save target_profile if provided
-            if args.target_profile:
-                proxy_to_save["target_profile"] = args.target_profile
+            # Save target_insertion_point if provided
+            if args.insertion_point:
+                proxy_to_save["target_insertion_point"] = args.insertion_point
                 
             # Save collection_path if provided
             if collection_path:
@@ -2008,8 +2428,8 @@ def main():
             
             if save_proxy(proxy_to_save):
                 logger.info("Configuration saved successfully")
-                if args.target_profile:
-                    logger.info(f"Target profile '{args.target_profile}' saved in proxy")
+                if args.insertion_point:
+                    logger.info(f"Target insertion_point '{args.insertion_point}' saved in proxy")
             else:
                 logger.error("Failed to save proxy")
 

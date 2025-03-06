@@ -102,7 +102,7 @@ def prepare_request(self, request_data: Dict) -> Dict:
 
 ### Custom Headers
 
-Supports adding, modifying, and removing custom headers for all requests. Headers can be specified in the profile or added via command line arguments.
+Supports adding, modifying, and removing custom headers for all requests. Headers can be specified in the insertion point or added via command line arguments.
 
 ```python
 def add_custom_headers(self, headers: Dict, custom_headers: Dict) -> Dict:
@@ -174,12 +174,12 @@ def verify_proxy_with_request(host: str, port: int) -> bool:
 
 ### Profile Loading and Validation
 
-Loads and validates target profiles containing variable values. Supports both JSON files and interactive profile creation.
+Loads and validates target insertion points  containing variable values. Supports both JSON files and interactive insertion point creation.
 
 ```python
 def load_profile(self) -> bool:
     if not self.target_profile:
-        return True  # No profile specified, continue without variables
+        return True  # No insertion point specified, continue without variables
         
     is_valid, profile_data = validate_json_file(self.target_profile)
     if not is_valid or not profile_data:
@@ -200,7 +200,7 @@ The tool uses a structured file naming convention and directory organization:
 1. **Collections Directory**: Stores Postman collection files
    - Naming pattern: `[project_name]_collection.json`
 
-2. **Profiles Directory**: Stores variable profiles
+2. **Insertion Points Directory**: Stores variable profiles
    - Naming pattern: `[project_name]_[environment].json`
 
 3. **Proxies Directory**: Stores proxy configurations
@@ -249,17 +249,17 @@ def setup_logging(self, log_level=logging.INFO):
 
 ## Command Line Interface
 
-Provides a command-line interface with options for collection selection, profile management, proxy configuration, and output control.
+Provides a command-line interface with options for collection selection, insertion point management, proxy configuration, and output control.
 
 ```python
 def main():
-    parser = argparse.ArgumentParser(description="Convert Postman collections to Burp Suite requests")
+    parser = argparse.ArgumentParser(description="Replace, Load, and Replay Postman collections through any proxy tool")
     
     # Collection options
     parser.add_argument("--collection", help="Path to Postman collection JSON file (supports Postman Collection Format v2.1)")
     
     # Profile options
-    parser.add_argument("--target-profile", help="Path to profile JSON file containing values for replacing variables")
+    parser.add_argument("--target-profile", help="Path to insertion point JSON file containing values for replacing variables")
     parser.add_argument("--extract-keys", nargs="?", const="interactive", help="Extract variable keys from collection and exit")
     
     # Proxy options
@@ -312,7 +312,7 @@ def select_collection_file() -> str:
 
 ### Interactive Variable Extraction
 
-When using the `--extract-keys` option, the tool can interactively guide users through creating a profile with all variables from a collection.
+When using the `--extract-keys` option, the tool can interactively guide users through creating a insertion point with all variables from a collection.
 
 ```python
 def generate_variables_template(collection_path: str, output_path: str = None) -> None:
@@ -333,7 +333,7 @@ def generate_variables_template(collection_path: str, output_path: str = None) -
         default_filename = f"{collection_name.lower().replace(' ', '_')}_profile.json"
         default_path = os.path.join(profiles_dir, default_filename)
         
-        print(f"\nCreating profile template at: {default_path}")
+        print(f"\nCreating insertion point template at: {default_path}")
         print("Enter values for each variable (leave empty to skip):")
         
         variables_dict = {}
@@ -363,21 +363,21 @@ def select_proxy_file() -> str:
     if not os.path.exists(proxies_dir):
         os.makedirs(proxies_dir)
         
-    proxy_files = [f for f in os.listdir(proxies_dir) if f.endswith('.json')]
+    proxy_profiles = [f for f in os.listdir(proxies_dir) if f.endswith('.json')]
     
-    if not proxy_files:
+    if not proxy_profiles:
         print("No proxy configuration files found in the proxies directory.")
         return ""
         
     print("\nAvailable proxy configurations:")
-    for i, file in enumerate(proxy_files, 1):
+    for i, file in enumerate(proxy_profiles, 1):
         print(f"{i}. {file}")
         
     while True:
         try:
             choice = int(input("\nSelect a proxy configuration (number): "))
-            if 1 <= choice <= len(proxy_files):
-                return os.path.join(proxies_dir, proxy_files[choice-1])
+            if 1 <= choice <= len(proxy_profiles):
+                return os.path.join(proxies_dir, proxy_profiles[choice-1])
             print("Invalid selection. Please try again.")
         except ValueError:
             print("Please enter a number.")
@@ -516,7 +516,7 @@ Process multiple collections at once using shell scripting:
 
 ```bash
 for collection in ./collections/*.json; do
-  python repl.py --collection "$collection" --target-profile "your_profile.json"
+  python repl.py --collection "$collection" --insertion-point"your_profile.json"
 done
 ```
 

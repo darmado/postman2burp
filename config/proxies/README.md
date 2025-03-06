@@ -1,6 +1,6 @@
 # Configuration Files
 
-This directory contains configuration files for the repl tool. Each configuration file is designed for a specific API testing scenario.
+contains configuration files for the repl tool. Each configuration file is designed for a specific API testing scenario.
 
 ## Configuration Structure
 
@@ -31,7 +31,7 @@ Each configuration file is a JSON file with the following structure:
 | `verbose` | boolean | Whether to display detailed output during execution |
 | `log` | boolean | Whether to save logs to a file |
 | `collection` | string | Path to the Postman collection file |
-| `target_profile` | string | Path to the profile file containing variables |
+| `target_profile` | string | Path to the insertion point file containing variables |
 | `save_config` | boolean | Whether to save the current configuration for future use |
 
 ## Available Configurations
@@ -104,5 +104,5 @@ To create a new configuration:
 
 You can also create a configuration from command-line arguments and save it:
 ```bash
-python repl.py --collection your_collection.json --target-profile your_profile.json --proxy localhost:8080 --save-config
+python repl.py --collection your_collection.json --insertion-pointyour_profile.json --proxy localhost:8080 --save-config
 ``` 

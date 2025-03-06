@@ -1,0 +1,12 @@
+{
+  "label": "armado.io_bear_dy",
+  "type": "bearer",
+  "token": null,
+  "is_dynamic": true,
+  "auth_url": "tokens.armado.ip",
+  "auth_method": "POST",
+  "auth_headers": {},
+  "auth_body": null,
+  "token_refresh_interval": 3600,
+  "token_location": null
+}

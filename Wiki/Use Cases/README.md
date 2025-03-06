@@ -23,7 +23,7 @@ Repl automatically:
 **Example:**
 
 ```bash
-python repl.py --collection "oauth_flow.json" --target-profile "oauth_creds.json" --verbose
+python repl.py --collection "oauth_flow.json" --insertion-point"oauth_creds.json" --verbose
 ```
 
 **Sample Collection Structure:**
@@ -109,7 +109,7 @@ Repl:
 **Example:**
 
 ```bash
-python repl.py --collection "graphql_api.json" --target-profile "graphql_vars.json"
+python repl.py --collection "graphql_api.json" --insertion-point"graphql_vars.json"
 ```
 
 **Sample GraphQL Request:**
@@ -151,7 +151,7 @@ Repl:
 **Example:**
 
 ```bash
-python repl.py --collection "secured_workflow.json" --target-profile "test_env.json" --verbose
+python repl.py --collection "secured_workflow.json" --insertion-point"test_env.json" --verbose
 ```
 
 **Console Output:**
@@ -181,7 +181,7 @@ Testing for BOLA/IDOR vulnerabilities requires:
 **Solution:**  
 Repl allows:
 
-1. Running the same collection with different profile files
+1. Running the same collection with different insertion point files
 2. Saving results to output files for comparison
 3. Maintaining the exact request structure across runs
 
@@ -189,10 +189,10 @@ Repl allows:
 
 ```bash
 # Run with admin credentials
-python repl.py --collection "user_management.json" --target-profile "admin_profile.json" --output "admin_results.json"
+python repl.py --collection "user_management.json" --insertion-point"admin_profile.json" --output "admin_results.json"
 
 # Run with regular user credentials
-python repl.py --collection "user_management.json" --target-profile "user_profile.json" --output "user_results.json"
+python repl.py --collection "user_management.json" --insertion-point"user_profile.json" --output "user_results.json"
 ```
 
 **Sample Comparison Script:**
@@ -249,7 +249,7 @@ Repl:
 **Example:**
 
 ```bash
-python repl.py --collection "aws_api.json" --target-profile "aws_creds.json"
+python repl.py --collection "aws_api.json" --insertion-point"aws_creds.json"
 ```
 
 **Sample AWS API Gateway Request:**

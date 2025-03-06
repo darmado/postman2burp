@@ -1,0 +1,14 @@
+{
+  "label": "test-collection-id_apikey_header",
+  "type": "apikey",
+  "key": "mykey",
+  "location": "header",
+  "param_name": "X-API-Key",
+  "is_dynamic": false,
+  "auth_url": null,
+  "auth_method": "POST",
+  "auth_headers": {},
+  "auth_body": null,
+  "key_refresh_interval": 3600,
+  "key_location": null
+}

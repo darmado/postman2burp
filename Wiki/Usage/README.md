@@ -12,15 +12,15 @@
 
 ### 2. Extracting Variables
 
-Extract all variables from your collection to create a profile template:
+Extract all variables from your collection to create a insertion point template:
 
 ```bash
 python repl.py --collection "your_collection.json" --extract-keys
 ```
 
-This generates a profile file in the `./profiles` directory with a UUID filename (e.g., `f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json`).
+This generates a insertion point file in the `./profiles` directory with a UUID filename (e.g., `f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2.json`).
 
-Edit the generated profile file and fill in the values for each variable:
+Edit the generated insertion point file and fill in the values for each variable:
 
 ```json
 {
@@ -44,13 +44,13 @@ Edit the generated profile file and fill in the values for each variable:
 ** Basic Usage
 **
 ```bash
-python repl.py --collection "your_collection.json" --target-profile "your_profile.json"
+python repl.py --collection "your_collection.json" --insertion-point"your_profile.json"
 ```
 
 #### With Custom Proxy Settings
 
 ```bash
-python repl.py --collection "your_collection.json" --target-profile "your_profile.json" --proxy localhost:8080
+python repl.py --collection "your_collection.json" --insertion-point"your_profile.json" --proxy localhost:8080
 ```
 
 ** Skip Proxy Check
@@ -58,13 +58,13 @@ python repl.py --collection "your_collection.json" --target-profile "your_profil
 Useful if you're sure the proxy is running:
 
 ```bash
-python repl.py --collection "your_collection.json" --target-profile "your_profile.json" --skip-proxy-check
+python repl.py --collection "your_collection.json" --insertion-point"your_profile.json" --skip-proxy-check
 ```
 
 ** Save Configuration for Future Use
 **
 ```bash
-python repl.py --collection "your_collection.json" --target-profile "your_profile.json" --proxy localhost:8080 --save-config
+python repl.py --collection "your_collection.json" --insertion-point"your_profile.json" --proxy localhost:8080 --save-config
 ```
 
 ### 5. Review Results in Burp Suite
@@ -76,7 +76,7 @@ python repl.py --collection "your_collection.json" --target-profile "your_profil
 ## Command-Line Options
 
 ```
-usage: repl.py [-h] --collection COLLECTION [--target-profile ENVIRONMENT]
+usage: repl.py [-h] --collection COLLECTION [--insertion-pointENVIRONMENT]
                        [--extract-keys [OUTPUT_FILE]] [--proxy PROXY] 
                        [--proxy-host PROXY_HOST] [--proxy-port PROXY_PORT]
                        [--verify-ssl] [--skip-proxy-check] [--no-auto-detect]

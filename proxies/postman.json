@@ -1,9 +1,0 @@
-{
-    "proxy_host": "localhost",
-    "proxy_port": 8090,
-    "verify_ssl": false,
-    "target_profile": "",
-    "verbose": false,
-    "collection_path": "postman_collection.json",
-    "log": true
-}

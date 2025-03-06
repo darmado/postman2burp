@@ -28,14 +28,14 @@ This page provides a comprehensive overview of all functions in the Repl tool, o
 | `extract_variables_from_collection(collection_path)` | Extracts all variables from a Postman collection | `Tuple[Set[str], Optional[str], Dict]` |
 | `generate_variables_template(collection_path, output_path)` | Generates a template file with all variables from a collection | `None` |
 
-## PostmanToBurp Class Methods
+## Repl Class Methods
 
 | Method | Description | Return Type |
 |--------|-------------|-------------|
-| `__init__(collection_path, target_profile, proxy_host, proxy_port, verify_ssl, auto_detect_proxy, verbose)` | Initializes the PostmanToBurp object with configuration | `None` |
+| `__init__(collection_path, target_profile, proxy_host, proxy_port, verify_ssl, auto_detect_proxy, verbose)` | Initializes the Repl object with configuration | `None` |
 | `load_collection()` | Loads and validates the Postman collection | `bool` |
-| `load_profile()` | Loads and validates the profile with variables | `bool` |
-| `replace_variables(text)` | Replaces variables in text with values from the profile | `str` |
+| `load_profile()` | Loads and validates the insertion point with variables | `bool` |
+| `replace_variables(text)` | Replaces variables in text with values from the insertion point | `str` |
 | `extract_requests_from_item(item, folder_name)` | Extracts requests from a collection item | `List[Dict]` |
 | `extract_all_requests(collection)` | Extracts all requests from the collection | `List[Dict]` |
 | `prepare_request(request_data)` | Prepares a request for sending (replaces variables, etc.) | `Dict` |
@@ -80,7 +80,7 @@ main()
   ├── select_proxy_file()
   ├── load_proxy()
   │     └── validate_json_file()
-  ├── PostmanToBurp.run()
+  ├── Repl.run()
   │     ├── load_collection()
   │     │     └── validate_json_file()
   │     ├── load_profile()
