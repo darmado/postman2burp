@@ -6,6 +6,6 @@
     "verbose": true,
     "log": false,
     "collection": "collections/social_media_api.json",
-    "target_profile": "profiles/social_profile.json",
+    "insertion_point": "profiles/social_profile.json",
     "save_config": false
 } 

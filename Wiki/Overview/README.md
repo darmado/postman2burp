@@ -28,7 +28,7 @@ Repl addresses several critical API security testing challenges:
 | **OAuth2 Flow Analysis** | Complex authentication flows with token extraction | Maintains request sequence and handles token extraction |
 | **GraphQL API Security** | Complex nested queries difficult to recreate | Preserves exact query structure and variables |
 | **Anti-CSRF Protection** | Token extraction and reuse across requests | Extracts and applies tokens automatically |
-| **Authorization Testing** | Testing with different user contexts | Supports running collections with different profiles |
+| **Authorization Testing** | Testing with different user contexts | Supports running collections with different insertion points  |
 | **API Gateway Testing** | Complex headers and request signing | Preserves all authentication mechanisms |
 
 For detailed examples, code samples, and technical implementation details for each use case, see the [[Use Cases]] documentation.
@@ -52,20 +52,20 @@ Ready to enhance your API security testing? Follow these steps to get started wi
 
 3. **Extract Variables**
    
-   Generate a profile template from your collection:
+   Generate a insertion point template from your collection:
    ```bash
    python repl.py --collection "your_collection.json" --extract-keys
    ```
 
 4. **Configure Your Environment**
    
-   Edit the generated profile file with your environment variables.
+   Edit the generated insertion point file with your environment variables.
 
 5. **Run the Tool**
    
    Send your collection through Burp Suite:
    ```bash
-   python repl.py --collection "your_collection.json" --target-profile "your_profile.json" --proxy localhost:8080
+   python repl.py --collection "your_collection.json" --insertion-point"your_profile.json" --proxy localhost:8080
    ```
 
 6. **Analyze Results in Burp Suite**

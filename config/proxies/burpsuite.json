@@ -1,0 +1,11 @@
+{
+    "description": "BurpSuite Pro",
+    "proxy": {
+        "host": "127.0.0.1",
+        "port": 8090,
+        "verify_ssl": false,
+        "type": "http",
+        "username": "",
+        "password": ""
+    }
+} 

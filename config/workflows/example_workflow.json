@@ -1,0 +1,16 @@
+{
+    "name": "Example Workflow",
+    "description": "Example workflow configuration demonstrating separation from proxy settings",
+    "collection_path": "collections/example_collection.json",
+    "insertion_point": "config/insertion_points/example_insertion_point.json",
+    "proxy": "burpsuite",
+    "verbose": true,
+    "log": true,
+    "auth": {
+        "type": "bearer",
+        "token": "example_token"
+    },
+    "custom_headers": {
+        "X-Custom-Header": "Example Value"
+    }
+} 

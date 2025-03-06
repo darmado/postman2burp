@@ -6,6 +6,6 @@
     "verbose": true,
     "log": true,
     "collection": "collections/security_testing_api.json",
-    "target_profile": "profiles/security_profile.json",
+    "insertion_point": "profiles/security_profile.json",
     "save_config": false
 } 

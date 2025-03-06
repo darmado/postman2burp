@@ -31,13 +31,13 @@ This guide helps you diagnose and resolve common issues with Repl.
 #### Problem: Variables not being substituted in requests
 
 **Solutions:**
-- Check that your profile file contains all required variables
+- Check that your insertion point file contains all required variables
 - Ensure variable names match exactly (case-sensitive)
 - Use `--verbose` to see detailed logs of variable substitution:
   ```bash
-  python repl.py --collection "your_collection.json" --target-profile "your_profile.json" --verbose
+  python repl.py --collection "your_collection.json" --insertion-point"your_profile.json" --verbose
   ```
-- Verify the profile file is valid JSON
+- Verify the insertion point file is valid JSON
 
 ### Collection Loading Issues
 
@@ -56,7 +56,7 @@ This guide helps you diagnose and resolve common issues with Repl.
 **Solutions:**
 - Wrap filenames in quotes:
   ```bash
-  python repl.py --collection "My Collection.json" --target-profile "My Profile.json"
+  python repl.py --collection "My Collection.json" --insertion-point"My Profile.json"
   ```
 - Rename files to use underscores instead of spaces
 
@@ -113,7 +113,7 @@ curl -x localhost:8080 https://www.example.com
 
 ### Validate JSON Files
 
-Ensure your collection and profile files are valid JSON:
+Ensure your collection and insertion point files are valid JSON:
 
 ```bash
 python -m json.tool your_collection.json > /dev/null

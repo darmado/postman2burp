@@ -1,0 +1,34 @@
+{
+  "info": {
+    "_postman_id": "test-collection-id",
+    "name": "Test Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Test Request",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://httpbin.org/get?param={{test_param}}",
+          "protocol": "https",
+          "host": ["httpbin", "org"],
+          "path": ["get"],
+          "query": [
+            {
+              "key": "param",
+              "value": "{{test_param}}"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://httpbin.org"
+    }
+  ]
+}

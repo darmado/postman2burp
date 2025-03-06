@@ -6,6 +6,6 @@
     "verbose": true,
     "log": true,
     "collection": "collections/healthcare_api.json",
-    "target_profile": "profiles/healthcare_profile.json",
+    "insertion_point": "profiles/healthcare_profile.json",
     "save_config": false
 } 

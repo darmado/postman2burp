@@ -65,7 +65,7 @@ python3 repl.py --collection  postmanCollection.json --extract-keys
 **1. Excute Repl**
 
 ```bash
-python3 repl.py --collection "postman_collection.json" --target-profile "f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2_1741124383.json"
+python3 repl.py --collection "postman_collection.json" --insertion-point"f1e8e5b7-dc12-4a1c-9e37-42a7df1f9ef2_1741124383.json"
 ```
 
 ##
@@ -79,11 +79,23 @@ options:
                         Path to Postman collection JSON file (supports Postman 2.1 schema). Specify no path to select interactively.
 
 Profile Options:
-  --target-profile TARGET_PROFILE
-                        Path to profile JSON file with values to replace variables in the collection
+  --insertion-pointinsertion_point
+                        Path to insertion point JSON file with values to replace variables in the collection
   --extract-keys [OUTPUT_FILE]
                         Extract variables from collection. Specify no file to enter interactive mode. Specify 'print' to display variables.
                         Specify a filename to save template.
+
+Authentication Options:
+  --auth [AUTH]         Use a saved authentication profile. Specify no value to select interactively.
+  --auth-basic USERNAME PASSWORD
+                        Use Basic Authentication with the specified username and password
+  --auth-bearer TOKEN   Use Bearer Token Authentication with the specified token
+  --auth-api-key KEY LOCATION
+                        Use API Key Authentication with the specified key and location (header, query, or cookie)
+  --auth-api-key-name NAME
+                        Name of the API Key header/parameter/cookie (default: X-API-Key)
+  --create-auth         Create a new authentication profile interactively
+  --list-auth           List available authentication profiles
 
 Proxy Options:
   --proxy PROXY         Proxy in host:port format
@@ -98,8 +110,8 @@ Output Options:
   --verbose             Enable verbose logging
   --save-proxy          Save current settings as default proxy
 
-Proxy Profiles:
-  -profile [PROFILE]    Use specific proxy profile or select from available profiles if no file specified. Omit to select when multiple profiles
+Proxy Insertion Points:
+  -insertion point [PROFILE]    Use specific proxy insertion point or select from available insertion points  if no file specified. Omit to select when multiple profiles
                         exist.
 
 Custom Headers:
@@ -119,11 +131,12 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/
 |---------|------------------------|-------------|
 | 🔍 Proxy Auto-detection | `--proxy-host`, `--proxy-port` | Detects running proxies on ports 8080, 8081, and 8082 when no proxy is specified |
 | 🔄 Custom Proxy Configuration | `--proxy host:port` | Specifies proxy in combined host:port format |
-| 💾 Proxy Profile Management | `-profile [PROFILE]` | Loads and saves proxy configurations for reuse |
-| 🔐 Variable Replacement | `--target-profile PROFILE` | Replaces Postman variables with values from specified profile |
-| 🔑 Variable Extraction | `--extract-keys [OUTPUT_FILE]` | Extracts variables from collections to create profile templates |
+| 💾 Proxy Profile Management | `--proxy-config [PROFILE]` | Loads and saves proxy configurations for reuse |
+| 🔐 Variable Replacement | `--insertion-pointPROFILE` | Replaces Postman variables with values from specified insertion point |
+| 🔑 Variable Extraction | `--extract-keys [OUTPUT_FILE]` | Extracts variables from collections to create insertion point templates |
+| 🔒 Authentication | `--auth`, `--auth-basic`, `--auth-bearer`, `--auth-api-key` | Supports multiple authentication methods including Basic Auth, Bearer Token, and API Key |
 | 📊 Request Logging | `--log`, `--verbose` | Records detailed request/response data to the logs directory |
-| 🧩 Interactive Mode | Run without arguments | Provides interactive prompts for collection and profile selection |
+| 🧩 Interactive Mode | Run without arguments | Provides interactive prompts for collection and insertion point selection |
 | 🔍 Proxy Verification | Automatic | Validates proxy connectivity before executing requests |
 | 🔤 Custom Headers | `--header KEY:VALUE` | Adds specified headers to all requests in the collection |
 | 🔒 SSL Verification | `--verify-ssl` | Enables SSL certificate verification for secure connections |
@@ -135,11 +148,11 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/
 | Scenario | Challenge | Solution | Example Command |
 |----------|-----------|----------|-----------------|
 | **Client-Provided API Collection** | Client provides a 200+ endpoint Postman collection for an enterprise API during a time-limited assessment | Replay all endpoints through any proxy while maintaining request sequence and context | `python3 repl.py --collection "enterprise_api.json" --extract-keys` |
-| **Privilege Escalation Testing** | Need to test API endpoints with admin, user, and guest credentials to identify authorization flaws | Execute the same collection with different profile files containing various privilege levels | `python3 repl.py --collection "user_api.json" --target-profile "admin_profile.json"` |
-| **OAuth2 Token Capture** | Need to capture and reuse OAuth tokens that expire during testing | Extract tokens from responses and apply them to subsequent requests automatically | `python3 repl.py --collection "oauth_flow.json" --target-profile "oauth_creds.json" --verbose` |
+| **Privilege Escalation Testing** | Need to test API endpoints with admin, user, and guest credentials to identify authorization flaws | Execute the same collection with different insertion point files containing various privilege levels | `python3 repl.py --collection "user_api.json" --insertion-point"admin_profile.json"` |
+| **OAuth2 Token Capture** | Need to capture and reuse OAuth tokens that expire during testing | Extract tokens from responses and apply them to subsequent requests automatically | `python3 repl.py --collection "oauth_flow.json" --insertion-point"oauth_creds.json" --verbose` |
 | **API Key Rotation** | API uses rotating keys that must be captured and reused | Record all requests with key rotation before using Burp Intruder for attacks | `python3 repl.py --collection "key_rotation_api.json" --log --verbose` |
-| **Multi-Step API Workflows** | API vulnerabilities require specific request sequencing | Execute requests in the exact defined sequence while sending through Burp for inspection | `python3 repl.py --collection "workflow.json" --target-profile "attack_vectors.json"` |
-| **GraphQL Security Testing** | GraphQL endpoints with nested queries require specific formatting | Maintain query structure and variables while testing through Burp | `python3 repl.py --collection "graphql_api.json" --target-profile "graphql_vars.json"` |
+| **Multi-Step API Workflows** | API vulnerabilities require specific request sequencing | Execute requests in the exact defined sequence while sending through Burp for inspection | `python3 repl.py --collection "workflow.json" --insertion-point"attack_vectors.json"` |
+| **GraphQL Security Testing** | GraphQL endpoints with nested queries require specific formatting | Maintain query structure and variables while testing through Burp | `python3 repl.py --collection "graphql_api.json" --insertion-point"graphql_vars.json"` |
 | **Report Documentation** | Need to document request/response pairs for vulnerability reports | Generate structured logs of all requests and responses in a reportable format | `python3 repl.py --collection "vulnerable_api.json" --log --verbose` |
 | **Large API Assessment** | Need to efficiently test hundreds of endpoints in a time-constrained engagement | Execute all requests through any proxy while preserving the exact sequence and context | `python3 repl.py --collection "large_api.json" --verbose` |
 | **Token Context Preservation** | Need to maintain authentication state across multiple API calls | Extract and reuse tokens across requests in the correct sequence | `python3 repl.py --collection "stateful_api.json" --log` |
@@ -193,6 +206,13 @@ Contributions are welcome! Here's how you can contribute:
 For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/wiki).
 
 ##
+
+### References
+- Portswigger https://portswigger.net/burp/documentation/desktop/running-scans/api-scans/
+- Postman https://learning.postman.com/docs/postman-cli/postman-cli-run-collection
+- Python Auth: https://datagy.io/python-requests-authentication/
+- 
+
 
 ### 📜 License
 

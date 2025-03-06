@@ -1,0 +1,1789 @@
+{
+  "info": {
+    "name": "Healthcare API",
+    "_postman_id": "a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8",
+    "description": "Results of scanning Healthcare API with repl",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "repl"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Provider Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/auth/provider/login",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "provider",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{    \"provider_id\": \"PROV12345\",    \"password\": \"securepassword\",    \"facility_code\": \"FAC789\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/auth/provider/login",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "provider",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{    \"provider_id\": \"PROV12345\",    \"password\": \"securepassword\",    \"facility_code\": \"FAC789\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:34 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1106"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "afa6c944-9c91-44c0-9ba4-0e5c0923fae2"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_mUzViHxZTlvHCVJE/KW4eRWk8cu/JYitaaZ2PH7rXU+2qr2+nDzKBRKZ2/TEfxT28A3gJ5PIrgtG8JB6l2gtlQ=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:34 GMT; path=/"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_mUzViHxZTlvHCVJE/KW4eRWk8cu/JYitaaZ2PH7rXU+2qr2+nDzKBRKZ2/TEfxT28A3gJ5PIrgtG8JB6l2gtlQ==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDc0LCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9hdXRoL3Byb3ZpZGVyL2xvZ2luIiwicGFnZV9tZXRob2QiOiJQT1NUIiwicGFnZV9yZXF1ZXN0Ijp7fSwicGFnZV9oZWFkZXJzIjp7fSwiaG9zdCI6ImFwaS5oZWFsdGhjYXJlc3lzdGVtLm9yZyIsImlwIjoiNDcuMTQ2LjYxLjYzIn0K\";</script>\n<script src=\"/bYjGGvlmL.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Patient Portal Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/auth/patient/login",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "patient",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{    \"patient_email\": \"patient@example.com\",    \"password\": \"patientpassword\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/auth/patient/login",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "patient",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{    \"patient_email\": \"patient@example.com\",    \"password\": \"patientpassword\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:35 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1106"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "d29b1dd0-1f45-4d28-b42d-359f61c1ebad"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_i2vx7QvdO3NMLG06bFY6UP28P9/cKjozAULRgmUTGtIWgZjLloeSDRNqeU3BpgTHBQY/szyNwdPQ3wNO/Qy/NA=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:35 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_i2vx7QvdO3NMLG06bFY6UP28P9/cKjozAULRgmUTGtIWgZjLloeSDRNqeU3BpgTHBQY/szyNwdPQ3wNO/Qy/NA==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDc1LCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9hdXRoL3BhdGllbnQvbG9naW4iLCJwYWdlX21ldGhvZCI6IlBPU1QiLCJwYWdlX3JlcXVlc3QiOnt9LCJwYWdlX2hlYWRlcnMiOnt9LCJob3N0IjoiYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnIiwiaXAiOiI0Ny4xNDYuNjEuNjMifQo=\";</script>\n<script src=\"/bHDxRFxaK.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "Search Patients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/patients?query=Smith&page=1&limit=20",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients?query=Smith&page=1&limit=20"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/patients?query=Smith&page=1&limit=20",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "patients?query=Smith&page=1&limit=20"
+                  ]
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:35 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1194"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "62515fa2-ac3e-4b4f-9550-22ec179029e0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_s4TbQduYRa2yegWWJ7egpUosUAKmd7jtS7M88XkUV0LoMkSPEEIfumntt3K2jCjxGVkGV4TV45nKRU0x76ocoA=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:36 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_s4TbQduYRa2yegWWJ7egpUosUAKmd7jtS7M88XkUV0LoMkSPEEIfumntt3K2jCjxGVkGV4TV45nKRU0x76ocoA==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDc2LCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9wYXRpZW50cz9xdWVyeT1TbWl0aFx1MDAyNnBhZ2U9MVx1MDAyNmxpbWl0PTIwIiwicGFnZV9tZXRob2QiOiJHRVQiLCJwYWdlX3JlcXVlc3QiOnsibGltaXQiOiIyMCIsInBhZ2UiOiIxIiwicXVlcnkiOiJTbWl0aCJ9LCJwYWdlX2hlYWRlcnMiOnt9LCJob3N0IjoiYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnIiwiaXAiOiI0Ny4xNDYuNjEuNjMifQo=\";</script>\n<script src=\"/bOfcaulMw.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Get Patient Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/patients/PAT987654",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients",
+                "PAT987654"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/patients/PAT987654",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "patients",
+                    "PAT987654"
+                  ]
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:36 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1106"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "ca71aa22-34e2-410b-ba52-99803747d048"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_lePWRkYal4OqMQjNW5nFXRB76t1b5M5t69XmTwPpwz7+TwjCCYm7ySSVdmEv2agHkLne3SVc60/mrYL8e08bdQ=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:36 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_lePWRkYal4OqMQjNW5nFXRB76t1b5M5t69XmTwPpwz7+TwjCCYm7ySSVdmEv2agHkLne3SVc60/mrYL8e08bdQ==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDc2LCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9wYXRpZW50cy9QQVQ5ODc2NTQiLCJwYWdlX21ldGhvZCI6IkdFVCIsInBhZ2VfcmVxdWVzdCI6e30sInBhZ2VfaGVhZGVycyI6e30sImhvc3QiOiJhcGkuaGVhbHRoY2FyZXN5c3RlbS5vcmciLCJpcCI6IjQ3LjE0Ni42MS42MyJ9Cg==\";</script>\n<script src=\"/bFWDKGRZB.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Create Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/patients",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{    \"first_name\": \"John\",    \"last_name\": \"Doe\",    \"date_of_birth\": \"asdf\",    \"gender\": \"male\",    \"email\": \"asdf\",    \"phone\": \"555-123-4567\",    \"address\": {        \"street\": \"123 Main St\",        \"city\": \"asdf\",        \"state\": \"CA\",        \"zip\": \"12345\"    },    \"insurance\": {        \"provider\": \"Health Insurance Co\",        \"policy_number\": \"POL123456\",        \"group_number\": \"GRP789012\"    }}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/patients",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "patients"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{    \"first_name\": \"John\",    \"last_name\": \"Doe\",    \"date_of_birth\": \"asdf\",    \"gender\": \"male\",    \"email\": \"asdf\",    \"phone\": \"555-123-4567\",    \"address\": {        \"street\": \"123 Main St\",        \"city\": \"asdf\",        \"state\": \"CA\",        \"zip\": \"12345\"    },    \"insurance\": {        \"provider\": \"Health Insurance Co\",        \"policy_number\": \"POL123456\",        \"group_number\": \"GRP789012\"    }}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:36 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1094"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "0dd77019-23f1-4904-984f-e7b57b3aeb5c"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_ygGiHFdQluuN2cSJ3RvnXNSmrpEBEeaDTHRASzBfNT4KPg1uSnA7T8Wuc0z5n62bF7ePHq5puuX8QOYdLWydSw=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:37 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_ygGiHFdQluuN2cSJ3RvnXNSmrpEBEeaDTHRASzBfNT4KPg1uSnA7T8Wuc0z5n62bF7ePHq5puuX8QOYdLWydSw==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDc3LCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9wYXRpZW50cyIsInBhZ2VfbWV0aG9kIjoiUE9TVCIsInBhZ2VfcmVxdWVzdCI6e30sInBhZ2VfaGVhZGVycyI6e30sImhvc3QiOiJhcGkuaGVhbHRoY2FyZXN5c3RlbS5vcmciLCJpcCI6IjQ3LjE0Ni42MS42MyJ9Cg==\";</script>\n<script src=\"/bfptkIKpj.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Update Patient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/patients/PAT987654",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients",
+                "PAT987654"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{    \"email\": \"john.updated@example.com\",    \"phone\": \"555-987-6543\",    \"address\": {        \"street\": \"456 Oak Ave\",        \"city\": \"New City\",        \"state\": \"NY\",        \"zip\": \"54321\"    },    \"insurance\": {        \"provider\": \"New Health Insurance\",        \"policy_number\": \"NEWPOL654321\",        \"group_number\": \"NEWGRP098765\"    }}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/patients/PAT987654",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "patients",
+                    "PAT987654"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{    \"email\": \"john.updated@example.com\",    \"phone\": \"555-987-6543\",    \"address\": {        \"street\": \"456 Oak Ave\",        \"city\": \"New City\",        \"state\": \"NY\",        \"zip\": \"54321\"    },    \"insurance\": {        \"provider\": \"New Health Insurance\",        \"policy_number\": \"NEWPOL654321\",        \"group_number\": \"NEWGRP098765\"    }}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:37 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1106"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "24857991-63d9-440e-989a-2583966d78f4"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_lePWRkYal4OqMQjNW5nFXRB76t1b5M5t69XmTwPpwz7+TwjCCYm7ySSVdmEv2agHkLne3SVc60/mrYL8e08bdQ=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:37 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_lePWRkYal4OqMQjNW5nFXRB76t1b5M5t69XmTwPpwz7+TwjCCYm7ySSVdmEv2agHkLne3SVc60/mrYL8e08bdQ==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDc3LCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9wYXRpZW50cy9QQVQ5ODc2NTQiLCJwYWdlX21ldGhvZCI6IlBVVCIsInBhZ2VfcmVxdWVzdCI6e30sInBhZ2VfaGVhZGVycyI6e30sImhvc3QiOiJhcGkuaGVhbHRoY2FyZXN5c3RlbS5vcmciLCJpcCI6IjQ3LjE0Ni42MS42MyJ9Cg==\";</script>\n<script src=\"/bFfHtlWki.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Get Provider Schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/appointments/schedule?provider_id=PROV12345&start_date=2023-06-01&end_date=2023-06-07",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments",
+                "schedule?provider_id=PROV12345&start_date=2023-06-01&end_date=2023-06-07"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/appointments/schedule?provider_id=PROV12345&start_date=2023-06-01&end_date=2023-06-07",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "appointments",
+                    "schedule?provider_id=PROV12345&start_date=2023-06-01&end_date=2023-06-07"
+                  ]
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:38 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1306"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "9dfc120e-93b1-4528-962d-b67456a84628"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_gPHCoO9Lyldiv9afCJ+SaNwI0Poorxm88O1zZBOarQ4FcWjyOgu0JKUngRs82F+OFb0QeXDcQTqcq5zpSTD0Og=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:38 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_gPHCoO9Lyldiv9afCJ+SaNwI0Poorxm88O1zZBOarQ4FcWjyOgu0JKUngRs82F+OFb0QeXDcQTqcq5zpSTD0Og==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDc4LCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9hcHBvaW50bWVudHMvc2NoZWR1bGU/cHJvdmlkZXJfaWQ9UFJPVjEyMzQ1XHUwMDI2c3RhcnRfZGF0ZT0yMDIzLTA2LTAxXHUwMDI2ZW5kX2RhdGU9MjAyMy0wNi0wNyIsInBhZ2VfbWV0aG9kIjoiR0VUIiwicGFnZV9yZXF1ZXN0Ijp7ImVuZF9kYXRlIjoiMjAyMy0wNi0wNyIsInByb3ZpZGVyX2lkIjoiUFJPVjEyMzQ1Iiwic3RhcnRfZGF0ZSI6IjIwMjMtMDYtMDEifSwicGFnZV9oZWFkZXJzIjp7fSwiaG9zdCI6ImFwaS5oZWFsdGhjYXJlc3lzdGVtLm9yZyIsImlwIjoiNDcuMTQ2LjYxLjYzIn0K\";</script>\n<script src=\"/bJpNEbuiF.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Get Patient Appointments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/patients/PAT987654/appointments?status=scheduled",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients",
+                "PAT987654",
+                "appointments?status=scheduled"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/patients/PAT987654/appointments?status=scheduled",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "patients",
+                    "PAT987654",
+                    "appointments?status=scheduled"
+                  ]
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:38 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1170"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "3ab81f46-e5d0-4228-9e6a-173071040af8"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_DpXw0nBNDBPuhvjOcmRpGDZ6I6jNvkeKMsTCbRMqlccSx1Udk+Dej6V+iSa+TKrSpXRo1IZd4l1WJfnF8udXEQ=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:38 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_DpXw0nBNDBPuhvjOcmRpGDZ6I6jNvkeKMsTCbRMqlccSx1Udk+Dej6V+iSa+TKrSpXRo1IZd4l1WJfnF8udXEQ==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDc4LCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9wYXRpZW50cy9QQVQ5ODc2NTQvYXBwb2ludG1lbnRzP3N0YXR1cz1zY2hlZHVsZWQiLCJwYWdlX21ldGhvZCI6IkdFVCIsInBhZ2VfcmVxdWVzdCI6eyJzdGF0dXMiOiJzY2hlZHVsZWQifSwicGFnZV9oZWFkZXJzIjp7fSwiaG9zdCI6ImFwaS5oZWFsdGhjYXJlc3lzdGVtLm9yZyIsImlwIjoiNDcuMTQ2LjYxLjYzIn0K\";</script>\n<script src=\"/buwbOcPeG.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Schedule Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/appointments",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{    \"patient_id\": \"PAT987654\",    \"provider_id\": \"PROV12345\",    \"appointment_type\": \"follow-up\",    \"start_time\": \"2023-06-05T10:00:00Z\",    \"duration_minutes\": 30,    \"reason\": \"Follow-up for hypertension\",    \"notes\": \"Patient requested morning appointment\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/appointments",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "appointments"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{    \"patient_id\": \"PAT987654\",    \"provider_id\": \"PROV12345\",    \"appointment_type\": \"follow-up\",    \"start_time\": \"2023-06-05T10:00:00Z\",    \"duration_minutes\": 30,    \"reason\": \"Follow-up for hypertension\",    \"notes\": \"Patient requested morning appointment\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:39 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1098"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "e9c7c729-272f-4d53-aba8-c2b761f6ecf2"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_BCvfV/aQ7iMEWtptJZEMcdlV5MN4BpMP0nLZLmcaEjb/LJGU1/Sou7gZJPZ2mXlgftzlTFSDMiX6NKWm9W/Yow=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:39 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_BCvfV/aQ7iMEWtptJZEMcdlV5MN4BpMP0nLZLmcaEjb/LJGU1/Sou7gZJPZ2mXlgftzlTFSDMiX6NKWm9W/Yow==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDc5LCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9hcHBvaW50bWVudHMiLCJwYWdlX21ldGhvZCI6IlBPU1QiLCJwYWdlX3JlcXVlc3QiOnt9LCJwYWdlX2hlYWRlcnMiOnt9LCJob3N0IjoiYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnIiwiaXAiOiI0Ny4xNDYuNjEuNjMifQo=\";</script>\n<script src=\"/bEYvuyQaE.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Update Appointment Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/appointments/APT123456/status",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments",
+                "APT123456",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{    \"status\": \"completed\",    \"notes\": \"Patient seen and treatment provided\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/appointments/APT123456/status",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "appointments",
+                    "APT123456",
+                    "status"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{    \"status\": \"completed\",    \"notes\": \"Patient seen and treatment provided\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:40 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1122"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "db1cc52e-b114-48ba-b59f-d8b11cd1ff20"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_nu3l5jLxhxN1gQUegDDB55kQmXJwWx1kio4/jBJK1ZM8e4l68OsPzY4+MEgMYzUESIsOc9yCU3zr8MFBmLvGXw=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:40 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_nu3l5jLxhxN1gQUegDDB55kQmXJwWx1kio4/jBJK1ZM8e4l68OsPzY4+MEgMYzUESIsOc9yCU3zr8MFBmLvGXw==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDgwLCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9hcHBvaW50bWVudHMvQVBUMTIzNDU2L3N0YXR1cyIsInBhZ2VfbWV0aG9kIjoiUEFUQ0giLCJwYWdlX3JlcXVlc3QiOnt9LCJwYWdlX2hlYWRlcnMiOnt9LCJob3N0IjoiYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnIiwiaXAiOiI0Ny4xNDYuNjEuNjMifQo=\";</script>\n<script src=\"/bAkxFJmmP.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Medical Records",
+      "item": [
+        {
+          "name": "Get Patient Medical History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/patients/PAT987654/medical-history",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients",
+                "PAT987654",
+                "medical-history"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/patients/PAT987654/medical-history",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "patients",
+                    "PAT987654",
+                    "medical-history"
+                  ]
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:40 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1126"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "fc6ea293-23db-43ec-85c8-7737a3630b59"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_jGfRqcytUsxR145130DT936KuxUtVJjVVf5Pro0RGto9dwWVd6Pe0Wnj7HfU4HuzjcnetorS3nsydZHm3y2nAg=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:41 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_jGfRqcytUsxR145130DT936KuxUtVJjVVf5Pro0RGto9dwWVd6Pe0Wnj7HfU4HuzjcnetorS3nsydZHm3y2nAg==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDgxLCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9wYXRpZW50cy9QQVQ5ODc2NTQvbWVkaWNhbC1oaXN0b3J5IiwicGFnZV9tZXRob2QiOiJHRVQiLCJwYWdlX3JlcXVlc3QiOnt9LCJwYWdlX2hlYWRlcnMiOnt9LCJob3N0IjoiYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnIiwiaXAiOiI0Ny4xNDYuNjEuNjMifQo=\";</script>\n<script src=\"/bpgQtZDef.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Get Patient Medications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/patients/PAT987654/medications?status=active",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patients",
+                "PAT987654",
+                "medications?status=active"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/patients/PAT987654/medications?status=active",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "patients",
+                    "PAT987654",
+                    "medications?status=active"
+                  ]
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:41 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1162"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "0954f3e7-0673-4f07-9296-f5be996a1c52"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_IpslydDrq/b9NKclTHgWmfltccQvYtIV2LhGQRlv/OtAfmyYHgwYIwjCbT83crPtStMLMbjtVwX6Lm+sxgSPyg=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:41 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_IpslydDrq/b9NKclTHgWmfltccQvYtIV2LhGQRlv/OtAfmyYHgwYIwjCbT83crPtStMLMbjtVwX6Lm+sxgSPyg==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDgxLCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9wYXRpZW50cy9QQVQ5ODc2NTQvbWVkaWNhdGlvbnM/c3RhdHVzPWFjdGl2ZSIsInBhZ2VfbWV0aG9kIjoiR0VUIiwicGFnZV9yZXF1ZXN0Ijp7InN0YXR1cyI6ImFjdGl2ZSJ9LCJwYWdlX2hlYWRlcnMiOnt9LCJob3N0IjoiYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnIiwiaXAiOiI0Ny4xNDYuNjEuNjMifQo=\";</script>\n<script src=\"/bxEnlFuIL.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Create Encounter Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/encounters",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "encounters"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{    \"patient_id\": \"PAT987654\",    \"provider_id\": \"PROV12345\",    \"appointment_id\": \"APT123456\",    \"encounter_date\": \"2023-06-05\",    \"chief_complaint\": \"asdf\",    \"vital_signs\": {        \"temperature\": 98.6,        \"heart_rate\": 72,        \"respiratory_rate\": 16,        \"blood_pressure\": \"asdf\",        \"oxygen_saturation\": 98    },    \"assessment\": \"asdf\",    \"plan\": \"Continue current medication, follow up in 3 months\",    \"diagnosis_codes\": [\"asdf\", \"asdf\"]}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/encounters",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "encounters"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{    \"patient_id\": \"PAT987654\",    \"provider_id\": \"PROV12345\",    \"appointment_id\": \"APT123456\",    \"encounter_date\": \"2023-06-05\",    \"chief_complaint\": \"asdf\",    \"vital_signs\": {        \"temperature\": 98.6,        \"heart_rate\": 72,        \"respiratory_rate\": 16,        \"blood_pressure\": \"asdf\",        \"oxygen_saturation\": 98    },    \"assessment\": \"asdf\",    \"plan\": \"Continue current medication, follow up in 3 months\",    \"diagnosis_codes\": [\"asdf\", \"asdf\"]}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:41 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1094"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "12082329-5073-4202-ba78-9e7016248510"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_zFvctK+28MYDDcsAKljJWmSemvHOB/GTJTShqWdAoU/6XldgDw00iEY7rAwmnZIcMflmbG3uO/AVTgz6F0Hj0g=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:41 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_zFvctK+28MYDDcsAKljJWmSemvHOB/GTJTShqWdAoU/6XldgDw00iEY7rAwmnZIcMflmbG3uO/AVTgz6F0Hj0g==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDgxLCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9lbmNvdW50ZXJzIiwicGFnZV9tZXRob2QiOiJQT1NUIiwicGFnZV9yZXF1ZXN0Ijp7fSwicGFnZV9oZWFkZXJzIjp7fSwiaG9zdCI6ImFwaS5oZWFsdGhjYXJlc3lzdGVtLm9yZyIsImlwIjoiNDcuMTQ2LjYxLjYzIn0K\";</script>\n<script src=\"/bKNAUbvgq.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Prescribe Medication",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://api.healthcaresystem.org/api/v1/prescriptions",
+              "protocol": "https",
+              "host": [
+                "api",
+                "healthcaresystem",
+                "org"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prescriptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{    \"patient_id\": \"PAT987654\",    \"provider_id\": \"PROV12345\",    \"encounter_id\": \"ENC789012\",    \"medication\": {        \"name\": \"Lisinopril\",        \"dosage\": \"10mg\",        \"route\": \"oral\",        \"frequency\": \"once daily\",        \"duration\": \"90 days\"    },    \"pharmacy\": {        \"name\": \"City Pharmacy\",        \"address\": \"789 Pharmacy Rd, Anytown, CA 12345\",        \"phone\": \"555-789-0123\"    },    \"notes\": \"Take with food in the morning\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "Response 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "https://api.healthcaresystem.org/api/v1/prescriptions",
+                  "protocol": "https",
+                  "host": [
+                    "api",
+                    "healthcaresystem",
+                    "org"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "prescriptions"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{    \"patient_id\": \"PAT987654\",    \"provider_id\": \"PROV12345\",    \"encounter_id\": \"ENC789012\",    \"medication\": {        \"name\": \"Lisinopril\",        \"dosage\": \"10mg\",        \"route\": \"oral\",        \"frequency\": \"once daily\",        \"duration\": \"90 days\"    },    \"pharmacy\": {        \"name\": \"City Pharmacy\",        \"address\": \"789 Pharmacy Rd, Anytown, CA 12345\",        \"phone\": \"555-789-0123\"    },    \"notes\": \"Take with food in the morning\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": 200,
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [
+                {
+                  "key": "Date",
+                  "value": "Tue, 04 Mar 2025 20:34:42 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "text/html; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1098"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "de0f18ed-4bca-4745-82d6-dfdaa7896ce3"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-store, max-age=0"
+                },
+                {
+                  "key": "Accept-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Critical-Ch",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "Vary",
+                  "value": "sec-ch-prefers-color-scheme"
+                },
+                {
+                  "key": "X-Adblock-Key",
+                  "value": "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_W3DLvpEJxTssqh20G+ArXrAdua57Ipr5JJoI2YO9p8IZxqrM4IzAZIKyAEsjwm0UntFvoXlhR0Ge4rDKJNlBKA=="
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "parking_session=afa6c944-9c91-44c0-9ba4-0e5c0923fae2; expires=Tue, 04 Mar 2025 20:49:42 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                }
+              ],
+              "cookie": [],
+              "body": "<!doctype html>\n<html data-adblockkey=\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_W3DLvpEJxTssqh20G+ArXrAdua57Ipr5JJoI2YO9p8IZxqrM4IzAZIKyAEsjwm0UntFvoXlhR0Ge4rDKJNlBKA==\" lang=\"en\" style=\"background: #2B2B2B;\">\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC\">\n    <link rel=\"preconnect\" href=\"https://www.google.com\" crossorigin>\n</head>\n<body>\n<div id=\"target\" style=\"opacity: 0\"></div>\n<script>window.park = \"eyJ1dWlkIjoiYWZhNmM5NDQtOWM5MS00NGMwLTliYTQtMGU1YzA5MjNmYWUyIiwicGFnZV90aW1lIjoxNzQxMTIwNDgyLCJwYWdlX3VybCI6Imh0dHBzOi8vYXBpLmhlYWx0aGNhcmVzeXN0ZW0ub3JnL2FwaS92MS9wcmVzY3JpcHRpb25zIiwicGFnZV9tZXRob2QiOiJQT1NUIiwicGFnZV9yZXF1ZXN0Ijp7fSwicGFnZV9oZWFkZXJzIjp7fSwiaG9zdCI6ImFwaS5oZWFsdGhjYXJlc3lzdGVtLm9yZyIsImlwIjoiNDcuMTQ2LjYxLjYzIn0K\";</script>\n<script src=\"/bKFgyFzbg.js\"></script>\n</body>\n</html>"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "metadata",
+      "value": "{\"collection_name\": \"Healthcare API\", \"collection_id\": \"a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8\", \"collection_path\": \"/Users/darmado/Library/Mobile Documents/com~apple~CloudDocs/Opensource/darmado/repl/collections/healthcare_api.json\", \"insertion_point\": \"a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8_1741120447.json\", \"proxy\": \"127.0.0.1:8090\", \"timestamp\": \"2025-03-04T12:34:42.299162\", \"total_requests\": 14, \"successful_requests\": 14, \"failed_requests\": 0}"
+    }
+  ]
+}
