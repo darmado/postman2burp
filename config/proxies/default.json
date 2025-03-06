@@ -4,5 +4,6 @@
     "verify_ssl": false,
     "target_insertion_point": "",
     "verbose": false,
-    "collection_path": "security_testing_api.json"
+    "collection_path": "security_testing_api.json",
+    "log": true
 }

@@ -7,6 +7,7 @@ tests/
 run_tests.py
 activate
 *.json
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -140,6 +141,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+fresh-env/
 env/
 venv/
 ENV/
