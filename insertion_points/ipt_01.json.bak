@@ -6,8 +6,8 @@
       "value": "https://api.doge.com",
       "enabled": true,
       "description": "Base URL for the API",
-      "encoding": "xml",
-      "encoding_iterations": 8
+      "encoding": "html",
+      "encoding_iterations": 5
     },
     {
       "key": "parameter",

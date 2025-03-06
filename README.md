@@ -125,15 +125,15 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/
 | 🔍 Proxy Auto-detection | `--proxy-host`, `--proxy-port` | Detect running proxy tools on common ports (8080, 8081, 8082) |
 | 🔄 Custom Proxy Configuration | `--proxy host:port` | Direct traffic through any proxy tool or intercepting middleware |
 | 💾 Proxy Profile Management | `--proxy-profile [PROFILE]` | Load and save proxy configurations for different environments |
-| 🔐 Variable Insertion | `--insertion-point PROFILE` | Insert values at specific points in API requests from template files |
 | 🔑 Variable Extraction | `--extract-keys [OUTPUT_FILE]` | Extract API keys, tokens, and variables from collections for testing |
-| 🔒 Multiple Authentication Methods | `--auth`, `--auth-basic`, `--auth-bearer` | Support for Basic Auth, Bearer Token, API Key, OAuth1, and OAuth2 |
-| 📊 Request Logging | `--log`, `--verbose` | Record detailed request/response data for analysis and reporting |
-| 🧩 Interactive Mode | Run without arguments | Navigate through setup with interactive prompts |
+| 🔐 Variable Insertion | `--insertion-point PROFILE` | Insert values at specific points in API requests from template files |
+| 🔒 Multi-auth Support | `--auth`, `--auth-basic`, `--auth-bearer` | Support for Basic Auth, Bearer Token, API Key, OAuth1, and OAuth2 |
+| 📊 Logging | `--log`, `--verbose` | Record detailed request/response data for analysis and reporting |
+| 🧩 Interactive Mode | `--collection` | Navigate through interactive prompts |
 | 🔍 Proxy Verification | Automatic | Verify proxy connection before sending requests |
 | 🔤 Header Customization | `--header KEY:VALUE` | Add or modify headers in all requests |
 | 🔒 SSL Configuration | `--verify-ssl` | Enable or disable SSL certificate validation |
-| 🔄 Variable Encoding | `--encode-*` | Encode values using various methods for security testing and special character handling |
+| 🔄 Encode your payloads | `--encode-` | Encode values using various encoding methods: URL, double URL, HTML, base64, SQL CHAR(), JavaScript, and CSS encoding |
 
 ##
 
@@ -145,7 +145,7 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/
 | **Privilege Escalation Testing** | Need to test API endpoints with admin, user, and guest credentials to identify authorization flaws | Execute the same collection with different insertion point files containing various privilege levels | `python3 repl.py --collection "user_api.json" --insertion-point "admin_profile.json"` |
 | **OAuth2 Token Capture** | Need to capture and reuse OAuth tokens that expire during testing | Extract tokens from responses and apply them to subsequent requests automatically | `python3 repl.py --collection "oauth_flow.json" --insertion-point "oauth_creds.json" --verbose` |
 | **API Key Rotation** | API uses rotating keys that must be captured and reused | Record all requests with key rotation before using Burp Intruder for attacks | `python3 repl.py --collection "key_rotation_api.json" --log --verbose` |
-| **Multi-Step API Workflows** | API vulnerabilities require specific request sequencing | Execute requests in the exact defined sequence while sending through Burp for inspection | `python3 repl.py --collection "workflow.json" --insertion-point "attack_vectors.json"` |
+| **Multi-Step API Workflows** | API Logic vulnerabilities require specific request sequencing | Execute requests in the exact defined sequence while sending through Burp for inspection | `python3 repl.py --collection "workflow.json" --insertion-point "attack_vectors.json"` |
 | **GraphQL Security Testing** | GraphQL endpoints with nested queries require specific formatting | Maintain query structure and variables while testing through Burp | `python3 repl.py --collection "graphql_api.json" --insertion-point "graphql_vars.json"` |
 | **Report Documentation** | Need to document request/response pairs for vulnerability reports | Generate structured logs of all requests and responses in a reportable format | `python3 repl.py --collection "vulnerable_api.json" --log --verbose` |
 | **Large API Assessment** | Need to efficiently test hundreds of endpoints in a time-constrained engagement | Execute all requests through any proxy while preserving the exact sequence and context | `python3 repl.py --collection "large_api.json" --verbose` |

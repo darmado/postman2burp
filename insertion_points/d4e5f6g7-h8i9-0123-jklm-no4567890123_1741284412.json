@@ -1,0 +1,120 @@
+{
+  "id": "auto-generated-1741284389",
+  "name": "Banking API",
+  "values": [
+    {
+      "key": "account_id",
+      "value": "ACC123456789",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "amount",
+      "value": "100.00",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "base_url",
+      "value": "https://api.bankingservice.com",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "currency",
+      "value": "USD",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "device_id",
+      "value": "device123456",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "from_account_id",
+      "value": "ACC123456789",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "from_date",
+      "value": "2023-01-01",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "limit",
+      "value": "20",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "otp_code",
+      "value": "123456",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "page",
+      "value": "1",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "password",
+      "value": "securepassword",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "session_id",
+      "value": "session789012",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "to_account_id",
+      "value": "ACC987654321",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "to_date",
+      "value": "2023-12-31",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "transaction_id",
+      "value": "TRX987654321",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "transfer_description",
+      "value": "Payment for services",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "transfer_id",
+      "value": "TRF123456789",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "username",
+      "value": "bankuser",
+      "type": "string",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2025-03-06T10:06:29.000Z",
+  "_postman_exported_using": "Repl/Interactive",
+  "_postman_collection_id": "d4e5f6g7-h8i9-0123-jklm-no4567890123",
+  "_exporter_id": "12345678",
+  "description": "Environment for: Banking API"
+}

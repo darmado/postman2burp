@@ -19,9 +19,10 @@ Usage:
         python repl.py --collection <collection.json> --save-proxy
         
     Extract Variables:
+        python repl.py --extract-keys
         python repl.py --collection <collection.json> --extract-keys
         
-    Encode Values:
+    Encode Payloads:
         python repl.py --encode-url "param=value&other=value"
         python repl.py --encode-html "<script>alert(1)</script>"
         python repl.py --encode-double-url "param=value"
@@ -35,9 +36,7 @@ Usage:
         python repl.py --encode-css "#test"
     
     Encode Insertion Point Variables:
-        python repl.py --encode-values <insertion_point.json>
-        python repl.py --encode-values <insertion_point.json> --encoding html
-        python repl.py --encode-values <insertion_point.json> --encoding url --variables "param1,param2"
+        python repl.py --encode-payloads [insertion_point.json]
     
     Authentication:
         python repl.py --collection <collection.json> --auth-basic <username:password>
@@ -630,6 +629,16 @@ def generate_variables_template(collection_path: str, output_path: str) -> None:
         print(f"\n[✓] Successfully created target insertion_point with {variables_with_values} variables at {relative_path}")
         print(f"\nNext command to run:")
         print(f"python3 repl.py --collection \"{collection_name}\" --insertion-point\"{filename}\"")
+        
+        # Ask if user wants to encode variables
+        print("\nDo you want to encode any variables for security testing?")
+        print("1. Yes, encode variables now")
+        print("2. No, I'll do it later if needed")
+        encode_choice = input("Select option: ")
+        
+        if encode_choice == "1":
+            # Call the encode_insertion_point_variables function with the newly created file
+            encode_insertion_point_variables(output_path)
         
         # Exit after creating the insertion_point
         sys.exit(0)
@@ -2013,6 +2022,308 @@ class Repl:
         # This line should never be reached, but just in case
         return False
             
+def encode_insertion_point_variables(insertion_point_path=None):
+    """
+    Apply encoding to variables in an insertion point file.
+    
+    Args:
+        insertion_point_path (str, optional): Path to the insertion point file. If None, user will be prompted to select one.
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    # If no path provided, prompt user to select one
+    if insertion_point_path is None or insertion_point_path == 'select':
+        # Check if insertion_points directory exists
+        if not os.path.exists(VARIABLES_DIR):
+            logger.error(f"Insertion points directory not found: {VARIABLES_DIR}")
+            return False
+            
+        # List all JSON files in the insertion_points directory
+        json_files = [f for f in os.listdir(VARIABLES_DIR) if f.endswith('.json')]
+        
+        if not json_files:
+            logger.error(f"No JSON files found in {VARIABLES_DIR}")
+            print(f"\nNo insertion point files found in {VARIABLES_DIR}")
+            print("Create an insertion point file first using --extract-keys")
+            return False
+            
+        print("\nSelect insertion point file:")
+        for i, file in enumerate(json_files, 1):
+            print(f"{i}. {file}")
+            
+        while True:
+            try:
+                choice = input("\nSelect file: ")
+                choice_num = int(choice)
+                if 1 <= choice_num <= len(json_files):
+                    insertion_point_path = os.path.join(VARIABLES_DIR, json_files[choice_num-1])
+                    break
+                print(f"Invalid choice. Enter a number between 1 and {len(json_files)}.")
+            except ValueError:
+                print("Invalid input. Enter a number.")
+    elif not os.path.exists(insertion_point_path):
+        # Try looking in the insertion_points directory
+        alt_path = os.path.join(VARIABLES_DIR, os.path.basename(insertion_point_path))
+        if os.path.exists(alt_path):
+            insertion_point_path = alt_path
+        else:
+            logger.error(f"File not found: {insertion_point_path}")
+            return False
+    
+    # Validate insertion point file
+    valid, insertion_point_data = validate_json_file(insertion_point_path)
+    if not valid or not insertion_point_data:
+        logger.error(f"Invalid insertion point file: {insertion_point_path}")
+        return False
+    
+    # Make a copy of the original data
+    modified_data = json.loads(json.dumps(insertion_point_data))
+    
+    # Get list of variables from the insertion point
+    variables = []
+    
+    # Check if this is a Postman environment format (with values array)
+    if "values" in modified_data and isinstance(modified_data["values"], list):
+        for var in modified_data["values"]:
+            if "key" in var and "value" in var and var.get("enabled", True):
+                variables.append(var["key"])
+    
+    # Simple key-value format
+    elif "variables" in modified_data and isinstance(modified_data["variables"], list):
+        for var in modified_data["variables"]:
+            if "key" in var and "value" in var:
+                variables.append(var["key"])
+    
+    # No variables found
+    if not variables:
+        logger.error("No variables found in the insertion point file")
+        return False
+    
+    # Keep encoding variables until the user is done
+    variables_modified = 0
+    
+    while True:
+        # Prompt user to select variables to encode
+        print("\nSelect variables to encode:")
+        print("0. All variables")
+        
+        # Find the longest variable name for formatting
+        max_var_length = max([len(var) for var in variables]) if variables else 0
+        format_str = "{{}}. {{:<{}}} {{}}".format(max_var_length + 2)
+        
+        # Display variables with their encoding status
+        for i, var in enumerate(variables, 1):
+            # Check if variable already has encoding
+            encoding_info = ""
+            if "values" in modified_data and isinstance(modified_data["values"], list):
+                for v in modified_data["values"]:
+                    if v.get("key") == var and "encoding" in v:
+                        encoding_method = v.get("encoding", "")
+                        iterations = v.get("encoding_iterations", 1)
+                        encoding_info = f"[{encoding_method}"
+                        if iterations > 1:
+                            encoding_info += f" x{iterations}"
+                        encoding_info += "]"
+                        break
+            elif "variables" in modified_data and isinstance(modified_data["variables"], list):
+                for v in modified_data["variables"]:
+                    if v.get("key") == var and "encoding" in v:
+                        encoding_method = v.get("encoding", "")
+                        iterations = v.get("encoding_iterations", 1)
+                        encoding_info = f"[{encoding_method}"
+                        if iterations > 1:
+                            encoding_info += f" x{iterations}"
+                        encoding_info += "]"
+                        break
+            
+            print(format_str.format(i, var, encoding_info))
+        
+        print("q. Done - save and exit")
+        
+        choice = input("\nSelect variables (0 for all, numbers separated by commas, or q to finish): ")
+        
+        if choice.lower() == 'q':
+            break
+        
+        selected_vars = None
+        try:
+            if choice == "0":
+                # All variables
+                selected_vars = variables
+            else:
+                # Parse comma-separated list
+                indices = [int(x.strip()) for x in choice.split(",")]
+                if all(1 <= idx <= len(variables) for idx in indices):
+                    selected_vars = [variables[idx-1] for idx in indices]
+                else:
+                    print(f"Invalid choice. Enter numbers between 1 and {len(variables)}.")
+                    continue
+        except ValueError:
+            print("Invalid input. Enter numbers separated by commas.")
+            continue
+        
+        if not selected_vars:
+            continue
+        
+        # Now prompt for encoding method for the selected variables
+        print("\nSelect encoding method:")
+        encoding_options = [
+            "url",
+            "double_url",
+            "html",
+            "xml",
+            "unicode",
+            "hex",
+            "octal",
+            "base64",
+            "sql_char",
+            "js_escape",
+            "css_escape"
+        ]
+        
+        for i, option in enumerate(encoding_options, 1):
+            print(f"{i}. {option}")
+        
+        encoding_type = None
+        while True:
+            try:
+                choice = input("\nSelect encoding: ")
+                choice_num = int(choice)
+                if 1 <= choice_num <= len(encoding_options):
+                    encoding_type = encoding_options[choice_num-1]
+                    break
+                print(f"Invalid choice. Enter a number between 1 and {len(encoding_options)}.")
+            except ValueError:
+                print("Invalid input. Enter a number.")
+        
+        # Prompt for iterations
+        iterations = 1
+        while True:
+            try:
+                iterations_input = input("\nNumber of iterations [1]: ")
+                if not iterations_input:
+                    break
+                iterations = int(iterations_input)
+                if iterations > 0:
+                    break
+                print("Invalid value. Enter a positive number.")
+            except ValueError:
+                print("Invalid input. Enter a number.")
+        
+        # Process variables
+        group_modified = 0
+        encoded_vars = []
+        
+        # Check if this is a Postman environment format (with values array)
+        if "values" in modified_data and isinstance(modified_data["values"], list):
+            # Process each variable
+            for i, var in enumerate(modified_data["values"]):
+                if "key" in var and "value" in var and var.get("enabled", True):
+                    # Skip if not in the selected list
+                    if var["key"] not in selected_vars:
+                        continue
+                    
+                    # Add encoding information
+                    modified_data["values"][i]["encoding"] = encoding_type
+                    modified_data["values"][i]["encoding_iterations"] = iterations
+                    group_modified += 1
+                    encoded_vars.append(var["key"])
+        
+        # Simple key-value format
+        elif "variables" in modified_data and isinstance(modified_data["variables"], list):
+            # Process each variable
+            for i, var in enumerate(modified_data["variables"]):
+                if "key" in var and "value" in var:
+                    # Skip if not in the selected list
+                    if var["key"] not in selected_vars:
+                        continue
+                    
+                    # Add encoding information
+                    modified_data["variables"][i]["encoding"] = encoding_type
+                    modified_data["variables"][i]["encoding_iterations"] = iterations
+                    group_modified += 1
+                    encoded_vars.append(var["key"])
+        
+        variables_modified += group_modified
+        
+        # Show feedback with more details
+        if group_modified > 0:
+            iteration_str = f" x{iterations}" if iterations > 1 else ""
+            print(f"\nAdded {encoding_type}{iteration_str} encoding to {group_modified} variables:")
+            # Display in columns if there are many variables
+            if group_modified > 5:
+                # Calculate how many variables to show per line
+                term_width = os.get_terminal_size().columns if hasattr(os, 'get_terminal_size') else 80
+                max_var_length = max([len(var) for var in encoded_vars]) if encoded_vars else 0
+                vars_per_line = max(1, term_width // (max_var_length + 4))
+                
+                for i, var in enumerate(encoded_vars):
+                    print(f"  {var:<{max_var_length + 2}}", end="\n" if (i + 1) % vars_per_line == 0 else "")
+                # Add a newline if the last line wasn't complete
+                if len(encoded_vars) % vars_per_line != 0:
+                    print()
+            else:
+                for var in encoded_vars:
+                    print(f"  {var}")
+        else:
+            print("\nNo variables were modified.")
+    
+    if variables_modified == 0:
+        logger.warning("No variables were modified")
+        return False
+    
+    # Save the modified insertion point
+    output_path = insertion_point_path
+    if os.path.exists(output_path):
+        # Create a backup
+        backup_path = f"{output_path}.bak"
+        try:
+            with open(backup_path, 'w') as f:
+                json.dump(insertion_point_data, f, indent=2)
+            logger.info(f"Created backup of original file at {backup_path}")
+        except Exception as e:
+            logger.warning(f"Failed to create backup: {e}")
+    
+    # Write the modified file
+    try:
+        with open(output_path, 'w') as f:
+            json.dump(modified_data, f, indent=2)
+        logger.info(f"Updated {variables_modified} variables with encoding in {output_path}")
+        
+        # Collect encoding statistics
+        encoding_stats = {}
+        if "values" in modified_data and isinstance(modified_data["values"], list):
+            for var in modified_data["values"]:
+                if "encoding" in var:
+                    encoding_type = var["encoding"]
+                    iterations = var.get("encoding_iterations", 1)
+                    key = f"{encoding_type}" + (f" x{iterations}" if iterations > 1 else "")
+                    encoding_stats[key] = encoding_stats.get(key, 0) + 1
+        elif "variables" in modified_data and isinstance(modified_data["variables"], list):
+            for var in modified_data["variables"]:
+                if "encoding" in var:
+                    encoding_type = var["encoding"]
+                    iterations = var.get("encoding_iterations", 1)
+                    key = f"{encoding_type}" + (f" x{iterations}" if iterations > 1 else "")
+                    encoding_stats[key] = encoding_stats.get(key, 0) + 1
+        
+        # Show example of how to use the file
+        print(f"\nSuccessfully updated {variables_modified} variables with encoding:")
+        
+        # Display encoding statistics
+        if encoding_stats:
+            for encoding, count in encoding_stats.items():
+                print(f"  {count} variables with {encoding} encoding")
+        
+        print(f"\nTo use this file with a collection:")
+        print(f"python3 repl.py --collection <collection.json> --insertion-point {os.path.basename(output_path)}")
+        
+        return True
+    except Exception as e:
+        logger.error(f"Failed to save modified insertion point: {e}")
+        return False
+
 def main():
     """
     Main entry point for the script.
@@ -2045,32 +2356,29 @@ def main():
     # OAuth2 arguments
     auth_group.add_argument("--auth-oauth2", nargs=2, metavar=("CLIENT_ID", "CLIENT_SECRET"), help="Use OAuth2 Authentication with the specified client ID and secret")
     auth_group.add_argument("--auth-oauth2-token-url", help="OAuth2 token endpoint URL (required for OAuth2)")
-    auth_group.add_argument("--auth-oauth2-refresh-url", help="OAuth2 refresh token endpoint URL")
-    auth_group.add_argument("--auth-oauth2-grant", choices=["client_credentials", "password", "refresh_token"], default="client_credentials", help="OAuth2 grant type (default: client_credentials)")
+    auth_group.add_argument("--auth-oauth2-refresh-url", help="OAuth2 refresh token URL")
+    auth_group.add_argument("--auth-oauth2-grant", help="OAuth2 grant type (default: client_credentials)")
     auth_group.add_argument("--auth-oauth2-username", help="Username for OAuth2 password grant")
     auth_group.add_argument("--auth-oauth2-password", help="Password for OAuth2 password grant")
-    auth_group.add_argument("--auth-oauth2-scope", help="Space-separated list of OAuth2 scopes")
+    auth_group.add_argument("--auth-oauth2-scope", help="OAuth2 scope (space-separated)")
     
     # Proxy options
     proxy_group = parser.add_argument_group("PROXY OPTIONS")
-    proxy_group.add_argument("--proxy", help="Proxy in host:port format")
-    proxy_group.add_argument("--proxy-host", help="Proxy host")
+    proxy_group.add_argument("--proxy", help="Proxy to use in format host:port")
+    proxy_group.add_argument("--proxy-host", help="Proxy hostname")
     proxy_group.add_argument("--proxy-port", type=int, help="Proxy port")
     proxy_group.add_argument("--verify-ssl", action="store_true", help="Verify SSL certificates")
+    proxy_group.add_argument("--no-verify-ssl", action="store_true", help="Do not verify SSL certificates")
+    proxy_group.add_argument("--save-proxy", action="store_true", help="Save proxy settings for future use")
+    proxy_group.add_argument("--proxy-profile", nargs="?", const="select", help="Use a saved proxy profile. Specify no value to select interactively.")
     
     # Output options
     output_group = parser.add_argument_group("OUTPUT OPTIONS")
-    output_group.add_argument("--log", action="store_true", help="Enable logging to file (saves detailed request results to logs directory)")
-    output_group.add_argument("--verbose", action="store_true", help="Enable verbose logging")
-    output_group.add_argument("--save-proxy", action="store_true", help="Save current settings as default proxy")
+    output_group.add_argument("--log", action="store_true", help="Log all requests and responses")
+    output_group.add_argument("--verbose", action="store_true", help="Show verbose output")
     
-    # Proxy insertion_point options
-    proxy_group = parser.add_argument_group("PROXY INSERTION POINTS")
-    proxy_group.add_argument("--proxy-profile", nargs="?", const="select", 
-                             help="Use specific proxy insertion_point or select from available insertion_points if no file specified. Omit to select when multiple insertion_points exist.")
-    
-    # Custom header options
-    header_group = parser.add_argument_group("CUSTOM HEADERS")
+    # Header options
+    header_group = parser.add_argument_group("HEADER OPTIONS")
     header_group.add_argument("--header", action="append", 
                              help="Add custom header in format 'Key:Value'. Can be specified multiple times. "
                                   "These headers will be added to all requests and will override any existing headers with the same name."
@@ -2091,7 +2399,17 @@ def main():
     parser.add_argument('--encode-js', type=str, help='JavaScript escape a string')
     parser.add_argument('--encode-css', type=str, help='CSS escape a string')
     
+    # Add insertion point encoding option
+    parser.add_argument('--encode-payloads', nargs='?', const='select', help='Apply encoding to variables in an insertion point file. Specify no file to select interactively.')
+    
     args = parser.parse_args()
+    
+    # Configure logging early
+    log_format = "%(asctime)s - %(levelname)s - %(message)s"
+    log_date_format = "%Y-%m-%d %H:%M:%S"
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
+                        format=log_format, datefmt=log_date_format)
+    logger = logging.getLogger(__name__)
     
     # Handle encoding commands if any are specified
     encoding_args = {
@@ -2120,13 +2438,22 @@ def main():
                 logger.error(f"Encoding error: {e}")
                 return
     
-    # Continue with normal execution if no encoding was requested
-    # Configure logging
-    log_format = "%(asctime)s - %(levelname)s - %(message)s"
-    log_date_format = "%Y-%m-%d %H:%M:%S"
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
-                        format=log_format, datefmt=log_date_format)
-    logger = logging.getLogger(__name__)
+    # Handle insertion point encoding
+    if args.encode_payloads:
+        if encode_insertion_point_variables(args.encode_payloads):
+            return
+        else:
+            logger.error("Failed to encode insertion point variables")
+            return
+    
+    # Handle extract keys without collection specified
+    if args.extract_keys is not None and not args.collection:
+        print("No collection specified. Select a collection to extract keys from:")
+        collection_path = select_collection_file()
+        if not collection_path:
+            logger.error("No collection selected. Exiting.")
+            return
+        args.collection = collection_path
     
     # Import auth module
     try:
@@ -2265,6 +2592,9 @@ def main():
         collection_path = select_collection_file()
     elif args.collection:
         collection_path = args.collection
+    elif args.extract_keys is not None:
+        # This case is now handled earlier in the code
+        pass
     else:
         logger.error("No collection specified. Use --collection to specify a collection file.")
         print("Error: No collection specified. Use --collection to specify a collection file.")
