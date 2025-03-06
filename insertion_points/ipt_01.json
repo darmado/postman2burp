@@ -1,0 +1,18 @@
+{
+  "name": "DOGGE",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "https://api.doge.com",
+      "enabled": true,
+      "description": "Base URL for the API"
+    },
+    {
+      "key": "parameter",
+      "value": "some_value",
+      "enabled": true,
+      "encoding": "base64",
+      "description": "API key for authentication"
+    }
+  ]
+}

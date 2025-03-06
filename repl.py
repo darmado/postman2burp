@@ -7,7 +7,7 @@ Usage:
         python repl.py --collection <collection.json>
     
     Environment Variables:
-        python repl.py --collection <collection.json> --insertion-point<environment.json>
+        python repl.py --collection <collection.json> --insertion-point <environment.json>
     
     Proxy Settings:
         python repl.py --collection <collection.json> --proxy-host <host> --proxy-port <port>
@@ -19,20 +19,42 @@ Usage:
         python repl.py --collection <collection.json> --save-proxy
         
     Extract Variables:
-        # Interactive mode - prompts for values for each variable
         python repl.py --collection <collection.json> --extract-keys
         
-        # Print all variables in the collection
-        python repl.py --collection <collection.json> --extract-keys print
-        
-        # Generate a template environment file with all variables
-        python repl.py --collection <collection.json> --extract-keys <output_file.json>
+    Encode Values:
+        python repl.py --encode-url "param=value&other=value"
+        python repl.py --encode-html "<script>alert(1)</script>"
+        python repl.py --encode-double-url "param=value"
+        python repl.py --encode-xml "<tag>content</tag>"
+        python repl.py --encode-unicode "Café"
+        python repl.py --encode-hex "ABC"
+        python repl.py --encode-octal "ABC"
+        python repl.py --encode-base64 "test string"
+        python repl.py --encode-sql-char "ABC"
+        python repl.py --encode-js "alert('test')"
+        python repl.py --encode-css "#test"
+    
+    Encode Insertion Point Variables:
+        python repl.py --encode-values <insertion_point.json>
+        python repl.py --encode-values <insertion_point.json> --encoding html
+        python repl.py --encode-values <insertion_point.json> --encoding url --variables "param1,param2"
+    
+    Authentication:
+        python repl.py --collection <collection.json> --auth-basic <username:password>
+        python repl.py --collection <collection.json> --auth-bearer <token>
+        python repl.py --collection <collection.json> --auth-apikey <name:value:location>
+        python repl.py --collection <collection.json> --auth-method <profile_name>
+        python repl.py --list-auth
+        python repl.py --create-auth
+    
+    Custom Headers:
+        python repl.py --collection <collection.json> --header "X-API-Key:12345" --header "User-Agent:Repl"
+    
+    SSL Verification:
+        python repl.py --collection <collection.json> --verify-ssl
+        python repl.py --collection <collection.json> --no-verify-ssl
 
-Requirements:
-    - requests
-    - argparse
-    - json
-    - urllib3
+
 """
 
 import argparse
@@ -49,6 +71,9 @@ import time
 import datetime
 import uuid
 import urllib.parse
+
+# Import the encoder module
+from encoder import Encoder, process_insertion_point
 
 # Configure logging
 def configure_logging(log_level=logging.INFO):
@@ -992,6 +1017,9 @@ class Repl:
         if self.verbose:
             self.logger.debug(f"Loading insertion_point: {insertion_point_path}")
             self.logger.debug(f"Insertion Point structure: {list(insertion_point_data.keys())}")
+            
+        # Process the insertion point to apply any encodings
+        insertion_point_data = process_insertion_point(insertion_point_data)
 
         # Check if this is a Postman environment format (with values array)
         if "values" in insertion_point_data and isinstance(insertion_point_data["values"], list):
@@ -2050,8 +2078,49 @@ def main():
 
     print_banner = parser.add_argument("--banner", action="store_true", help="Print the banner")
     
+    # Add encoding command-line options
+    parser.add_argument('--encode-url', type=str, help='URL encode a string')
+    parser.add_argument('--encode-double-url', type=str, help='Double URL encode a string')
+    parser.add_argument('--encode-html', type=str, help='HTML encode a string')
+    parser.add_argument('--encode-xml', type=str, help='XML encode a string')
+    parser.add_argument('--encode-unicode', type=str, help='Unicode escape a string')
+    parser.add_argument('--encode-hex', type=str, help='Hex escape a string')
+    parser.add_argument('--encode-octal', type=str, help='Octal escape a string')
+    parser.add_argument('--encode-base64', type=str, help='Base64 encode a string')
+    parser.add_argument('--encode-sql-char', type=str, help='SQL CHAR() encode a string')
+    parser.add_argument('--encode-js', type=str, help='JavaScript escape a string')
+    parser.add_argument('--encode-css', type=str, help='CSS escape a string')
+    
     args = parser.parse_args()
     
+    # Handle encoding commands if any are specified
+    encoding_args = {
+        'url': args.encode_url,
+        'double_url': args.encode_double_url,
+        'html': args.encode_html,
+        'xml': args.encode_xml,
+        'unicode': args.encode_unicode,
+        'hex': args.encode_hex,
+        'octal': args.encode_octal,
+        'base64': args.encode_base64,
+        'sql_char': args.encode_sql_char,
+        'js_escape': args.encode_js,
+        'css_escape': args.encode_css
+    }
+    
+    # Check if any encoding option was specified
+    for encoding_type, value in encoding_args.items():
+        if value:
+            try:
+                encoded = Encoder.encode(value, encoding_type)
+                print(f"Original: {value}")
+                print(f"Encoded ({encoding_type}): {encoded}")
+                return
+            except Exception as e:
+                logger.error(f"Encoding error: {e}")
+                return
+    
+    # Continue with normal execution if no encoding was requested
     # Configure logging
     log_format = "%(asctime)s - %(levelname)s - %(message)s"
     log_date_format = "%Y-%m-%d %H:%M:%S"

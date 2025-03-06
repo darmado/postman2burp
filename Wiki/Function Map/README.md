@@ -1,101 +1,113 @@
 # Function Map
 
-This page provides a comprehensive overview of all functions in the Repl tool, organized by category. This map helps developers understand the codebase structure and the role of each function.
+This page provides a comprehensive overview of all functions in the Repl tool, organized by category.
 
 ## Core Functions
 
 | Function | Description | Return Type |
 |----------|-------------|-------------|
-| `validate_json_file(file_path)` | Validates if a file contains valid JSON and returns the parsed content | `Tuple[bool, Optional[Dict]]` |
-| `load_proxy(proxy_path)` | Loads proxy configuration from the specified file | `Dict` |
-| `save_proxy(proxy)` | Saves proxy configuration to the default proxy file | `bool` |
-| `resolve_collection_path(collection_path)` | Resolves the full path to a collection file | `str` |
-| `select_collection_file()` | Interactive selection of collection files from the collections directory | `str` |
-| `select_proxy_file()` | Interactive selection of proxy files from the proxies directory | `str` |
+| `validate_json_file(file_path)` | Validates JSON files and returns parsed content | `Tuple[bool, Dict]` |
+| `load_collection(collection_path)` | Loads and validates Postman collection | `Dict` |
+| `resolve_collection_path(collection_path)` | Resolves full path to collection file | `str` |
+| `select_collection_file()` | Interactive collection selection | `str` |
 
 ## Proxy Management
     
 | Function | Description | Return Type |
 |----------|-------------|-------------|
-| `check_proxy_connection(host, port)` | Checks if a proxy is running at the specified host and port using socket connection | `bool` |
-| `verify_proxy_with_request(host, port)` | Verifies proxy by making a test HTTP request through it | `bool` |
+| `check_proxy_connection(host, port)` | Verifies proxy connection using socket | `bool` |
+| `verify_proxy_with_request(host, port)` | Tests proxy with HTTP request | `bool` |
+| `load_proxy(proxy_path)` | Loads proxy configuration | `Dict` |
+| `save_proxy(proxy)` | Saves proxy configuration | `bool` |
+| `select_proxy_file()` | Interactive proxy selection | `str` |
 
 ## Variable Management
 
 | Function | Description | Return Type |
 |----------|-------------|-------------|
-| `extract_variables_from_text(text)` | Extracts variables ({{variable}}) from text | `Set[str]` |
-| `extract_variables_from_collection(collection_path)` | Extracts all variables from a Postman collection | `Tuple[Set[str], Optional[str], Dict]` |
-| `generate_variables_template(collection_path, output_path)` | Generates a template file with all variables from a collection | `None` |
+| `extract_variables_from_text(text)` | Extracts {{variable}} patterns from text | `Set[str]` |
+| `extract_variables_from_collection(collection_path)` | Extracts all variables from collection | `Tuple[Set[str], str, Dict]` |
+| `generate_variables_template(collection_path, output_path)` | Creates insertion point template | `None` |
+| `replace_variables(text, variables)` | Replaces variables with values | `str` |
 
-## Repl Class Methods
-
-| Method | Description | Return Type |
-|--------|-------------|-------------|
-| `__init__(collection_path, insertion_point, proxy_host, proxy_port, verify_ssl, auto_detect_proxy, verbose)` | Initializes the Repl object with configuration | `None` |
-| `load_collection()` | Loads and validates the Postman collection | `bool` |
-| `load_profile()` | Loads and validates the insertion point with variables | `bool` |
-| `replace_variables(text)` | Replaces variables in text with values from the insertion point | `str` |
-| `extract_requests_from_item(item, folder_name)` | Extracts requests from a collection item | `List[Dict]` |
-| `extract_all_requests(collection)` | Extracts all requests from the collection | `List[Dict]` |
-| `prepare_request(request_data)` | Prepares a request for sending (replaces variables, etc.) | `Dict` |
-| `send_request(prepared_request)` | Sends a request through the proxy | `Dict` |
-| `process_items(items, folder_name)` | Processes items in a collection folder | `None` |
-| `process_collection()` | Processes the entire collection | `None` |
-| `run()` | Runs the entire process and returns results | `Dict` |
-| `check_proxy()` | Checks if the proxy is running | `bool` |
-| `save_results()` | Saves results to the output file | `None` |
-
-## Helper Functions
+## Encoding Functions
 
 | Function | Description | Return Type |
 |----------|-------------|-------------|
-| `process_url(url)` | Processes URL to extract variables (internal) | `Set[str]` |
-| `process_body(body)` | Processes request body to extract variables (internal) | `Set[str]` |
-| `process_headers(headers)` | Processes headers to extract variables (internal) | `Set[str]` |
-| `process_request(request)` | Processes a request to extract variables (internal) | `Set[str]` |
-| `process_item(item)` | Processes a collection item to extract variables (internal) | `Set[str]` |
+| `Encoder.encode(value, encoding_type, iterations)` | Encodes a value using specified method | `str` |
+| `Encoder.url_encode(value)` | URL encodes a string | `str` |
+| `Encoder.double_url_encode(value)` | Double URL encodes a string | `str` |
+| `Encoder.html_encode(value)` | HTML entity encodes a string | `str` |
+| `Encoder.xml_encode(value)` | XML encodes a string | `str` |
+| `Encoder.unicode_escape(value)` | Unicode escapes a string | `str` |
+| `Encoder.hex_escape(value)` | Hex escapes a string | `str` |
+| `Encoder.octal_escape(value)` | Octal escapes a string | `str` |
+| `Encoder.base64_encode(value)` | Base64 encodes a string | `str` |
+| `Encoder.sql_char_encode(value)` | Converts to SQL CHAR() function | `str` |
+| `Encoder.js_escape(value)` | JavaScript escapes a string | `str` |
+| `Encoder.css_escape(value)` | CSS escapes a string | `str` |
+| `process_insertion_point(insertion_point)` | Processes encodings in insertion point | `Dict` |
+| `apply_encoding_to_value(value, encoding_type, iterations)` | Applies encoding to a single value | `str` |
+
+## Request Processing
+
+| Function | Description | Return Type |
+|----------|-------------|-------------|
+| `extract_requests_from_item(item, folder_name)` | Extracts requests from collection item | `List[Dict]` |
+| `extract_all_requests(collection)` | Extracts all requests from collection | `List[Dict]` |
+| `prepare_request(request_data, variables)` | Prepares request for sending | `Dict` |
+| `send_request(prepared_request, proxy_config)` | Sends request through proxy | `Dict` |
+| `add_custom_headers(headers, custom_headers)` | Adds/modifies request headers | `Dict` |
+
+## Authentication
+
+| Function | Description | Return Type |
+|----------|-------------|-------------|
+| `load_auth_profile(profile_name)` | Loads authentication profile | `Dict` |
+| `save_auth_profile(profile_name, auth_data)` | Saves authentication profile | `bool` |
+| `list_auth_profiles()` | Lists available auth profiles | `List[str]` |
+| `apply_auth(request, auth_config)` | Applies authentication to request | `Dict` |
+
+## Logging
+
+| Function | Description | Return Type |
+|----------|-------------|-------------|
+| `setup_logging(log_level, log_file, verbose)` | Configures logging system | `logging.Logger` |
+| `log_request(logger, request, verbose)` | Logs request details | `None` |
+| `log_response(logger, response, verbose)` | Logs response details | `None` |
 
 ## Main Function
 
 | Function | Description | Return Type |
 |----------|-------------|-------------|
-| `main()` | Entry point for the command-line interface | `None` |
+| `main()` | Command-line interface entry point | `int` |
 
 ## Function Dependencies
-
-The following diagram shows the main function dependencies:
 
 ```
 main()
   ├── select_collection_file()
   ├── resolve_collection_path()
   ├── extract_variables_from_collection()
-  │     ├── process_url()
-  │     ├── process_body()
-  │     ├── process_headers()
-  │     ├── process_request()
-  │     └── process_item()
   ├── generate_variables_template()
   ├── select_proxy_file()
   ├── load_proxy()
-  │     └── validate_json_file()
-  ├── Repl.run()
-  │     ├── load_collection()
-  │     │     └── validate_json_file()
-  │     ├── load_profile()
-  │     │     └── validate_json_file()
-  │     ├── check_proxy()
-  │     │     ├── check_proxy_connection()
-  │     │     └── verify_proxy_with_request()
-  │     ├── process_collection()
-  │     │     ├── process_items()
-  │     │     ├── extract_all_requests()
-  │     │     │     └── extract_requests_from_item()
-  │     │     ├── prepare_request()
-  │     │     │     └── replace_variables()
-  │     │     └── send_request()
-  │     └── save_results()
+  ├── load_auth_profile()
+  ├── setup_logging()
+  ├── load_collection()
+  ├── load_insertion_point()
+  │     └── process_insertion_point()  # Applies encodings if specified
+  ├── extract_all_requests()
+  │     └── extract_requests_from_item()
+  ├── prepare_request()
+  │     ├── replace_variables()
+  │     ├── add_custom_headers()
+  │     └── apply_auth()
+  ├── check_proxy_connection()
+  ├── verify_proxy_with_request()
+  ├── send_request()
+  │     ├── log_request()
+  │     └── log_response()
   └── save_proxy()
 ```
 

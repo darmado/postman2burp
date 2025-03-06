@@ -1,106 +1,74 @@
-# Inessertoin Point Templates
+# Insertion Point Templates
 
-contains variable insertion point templates for use with the repl tool. Each insertion point is designed for a specific type of API testing scenario.
+ Repl uses insertion points to insert payloads into Postman collection variables. Insertion point templates help testers organize and reuse payloads across different API endpoints without the need to edit, disable, or enable specific proxy profile settings. 
 
-## Profile Structure
+## Template Structure
 
-Each insertion point is a JSON file with the following structure:
+Each insertion point is a JSON file with the following structure: 
 
 ```json
 {
-    "variables": [
-        {
-            "key": "variable_name",
-            "value": "variable_value",
-            "description": "Description of the variable"
-        },
-        ...
-    ]
+  "name": "DOGGE",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "https://api.doge.com",
+      "enabled": true,
+      "description": "Base URL for the API"
+    },
+    {
+      "key": "parameter",
+      "value": "some_value",
+      "enabled": true,
+      "encoding": "unicode",
+      "description": "API key for authentication"
+    }
+  ]
 }
+
 ```
-
-## Available Insertion Points
-
-### E-commerce API (`ecommerce_profile.json`)
-Contains variables for testing e-commerce endpoints including:
-- Authentication credentials
-- Product details
-- Order information
-- Payment methods
-
-### Weather API (`weather_profile.json`)
-Contains variables for testing weather service endpoints including:
-- API keys
-- Location coordinates
-- City names
-- Units of measurement
-
-### Social Media API (`social_profile.json`)
-Contains variables for testing social media platform endpoints including:
-- User credentials
-- Profile information
-- Post content
-- Media URLs
-
-### Banking API (`banking_profile.json`)
-Contains variables for testing banking service endpoints including:
-- Account credentials
-- Account numbers
-- Transaction details
-- Transfer information
-
-### Healthcare API (`healthcare_profile.json`)
-Contains variables for testing healthcare service endpoints including:
-- Provider and patient credentials
-- Patient information
-- Appointment details
-- Medication information
-
-### Security Testing API (`security_profile.json`)
-Contains variables for testing security vulnerabilities including:
-- Authentication test payloads
-- Injection test payloads
-- XSS and CSRF test strings
-- Manipulated tokens
 
 ## Using Insertion Points
 
-Insertion Points can be used with the repl tool in several ways:
+You can use insertion points with the repl tool in several ways:
 
-1. Specified directly via command line:
-   ```bash
-   python repl.py --collection collections/ecommerce_api.json --insertion-pointprofiles/ecommerce_profile.json
-   ```
+1. Directly via command line:
+ ```bash
+   python3 repl.py --collection collections/api_collection.json --insertion-point profiles/variables.json
+ ```
 
-2. Referenced in a configuration file:
-   ```json
-   {
-       "collection": "collections/ecommerce_api.json",
-       "insertion_point": "profiles/ecommerce_profile.json",
-       ...
-   }
-   ```
+2. Selected through the interactive menu:
+ ```bash
+   python3 repl.py
+ ```
 
-3. Selected through the interactive menu when using:
-   ```bash
-   python repl.py --config select
-   ```
+## Creating Insertion Points
+
+### Automatic Extraction
+
+Extract variables from an existing collection:
+```bash
+python3 repl.py --collection your_collection.json --extract-keys
+```
+
+This creates a template with all variables found in the collection.
+
+### Manual Creation
+
+1. Create a JSON file with the structure shown above
+2. Add variables that match the ones in your collection
+3. Save it in the `profiles` directory with a descriptive name
 
 ## Customizing Insertion Points
 
-You can customize these insertion points  by:
-1. Editing the variable values to match your testing environment
-2. Adding new variables as needed for your specific API
-3. Removing variables that aren't relevant to your testing scenario
+Customize insertion points by:
+1. Editing variable values to match your testing needs
+2. Adding new variables for your specific API
+3. Removing variables that aren't needed
 
-## Creating New Insertion Points
+## Common Use Cases
 
-To create a new profile:
-1. Copy an existing insertion point that's closest to your needs
-2. Modify the variables to match your API requirements
-3. Save it with a descriptive name (e.g., `my_api_profile.json`)
-
-Alternatively, you can generate a insertion point template from a Postman collection:
-```bash
-python repl.py --collection your_collection.json --generate-template
-``` 
+- Testing with different API keys
+- Switching between environments (dev, staging, production)
+- Testing with different user credentials
+- Customizing request parameters for specific test scenarios 
