@@ -39,7 +39,7 @@ Repl makes it easy to modify, load, and replay Postman collections through any p
 ### Installation
 
 ```bash
-curl -L https://github.com/darmado/repl/install.sh | sh
+curl -L https://raw.githubusercontent.com/darmado/repl/refs/heads/main/install.sh | sh
 ```
 
 ##
