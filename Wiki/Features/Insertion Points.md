@@ -1,4 +1,4 @@
-# Profile Templates
+# Inessertoin Point Templates
 
 contains variable insertion point templates for use with the repl tool. Each insertion point is designed for a specific type of API testing scenario.
 
@@ -76,7 +76,7 @@ Insertion Points can be used with the repl tool in several ways:
    ```json
    {
        "collection": "collections/ecommerce_api.json",
-       "target_profile": "profiles/ecommerce_profile.json",
+       "insertion_point": "profiles/ecommerce_profile.json",
        ...
    }
    ```

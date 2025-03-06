@@ -79,7 +79,7 @@ options:
                         Path to Postman collection JSON file (supports Postman 2.1 schema). Specify no path to select interactively.
 
 Profile Options:
-  --insertion-pointTARGET_PROFILE
+  --insertion-pointinsertion_point
                         Path to insertion point JSON file with values to replace variables in the collection
   --extract-keys [OUTPUT_FILE]
                         Extract variables from collection. Specify no file to enter interactive mode. Specify 'print' to display variables.
@@ -206,6 +206,13 @@ Contributions are welcome! Here's how you can contribute:
 For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/wiki).
 
 ##
+
+### References
+- Portswigger https://portswigger.net/burp/documentation/desktop/running-scans/api-scans/
+- Postman https://learning.postman.com/docs/postman-cli/postman-cli-run-collection
+- Python Auth: https://datagy.io/python-requests-authentication/
+- 
+
 
 ### 📜 License
 

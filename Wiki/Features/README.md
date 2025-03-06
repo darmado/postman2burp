@@ -178,10 +178,10 @@ Loads and validates target insertion points  containing variable values. Support
 
 ```python
 def load_profile(self) -> bool:
-    if not self.target_profile:
+    if not self.insertion_point:
         return True  # No insertion point specified, continue without variables
         
-    is_valid, profile_data = validate_json_file(self.target_profile)
+    is_valid, profile_data = validate_json_file(self.insertion_point)
     if not is_valid or not profile_data:
         return False
         

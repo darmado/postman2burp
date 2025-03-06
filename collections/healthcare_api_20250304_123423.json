@@ -1783,7 +1783,7 @@
   "variable": [
     {
       "key": "metadata",
-      "value": "{\"collection_name\": \"Healthcare API\", \"collection_id\": \"a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8\", \"collection_path\": \"/Users/darmado/Library/Mobile Documents/com~apple~CloudDocs/Opensource/darmado/repl/collections/healthcare_api.json\", \"target_profile\": \"a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8_1741120447.json\", \"proxy\": \"127.0.0.1:8090\", \"timestamp\": \"2025-03-04T12:34:42.299162\", \"total_requests\": 14, \"successful_requests\": 14, \"failed_requests\": 0}"
+      "value": "{\"collection_name\": \"Healthcare API\", \"collection_id\": \"a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8\", \"collection_path\": \"/Users/darmado/Library/Mobile Documents/com~apple~CloudDocs/Opensource/darmado/repl/collections/healthcare_api.json\", \"insertion_point\": \"a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8_1741120447.json\", \"proxy\": \"127.0.0.1:8090\", \"timestamp\": \"2025-03-04T12:34:42.299162\", \"total_requests\": 14, \"successful_requests\": 14, \"failed_requests\": 0}"
     }
   ]
 }

@@ -1,0 +1,8 @@
+{
+    "proxy_host": "localhost",
+    "proxy_port": 8090,
+    "verify_ssl": false,
+    "target_insertion_point": "",
+    "verbose": false,
+    "collection_path": "security_testing_api.json"
+}

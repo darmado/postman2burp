@@ -14,7 +14,7 @@ This page provides a comprehensive overview of all functions in the Repl tool, o
 | `select_proxy_file()` | Interactive selection of proxy files from the proxies directory | `str` |
 
 ## Proxy Management
-
+    
 | Function | Description | Return Type |
 |----------|-------------|-------------|
 | `check_proxy_connection(host, port)` | Checks if a proxy is running at the specified host and port using socket connection | `bool` |
@@ -32,7 +32,7 @@ This page provides a comprehensive overview of all functions in the Repl tool, o
 
 | Method | Description | Return Type |
 |--------|-------------|-------------|
-| `__init__(collection_path, target_profile, proxy_host, proxy_port, verify_ssl, auto_detect_proxy, verbose)` | Initializes the Repl object with configuration | `None` |
+| `__init__(collection_path, insertion_point, proxy_host, proxy_port, verify_ssl, auto_detect_proxy, verbose)` | Initializes the Repl object with configuration | `None` |
 | `load_collection()` | Loads and validates the Postman collection | `bool` |
 | `load_profile()` | Loads and validates the insertion point with variables | `bool` |
 | `replace_variables(text)` | Replaces variables in text with values from the insertion point | `str` |

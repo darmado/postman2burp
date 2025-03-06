@@ -1,21 +1,20 @@
-name: Deploy Documentation to GitHub Pages
+name: Deploy Wiki to GitHub Pages
 
 on:
   push:
     branches:
-      - main  # Set this to your default branch
+      - main
     paths:
-      - 'docs/**'  # Only trigger when docs are updated
+      - 'Wiki/**'
       - 'README.md'
       - '.github/workflows/deploy_docs.yml'
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: true
@@ -42,97 +41,46 @@ jobs:
 
       - name: Build documentation
         run: |
-          # Create docs directory if it doesn't exist
+          # Create docs directory
           mkdir -p docs
           
-          # If you don't have an mkdocs.yml file, create one
-          if [ ! -f mkdocs.yml ]; then
-            cat > mkdocs.yml << EOF
-            site_name: REPL Documentation
-            site_description: Documentation for the Replace, Load, and Replay Postman Collections tool
-            site_author: darmado
-            repo_url: https://github.com/darmado/repl
-            theme:
-              name: material
-              palette:
-                primary: indigo
-                accent: indigo
-            markdown_extensions:
-              - pymdownx.highlight
-              - pymdownx.superfences
-              - pymdownx.inlinehilite
-              - pymdownx.tabbed
-              - pymdownx.critic
-            nav:
-              - Home: index.md
-              - Usage: usage.md
-              - Authentication: authentication.md
-              - API Reference: api.md
-            EOF
-          fi
+          # Copy Wiki content to docs directory
+          cp -r Wiki/* docs/ || echo "Failed to copy Wiki content"
           
-          # Create basic documentation files if they don't exist
+          # Create index.md from README if it doesn't exist
           if [ ! -f docs/index.md ]; then
             cp README.md docs/index.md || echo "# REPL Documentation" > docs/index.md
           fi
           
-          if [ ! -f docs/usage.md ]; then
-            cat > docs/usage.md << EOF
-            # Usage Guide
-            
-            ## Basic Usage
-            
-            \`\`\`bash
-            python repl.py --collection your_collection.json
-            \`\`\`
-            
-            ## Command Line Options
-            
-            For a complete list of options, run:
-            
-            \`\`\`bash
-            python repl.py --help
-            \`\`\`
-            EOF
-          fi
-          
-          if [ ! -f docs/authentication.md ]; then
-            cat > docs/authentication.md << EOF
-            # Authentication
-            
-            REPL supports multiple authentication methods:
-            
-            - Basic Authentication
-            - Bearer Token
-            - API Key
-            - OAuth1
-            - OAuth2
-            
-            ## Using Authentication Profiles
-            
-            You can save and reuse authentication profiles:
-            
-            \`\`\`bash
-            python repl.py --auth your_profile
-            \`\`\`
-            EOF
-          fi
-          
-          if [ ! -f docs/api.md ]; then
-            cat > docs/api.md << EOF
-            # API Reference
-            
-            This page documents the main classes and functions in REPL.
-            
-            ## Repl Class
-            
-            The main class that handles collection processing.
-            
-            ## AuthManager
-            
-            Manages authentication methods and profiles.
-            EOF
-          fi
+          # Create mkdocs.yml file
+          cat > mkdocs.yml << EOF
+          site_name: REPL Documentation
+          site_description: Documentation for the Replace, Load, and Replay Postman Collections tool
+          site_author: darmado
+          repo_url: https://github.com/darmado/repl
+          theme:
+            name: material
+            palette:
+              primary: indigo
+              accent: indigo
+          markdown_extensions:
+            - pymdownx.highlight
+            - pymdownx.superfences
+            - pymdownx.inlinehilite
+            - pymdownx.tabbed
+            - pymdownx.critic
+          nav:
+            - Home: index.md
+            - Overview: Overview/
+            - Installation: Installation/
+            - Usage: Usage/
+            - Features: Features/
+            - Configuration: Configuration/
+            - Use Cases: Use Cases/
+            - Function Map: Function Map/
+            - Troubleshooting: Troubleshooting/
+            - Release Notes: Relase Noes/
+          EOF
           
           # Build the documentation
           mkdocs build
@@ -144,8 +92,7 @@ jobs:
 
   deploy:
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: gh-pages
     runs-on: ubuntu-latest
     needs: build
     steps:

@@ -220,7 +220,35 @@ def load_proxy(proxy_path: str = None) -> Dict:
             is_valid, parsed_proxy = validate_json_file(proxy_file_path)
             
             if is_valid and parsed_proxy:
-                proxy.update(parsed_proxy)
+                # Handle new proxy structure with nested 'proxy' object
+                if 'proxy' in parsed_proxy:
+                    proxy_config = parsed_proxy['proxy']
+                    proxy['proxy_host'] = proxy_config.get('host', DEFAULT_CONFIG['proxy_host'])
+                    proxy['proxy_port'] = proxy_config.get('port', DEFAULT_CONFIG['proxy_port'])
+                    proxy['verify_ssl'] = proxy_config.get('verify_ssl', DEFAULT_CONFIG['verify_ssl'])
+                    
+                    # Store additional proxy-specific settings
+                    if 'type' in proxy_config:
+                        proxy['proxy_type'] = proxy_config['type']
+                    if 'username' in proxy_config:
+                        proxy['proxy_username'] = proxy_config['username']
+                    if 'password' in proxy_config:
+                        proxy['proxy_password'] = proxy_config['password']
+                else:
+                    # Handle legacy format - only copy proxy-specific settings
+                    proxy_keys = ['proxy_host', 'proxy_port', 'verify_ssl', 'proxy_type', 'proxy_username', 'proxy_password']
+                    for key in proxy_keys:
+                        if key in parsed_proxy:
+                            proxy[key] = parsed_proxy[key]
+                
+                # Add custom headers if present
+                if 'headers' in parsed_proxy:
+                    proxy['headers'] = parsed_proxy['headers']
+                
+                # Add description if present
+                if 'description' in parsed_proxy:
+                    proxy['description'] = parsed_proxy['description']
+                
                 # Get just the directory name and filename instead of full path
                 proxy_dir = os.path.basename(os.path.dirname(proxy_file_path))
                 proxy_file = os.path.basename(proxy_file_path)
@@ -231,19 +259,11 @@ def load_proxy(proxy_path: str = None) -> Dict:
                 return {}
         else:
             logger.info(f"No proxy file found at {os.path.basename(proxy_file_path)}, using default settings")
-            # Auto-generate proxy file with default settings if using the default path
-            if proxy_file_path == CONFIG_FILE_PATH:
-                try:
-                    with open(CONFIG_FILE_PATH, 'w') as f:
-                        json.dump(DEFAULT_CONFIG, f, indent=4)
-                    logger.info(f"Generated default proxy file: {os.path.basename(CONFIG_FILE_PATH)}")
-                except Exception as e:
-                    logger.warning(f"Could not create default proxy file: {e}")
     except Exception as e:
-        logger.warning(f"Error loading proxy file: {e}. Using default settings.")
+        logger.error(f"Error loading proxy: {e}")
         # Return empty dictionary to ensure we rely only on command-line arguments
         return {}
-    
+        
     return proxy
 
 # Configure logging
@@ -1267,6 +1287,14 @@ class Repl:
         body = prepared_request.get("body", None)
         name = prepared_request.get("name", "Unnamed Request")
         folder = prepared_request.get("folder", "")
+        
+        # Add custom headers from proxy configuration if available
+        if hasattr(self, 'proxy_config') and 'headers' in self.proxy_config:
+            for header_name, header_value in self.proxy_config['headers'].items():
+                # Only add if not already set in the request
+                if header_name not in headers:
+                    headers[header_name] = header_value
+                    self.logger.debug(f"Added proxy header: {header_name}: {header_value}")
         
         self.logger.info(f"Sending request: {name} ({method} {url})")
         
