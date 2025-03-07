@@ -1,0 +1,49 @@
+{
+  "variables": [
+    {
+      "key": "alertId",
+      "value": "",
+      "description": "Value for alertId"
+    },
+    {
+      "key": "api_key",
+      "value": "",
+      "description": "Value for api_key"
+    },
+    {
+      "key": "base_url",
+      "value": "",
+      "description": "Value for base_url"
+    },
+    {
+      "key": "connectionId",
+      "value": "",
+      "description": "Value for connectionId"
+    },
+    {
+      "key": "deviceId",
+      "value": "",
+      "description": "Value for deviceId"
+    },
+    {
+      "key": "issueId",
+      "value": "",
+      "description": "Value for issueId"
+    },
+    {
+      "key": "organization_id",
+      "value": "",
+      "description": "Value for organization_id"
+    },
+    {
+      "key": "scanId",
+      "value": "",
+      "description": "Value for scanId"
+    },
+    {
+      "key": "vulnId",
+      "value": "",
+      "description": "Value for vulnId"
+    }
+  ]
+}

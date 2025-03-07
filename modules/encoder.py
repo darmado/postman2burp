@@ -154,6 +154,15 @@ def process_insertion_point(insertion_point):
     # Process variables if they exist
     if "variables" in result:
         for i, variable in enumerate(result["variables"]):
+            # Skip base_url as it should never be encoded
+            if variable.get("key") == "base_url":
+                # Remove any encoding info from base_url to prevent encoding
+                if "encoding" in result["variables"][i]:
+                    del result["variables"][i]["encoding"]
+                if "encoding_iterations" in result["variables"][i]:
+                    del result["variables"][i]["encoding_iterations"]
+                continue
+                
             if "encoding" in variable:
                 encoding_type = variable["encoding"]
                 iterations = variable.get("encoding_iterations", 1)
@@ -174,6 +183,41 @@ def process_insertion_point(insertion_point):
                     del result["variables"][i]["encoding"]
                     if "encoding_iterations" in result["variables"][i]:
                         del result["variables"][i]["encoding_iterations"]
+                except ValueError as e:
+                    print(f"Warning: {e}")
+    
+    # Handle Postman environment format (with values array)
+    elif "values" in result and isinstance(result["values"], list):
+        for i, variable in enumerate(result["values"]):
+            # Skip base_url as it should never be encoded
+            if variable.get("key") == "base_url":
+                # Remove any encoding info from base_url to prevent encoding
+                if "encoding" in result["values"][i]:
+                    del result["values"][i]["encoding"]
+                if "encoding_iterations" in result["values"][i]:
+                    del result["values"][i]["encoding_iterations"]
+                continue
+                
+            if "encoding" in variable:
+                encoding_type = variable["encoding"]
+                iterations = variable.get("encoding_iterations", 1)
+                
+                if isinstance(iterations, str) and iterations.isdigit():
+                    iterations = int(iterations)
+                
+                if not isinstance(iterations, int) or iterations < 1:
+                    iterations = 1
+                
+                try:
+                    result["values"][i]["value"] = Encoder.encode(
+                        variable["value"], 
+                        encoding_type, 
+                        iterations
+                    )
+                    # Remove encoding info to prevent double encoding
+                    del result["values"][i]["encoding"]
+                    if "encoding_iterations" in result["values"][i]:
+                        del result["values"][i]["encoding_iterations"]
                 except ValueError as e:
                     print(f"Warning: {e}")
     

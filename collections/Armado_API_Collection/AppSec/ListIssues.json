@@ -1,0 +1,24 @@
+{
+  "name": "List Issues",
+  "request": {
+    "method": "GET",
+    "header": [
+      {
+        "key": "X-API-Key",
+        "value": "{{api_key}}",
+        "type": "text"
+      }
+    ],
+    "url": {
+      "raw": "{{base_url}}/appsec/issues",
+      "host": [
+        "{{base_url}}"
+      ],
+      "path": [
+        "appsec",
+        "issues"
+      ]
+    },
+    "description": "List AppSec issues"
+  }
+}

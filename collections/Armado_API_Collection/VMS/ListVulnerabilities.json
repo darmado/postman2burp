@@ -1,0 +1,24 @@
+{
+  "name": "List Vulnerabilities",
+  "request": {
+    "method": "GET",
+    "header": [
+      {
+        "key": "X-API-Key",
+        "value": "{{api_key}}",
+        "type": "text"
+      }
+    ],
+    "url": {
+      "raw": "{{base_url}}/vms/vulnerabilities",
+      "host": [
+        "{{base_url}}"
+      ],
+      "path": [
+        "vms",
+        "vulnerabilities"
+      ]
+    },
+    "description": "List vulnerabilities"
+  }
+}

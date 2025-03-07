@@ -1,0 +1,28 @@
+{
+  "name": "Test Connection",
+  "request": {
+    "method": "GET",
+    "header": [
+      {
+        "key": "X-API-Key",
+        "value": "{{api_key}}",
+        "type": "text"
+      }
+    ],
+    "url": {
+      "raw": "{{base_url}}/provisioning/organizations/{{organization_id}}/connections/{{connectionId}}/test",
+      "host": [
+        "{{base_url}}"
+      ],
+      "path": [
+        "provisioning",
+        "organizations",
+        "{{organization_id}}",
+        "connections",
+        "{{connectionId}}",
+        "test"
+      ]
+    },
+    "description": "Test a connection"
+  }
+}

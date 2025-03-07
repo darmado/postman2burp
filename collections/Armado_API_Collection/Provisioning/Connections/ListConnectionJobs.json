@@ -1,0 +1,28 @@
+{
+  "name": "List Connection Jobs",
+  "request": {
+    "method": "GET",
+    "header": [
+      {
+        "key": "X-API-Key",
+        "value": "{{api_key}}",
+        "type": "text"
+      }
+    ],
+    "url": {
+      "raw": "{{base_url}}/provisioning/organizations/{{organization_id}}/connections/{{connectionId}}/jobs",
+      "host": [
+        "{{base_url}}"
+      ],
+      "path": [
+        "provisioning",
+        "organizations",
+        "{{organization_id}}",
+        "connections",
+        "{{connectionId}}",
+        "jobs"
+      ]
+    },
+    "description": "List jobs for a connection"
+  }
+}

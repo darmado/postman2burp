@@ -1,0 +1,49 @@
+{
+  "variables": [
+    {
+      "key": "base_url",
+      "value": "https://api.armado.app/v1",
+      "description": "Base URL for the Armado API"
+    },
+    {
+      "key": "api_key",
+      "value": "8481b8a5-36db-432a-bbe7-9b93a5c0a1b7",
+      "description": "API key for authentication"
+    },
+    {
+      "key": "organization_id",
+      "value": "055f1134-e9aa-4010-ad02-f68018d5a2ad",
+      "description": "Organization ID for API requests"
+    },
+    {
+      "key": "connectionId",
+      "value": "example-connection-id",
+      "description": "Example connection ID for testing"
+    },
+    {
+      "key": "issueId",
+      "value": "example-issue-id",
+      "description": "Example issue ID for testing"
+    },
+    {
+      "key": "alertId",
+      "value": "example-alert-id",
+      "description": "Example alert ID for testing"
+    },
+    {
+      "key": "vulnId",
+      "value": "example-vuln-id",
+      "description": "Example vulnerability ID for testing"
+    },
+    {
+      "key": "scanId",
+      "value": "example-scan-id",
+      "description": "Example scan ID for testing"
+    },
+    {
+      "key": "deviceId",
+      "value": "example-device-id",
+      "description": "Example device ID for testing"
+    }
+  ]
+} 

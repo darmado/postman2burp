@@ -1,0 +1,17 @@
+{
+    "name": "Test Insertion Point",
+    "values": [
+        {
+            "key": "endpoint",
+            "value": "test",
+            "type": "default",
+            "enabled": true
+        },
+        {
+            "key": "token",
+            "value": "test-token",
+            "type": "default",
+            "enabled": true
+        }
+    ]
+}

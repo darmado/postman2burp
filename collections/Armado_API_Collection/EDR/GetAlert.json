@@ -1,0 +1,25 @@
+{
+  "name": "Get Alert",
+  "request": {
+    "method": "GET",
+    "header": [
+      {
+        "key": "X-API-Key",
+        "value": "{{api_key}}",
+        "type": "text"
+      }
+    ],
+    "url": {
+      "raw": "{{base_url}}/edr/alerts/{{alertId}}",
+      "host": [
+        "{{base_url}}"
+      ],
+      "path": [
+        "edr",
+        "alerts",
+        "{{alertId}}"
+      ]
+    },
+    "description": "Get details of a specific EDR alert"
+  }
+}

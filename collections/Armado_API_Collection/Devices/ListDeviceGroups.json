@@ -1,0 +1,23 @@
+{
+  "name": "List Device Groups",
+  "request": {
+    "method": "GET",
+    "header": [
+      {
+        "key": "X-API-Key",
+        "value": "{{api_key}}",
+        "type": "text"
+      }
+    ],
+    "url": {
+      "raw": "{{base_url}}/device-groups",
+      "host": [
+        "{{base_url}}"
+      ],
+      "path": [
+        "device-groups"
+      ]
+    },
+    "description": "List device groups"
+  }
+}

@@ -1,0 +1,841 @@
+{
+	"info": {
+		"_postman_id": "49dce74c-76f8-4016-bc64-f1413627bf87",
+		"name": "Armado API Collection",
+		"description": "Collection for Armado API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "42799722"
+	},
+	"item": [
+		{
+			"name": "Provisioning",
+			"item": [
+				{
+					"name": "Organizations",
+					"item": [
+						{
+							"name": "Create Organization",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Test Organization\",\n  \"description\": \"Test organization created via API\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations"
+									]
+								},
+								"description": "Create a new organization"
+							},
+							"response": []
+						},
+						{
+							"name": "List Organizations",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations"
+									]
+								},
+								"description": "List all organizations"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Organization",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations/{{organization_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations",
+										"{{organization_id}}"
+									]
+								},
+								"description": "Get organization details"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Organization",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations/{{organization_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations",
+										"{{organization_id}}"
+									]
+								},
+								"description": "Delete an organization"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Connections",
+					"item": [
+						{
+							"name": "Create Connection",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Test Connection\",\n  \"type\": \"api\",\n  \"config\": {}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations/{{organization_id}}/connections",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations",
+										"{{organization_id}}",
+										"connections"
+									]
+								},
+								"description": "Create a new connection"
+							},
+							"response": []
+						},
+						{
+							"name": "List Connections",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations/{{organization_id}}/connections",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations",
+										"{{organization_id}}",
+										"connections"
+									]
+								},
+								"description": "List all connections"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Connection",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations/{{organization_id}}/connections/{{connectionId}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations",
+										"{{organization_id}}",
+										"connections",
+										"{{connectionId}}"
+									]
+								},
+								"description": "Get connection details"
+							},
+							"response": []
+						},
+						{
+							"name": "Test Connection",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations/{{organization_id}}/connections/{{connectionId}}/test",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations",
+										"{{organization_id}}",
+										"connections",
+										"{{connectionId}}",
+										"test"
+									]
+								},
+								"description": "Test a connection"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Connection",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Connection\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations/{{organization_id}}/connections/{{connectionId}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations",
+										"{{organization_id}}",
+										"connections",
+										"{{connectionId}}"
+									]
+								},
+								"description": "Update a connection"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Connection",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations/{{organization_id}}/connections/{{connectionId}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations",
+										"{{organization_id}}",
+										"connections",
+										"{{connectionId}}"
+									]
+								},
+								"description": "Delete a connection"
+							},
+							"response": []
+						},
+						{
+							"name": "List Connection Jobs",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/provisioning/organizations/{{organization_id}}/connections/{{connectionId}}/jobs",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"provisioning",
+										"organizations",
+										"{{organization_id}}",
+										"connections",
+										"{{connectionId}}",
+										"jobs"
+									]
+								},
+								"description": "List jobs for a connection"
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Connectors",
+			"item": [
+				{
+					"name": "List Integrations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/provisioning/integrations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"provisioning",
+								"integrations"
+							]
+						},
+						"description": "List available integrations"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "AppSec",
+			"item": [
+				{
+					"name": "List Issues",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/appsec/issues",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"appsec",
+								"issues"
+							]
+						},
+						"description": "List AppSec issues"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Issue",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/appsec/issues/{{issueId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"appsec",
+								"issues",
+								"{{issueId}}"
+							]
+						},
+						"description": "Get details of a specific AppSec issue"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "EDR",
+			"item": [
+				{
+					"name": "List Alerts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/edr/alerts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"edr",
+								"alerts"
+							]
+						},
+						"description": "List EDR alerts"
+					},
+					"response": [
+						{
+							"name": "List Alerts",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Key",
+										"value": "{{api_key}}",
+										"type": "text"
+									},
+									{
+										"key": "X-CONNECTION-ID",
+										"value": "{{connectionId}}",
+										"description": "Crowsrike ID\n",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/edr/alerts",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"edr",
+										"alerts"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Fri, 07 Mar 2025 03:13:41 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "2311"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "x-amzn-requestid",
+									"value": "714e3038-8a45-4ff7-96f6-854565e9dc08"
+								},
+								{
+									"key": "x-process-time",
+									"value": "0.133339432"
+								},
+								{
+									"key": "x-amzn-remapped-date",
+									"value": "Fri, 07 Mar 2025 03:13:41 GMT"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "cf-cache-status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "x-amzn-remapped-connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "x-request-id",
+									"value": "7af01c6b38594c659974635cf59f2486"
+								},
+								{
+									"key": "x-amz-apigw-id",
+									"value": "HCSfxEHVIAMEMGg="
+								},
+								{
+									"key": "vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "x-amzn-remapped-server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "server-timing",
+									"value": "cfL4;desc=\"?proto=TCP&rtt=763&min_rtt=702&rtt_var=239&sent=6&recv=8&lost=0&retrans=0&sent_bytes=2830&recv_bytes=1100&delivery_rate=4125356&cwnd=252&unsent_bytes=0&cid=c4a72d670bfcaaeb&ts=484&x=0\""
+								},
+								{
+									"key": "server-timing",
+									"value": "cfL4;desc=\"?proto=TCP&rtt=16601&min_rtt=15974&rtt_var=3474&sent=37&recv=38&lost=0&retrans=0&sent_bytes=4660&recv_bytes=946&delivery_rate=228727&cwnd=151&unsent_bytes=0&cid=937b0eefd72e9ac8&ts=33920&x=0\""
+								},
+								{
+									"key": "report-to",
+									"value": "{\"endpoints\":[{\"url\":\"https:\\/\\/a.nel.cloudflare.com\\/report\\/v4?s=Lr5C1FWgtZmku%2F5FkHjZJkykrfonwz83q0%2BjHkTz34UAcLIrCOKAwyK1Xu3VGJCe5KyyPRjwdl5c49xwC7mmlTAybryBcunk9w17BMMmocrteFdC2j7p1C5UbWNfzw%3D%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}"
+								},
+								{
+									"key": "nel",
+									"value": "{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "CF-RAY",
+									"value": "91c6eb13eaaf0ff0-LAX"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"count\": 5,\n    \"total\": 5,\n    \"items\": [\n        {\n            \"id\": \"079ffae2-d829-4cca-ae2b-5893c11eaf37\",\n            \"vendor_id\": \"ldt:bbcfbb080f6e4e16b87e8f21c62f9dbf:2268234\",\n            \"title\": \"PShellDownloadRun\",\n            \"description\": \"A PowerShell process downloaded and launched a remote file. This is often the result of a malicious macro designed to drop a variety of second stage payloads. Review the command line.\",\n            \"assigned_user\": null,\n            \"severity\": \"high\",\n            \"vendor_severity\": \"High\",\n            \"status\": \"new\",\n            \"vendor_status\": \"new\",\n            \"first_event_time\": \"2025-01-30T20:40:18Z\",\n            \"last_event_time\": \"2025-01-30T20:40:18Z\",\n            \"resolved_time\": null,\n            \"vendor\": \"crowdstrike\",\n            \"pid\": \"pid:bbcfbb080f6e4e16b87e8f21c62f9dbf:6224914018\",\n            \"process_created_at\": null,\n            \"process_filename\": \"powershell.exe\",\n            \"process_command_line\": \"powershell  -NoExit -ExecutionPolicy Bypass -WindowStyle Hidden $ErrorActionPreference = 'silentlycontinue' -ScriptBlock { (New-Object System.Net.WebClient).DownloadFile('http://127.0.0.1/1.exe', 'C:\\\\\\\\test-MDATP-test\\\\\\\\invoice.exe');Start-Process 'C:\\\\\\\\test-MDATP-test\\\\\\\\invoice.exe' }\",\n            \"process_filepath\": \"\\\\Device\\\\HarddiskVolume2\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe\",\n            \"process_sha1\": null,\n            \"process_sha256\": \"9f914d42706fe215501044acd85a32d58aaef1419d404fddfa5d3b48f66ccd9f\",\n            \"process_md5\": \"04029e121a0cfa5991749937dd22a1d9\",\n            \"parent_pid\": \"pid:bbcfbb080f6e4e16b87e8f21c62f9dbf:6191672970\",\n            \"user_name\": \"Administrator\",\n            \"windows_sid\": null,\n            \"active_directory_user_id\": null,\n            \"active_directory_domain\": null,\n            \"device\": {\n                \"id\": \"cbde8926-1eb0-4841-931c-2f5fa7776255\",\n                \"status\": \"active\",\n                \"platform\": \"windows\",\n                \"hostnames\": [\n                    \"WS03\"\n                ],\n                \"os_version\": \"Windows 10\",\n                \"os_major_version\": \"10\",\n                \"os_minor_version\": \"0\",\n                \"fqdns\": [\n                    \"integrations.test\"\n                ],\n                \"ipv4s\": [\n                    \"10.168.17.11\",\n                    \"10.168.17.1\",\n                    \"54.243.127.149\",\n                    \"10.168.17.11\"\n                ],\n                \"ipv6s\": null,\n                \"mac_addresses\": [\n                    \"0e:04:64:ff:fe:67:44:e1\",\n                    \"0e:04:64:ff:fe:67:44:e1\"\n                ],\n                \"last_seen\": \"2025-03-07T00:59:07Z\",\n                \"first_seen\": \"2025-01-28T21:32:47Z\",\n                \"source_vendors\": [\n                    {\n                        \"vendor\": \"CROWDSTRIKE\",\n                        \"vendor_id\": \"bbcfbb080f6e4e16b87e8f21c62f9dbf\",\n                        \"agent_info\": {\n                            \"agent_version\": \"7.22.19406.0\",\n                            \"signature_version\": \"198386\",\n                            \"policies\": [\n                                {\n                                    \"id\": \"8fc67007b78445579480bd92317667d0\",\n                                    \"type\": \"prevention\"\n                                }\n                            ]\n                        }\n                    }\n                ],\n                \"installed_software\": null,\n                \"ad_info\": {\n                    \"org_unit\": null,\n                    \"site_name\": null,\n                    \"domain\": \"integrations.test\",\n                    \"device_id\": null\n                },\n                \"cloud_metadata\": null,\n                \"tags\": null,\n                \"identities\": [],\n                \"vendor_data\": null\n            },\n            \"mitre\": [\n                {\n                    \"tactic_name\": \"Execution\",\n                    \"tactic_id\": \"TA0002\",\n                    \"tactic_source\": null,\n                    \"techniques\": [\n                        {\n                            \"technique_name\": \"PowerShell\",\n                            \"technique_id\": \"T1059.001\",\n                            \"technique_link\": null\n                        }\n                    ]\n                }\n            ],\n            \"observables\": []\n        },\n        {\n            \"id\": \"497be19d-86a9-4bc5-bf8b-00a0cdf9a224\",\n            \"vendor_id\": \"ldt:1dec098329c541879679e058fec21c58:1821066134499\",\n            \"title\": \"IntelExecuteHigh\",\n            \"description\": \"A hash matched a CrowdStrike Intelligence indicator that has previously been used in targeted attacks.\",\n            \"assigned_user\": null,\n            \"severity\": \"high\",\n            \"vendor_severity\": \"High\",\n            \"status\": \"new\",\n            \"vendor_status\": \"new\",\n            \"first_event_time\": \"2024-12-02T23:07:38Z\",\n            \"last_event_time\": \"2024-12-02T23:07:38Z\",\n            \"resolved_time\": null,\n            \"vendor\": \"crowdstrike\",\n            \"pid\": \"pid:1dec098329c541879679e058fec21c58:6674422517889\",\n            \"process_created_at\": null,\n            \"process_filename\": \"ipmifunc.exe\",\n            \"process_command_line\": \"--66c1e799\",\n            \"process_filepath\": \"\\\\Device\\\\HarddiskVolume2\\\\Windows\\\\SysWOW64\\\\ipmifunc.exe\",\n            \"process_sha1\": null,\n            \"process_sha256\": \"509bb2d1bcff8fdb9c4f78fe641d642dd1fa2d1ba81e9e4f27e54c042a60b367\",\n            \"process_md5\": \"\",\n            \"parent_pid\": \"\",\n            \"user_name\": \"WIN10DETECTION$\",\n            \"windows_sid\": null,\n            \"active_directory_user_id\": null,\n            \"active_directory_domain\": null,\n            \"device\": {\n                \"id\": \"e7be9450-b57f-46e7-a260-bf9f9d814de1\",\n                \"status\": \"active\",\n                \"platform\": \"windows\",\n                \"hostnames\": [\n                    \"WIN10DETECTION\"\n                ],\n                \"os_version\": \"Windows 10\",\n                \"os_major_version\": \"10\",\n                \"os_minor_version\": \"0\",\n                \"fqdns\": [],\n                \"ipv4s\": [\n                    \"172.17.0.180\",\n                    \"172.17.0.1\",\n                    \"54.89.138.42\",\n                    \"172.17.0.180\"\n                ],\n                \"ipv6s\": null,\n                \"mac_addresses\": [\n                    \"02:1f:a5:ff:fe:3f:0c:d5\",\n                    \"02:1f:a5:ff:fe:3f:0c:d5\"\n                ],\n                \"last_seen\": \"2025-03-07T00:50:34Z\",\n                \"first_seen\": \"2020-04-10T18:10:02Z\",\n                \"source_vendors\": [\n                    {\n                        \"vendor\": \"CROWDSTRIKE\",\n                        \"vendor_id\": \"1dec098329c541879679e058fec21c58\",\n                        \"agent_info\": {\n                            \"agent_version\": \"7.22.19406.0\",\n                            \"signature_version\": \"263921\",\n                            \"policies\": [\n                                {\n                                    \"id\": \"8fc67007b78445579480bd92317667d0\",\n                                    \"type\": \"prevention\"\n                                }\n                            ]\n                        }\n                    }\n                ],\n                \"installed_software\": null,\n                \"ad_info\": {\n                    \"org_unit\": null,\n                    \"site_name\": null,\n                    \"domain\": \"\",\n                    \"device_id\": null\n                },\n                \"cloud_metadata\": null,\n                \"tags\": null,\n                \"identities\": [],\n                \"vendor_data\": null\n            },\n            \"mitre\": [\n                {\n                    \"tactic_name\": \"Falcon Intel\",\n                    \"tactic_id\": \"CSTA0007\",\n                    \"tactic_source\": null,\n                    \"techniques\": [\n                        {\n                            \"technique_name\": \"Intelligence Indicator - Hash\",\n                            \"technique_id\": \"CST0019\",\n                            \"technique_link\": null\n                        }\n                    ]\n                }\n            ],\n            \"observables\": []\n        },\n        {\n            \"id\": \"68eae0a3-a299-442f-be5b-b4a981b74f7a\",\n            \"vendor_id\": \"ldt:94e0334cff1044b0ab9d0cb24f8f3b8b:356483119487\",\n            \"title\": \"TestTriggerHigh\",\n            \"description\": \"A high level detection was triggered on this process for testing purposes.\",\n            \"assigned_user\": null,\n            \"severity\": \"high\",\n            \"vendor_severity\": \"High\",\n            \"status\": \"new\",\n            \"vendor_status\": \"new\",\n            \"first_event_time\": \"2025-01-27T17:57:08Z\",\n            \"last_event_time\": \"2025-01-27T17:57:08Z\",\n            \"resolved_time\": null,\n            \"vendor\": \"crowdstrike\",\n            \"pid\": \"pid:94e0334cff1044b0ab9d0cb24f8f3b8b:1494624850927\",\n            \"process_created_at\": null,\n            \"process_filename\": \"cmd.exe\",\n            \"process_command_line\": \"cmd  crowdstrike_test_high\",\n            \"process_filepath\": \"\\\\Device\\\\HarddiskVolume2\\\\Windows\\\\System32\\\\cmd.exe\",\n            \"process_sha1\": null,\n            \"process_sha256\": \"b99d61d874728edc0918ca0eb10eab93d381e7367e377406e65963366c874450\",\n            \"process_md5\": \"8a2122e8162dbef04694b9c3e0b6cdee\",\n            \"parent_pid\": \"pid:94e0334cff1044b0ab9d0cb24f8f3b8b:1494618122463\",\n            \"user_name\": \"Administrator\",\n            \"windows_sid\": null,\n            \"active_directory_user_id\": null,\n            \"active_directory_domain\": null,\n            \"device\": {\n                \"id\": \"130d7c32-5196-482f-9306-882b7ea63c24\",\n                \"status\": \"active\",\n                \"platform\": \"windows\",\n                \"hostnames\": [\n                    \"WS01\"\n                ],\n                \"os_version\": \"Windows 10\",\n                \"os_major_version\": \"10\",\n                \"os_minor_version\": \"0\",\n                \"fqdns\": [\n                    \"integrations.test\"\n                ],\n                \"ipv4s\": [\n                    \"10.168.17.13\",\n                    \"10.168.17.1\",\n                    \"54.243.127.149\",\n                    \"10.168.17.13\"\n                ],\n                \"ipv6s\": null,\n                \"mac_addresses\": [\n                    \"0e:63:76:ff:fe:d6:26:dd\",\n                    \"0e:63:76:ff:fe:d6:26:dd\"\n                ],\n                \"last_seen\": \"2025-03-07T00:59:47Z\",\n                \"first_seen\": \"2022-09-01T20:11:22Z\",\n                \"source_vendors\": [\n                    {\n                        \"vendor\": \"CROWDSTRIKE\",\n                        \"vendor_id\": \"94e0334cff1044b0ab9d0cb24f8f3b8b\",\n                        \"agent_info\": {\n                            \"agent_version\": \"7.22.19406.0\",\n                            \"signature_version\": \"263921\",\n                            \"policies\": [\n                                {\n                                    \"id\": \"27d0b0ca4a994ad7b9093503a4aefc5d\",\n                                    \"type\": \"prevention\"\n                                }\n                            ]\n                        }\n                    }\n                ],\n                \"installed_software\": null,\n                \"ad_info\": {\n                    \"org_unit\": null,\n                    \"site_name\": null,\n                    \"domain\": \"integrations.test\",\n                    \"device_id\": null\n                },\n                \"cloud_metadata\": null,\n                \"tags\": null,\n                \"identities\": [],\n                \"vendor_data\": null\n            },\n            \"mitre\": [\n                {\n                    \"tactic_name\": \"Falcon Overwatch\",\n                    \"tactic_id\": \"CSTA0006\",\n                    \"tactic_source\": null,\n                    \"techniques\": [\n                        {\n                            \"technique_name\": \"Malicious Activity\",\n                            \"technique_id\": \"CST0002\",\n                            \"technique_link\": null\n                        }\n                    ]\n                }\n            ],\n            \"observables\": []\n        },\n        {\n            \"id\": \"6bf013c7-aa5c-48e5-ae02-304ceb49704f\",\n            \"vendor_id\": \"ldt:94e0334cff1044b0ab9d0cb24f8f3b8b:356483987126\",\n            \"title\": \"PShellDownloadRun\",\n            \"description\": \"A PowerShell process downloaded and launched a remote file. This is often the result of a malicious macro designed to drop a variety of second stage payloads. Review the command line.\",\n            \"assigned_user\": null,\n            \"severity\": \"high\",\n            \"vendor_severity\": \"High\",\n            \"status\": \"new\",\n            \"vendor_status\": \"new\",\n            \"first_event_time\": \"2025-01-27T17:58:22Z\",\n            \"last_event_time\": \"2025-01-27T17:58:22Z\",\n            \"resolved_time\": null,\n            \"vendor\": \"crowdstrike\",\n            \"pid\": \"pid:94e0334cff1044b0ab9d0cb24f8f3b8b:1494633146034\",\n            \"process_created_at\": null,\n            \"process_filename\": \"powershell.exe\",\n            \"process_command_line\": \"powershell  -NoExit -ExecutionPolicy Bypass -WindowStyle Hidden $ErrorActionPreference = 'silentlycontinue' -ScriptBlock { (New-Object System.Net.WebClient).DownloadFile('http://127.0.0.1/1.exe', 'C:\\\\\\\\test-MDATP-test\\\\\\\\invoice.exe');Start-Process 'C:\\\\\\\\test-MDATP-test\\\\\\\\invoice.exe' }\",\n            \"process_filepath\": \"\\\\Device\\\\HarddiskVolume2\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe\",\n            \"process_sha1\": null,\n            \"process_sha256\": \"9f914d42706fe215501044acd85a32d58aaef1419d404fddfa5d3b48f66ccd9f\",\n            \"process_md5\": \"04029e121a0cfa5991749937dd22a1d9\",\n            \"parent_pid\": \"pid:94e0334cff1044b0ab9d0cb24f8f3b8b:1494630995751\",\n            \"user_name\": \"Administrator\",\n            \"windows_sid\": null,\n            \"active_directory_user_id\": null,\n            \"active_directory_domain\": null,\n            \"device\": {\n                \"id\": \"130d7c32-5196-482f-9306-882b7ea63c24\",\n                \"status\": \"active\",\n                \"platform\": \"windows\",\n                \"hostnames\": [\n                    \"WS01\"\n                ],\n                \"os_version\": \"Windows 10\",\n                \"os_major_version\": \"10\",\n                \"os_minor_version\": \"0\",\n                \"fqdns\": [\n                    \"integrations.test\"\n                ],\n                \"ipv4s\": [\n                    \"10.168.17.13\",\n                    \"10.168.17.1\",\n                    \"54.243.127.149\",\n                    \"10.168.17.13\"\n                ],\n                \"ipv6s\": null,\n                \"mac_addresses\": [\n                    \"0e:63:76:ff:fe:d6:26:dd\",\n                    \"0e:63:76:ff:fe:d6:26:dd\"\n                ],\n                \"last_seen\": \"2025-03-07T00:59:47Z\",\n                \"first_seen\": \"2022-09-01T20:11:22Z\",\n                \"source_vendors\": [\n                    {\n                        \"vendor\": \"CROWDSTRIKE\",\n                        \"vendor_id\": \"94e0334cff1044b0ab9d0cb24f8f3b8b\",\n                        \"agent_info\": {\n                            \"agent_version\": \"7.22.19406.0\",\n                            \"signature_version\": \"263921\",\n                            \"policies\": [\n                                {\n                                    \"id\": \"27d0b0ca4a994ad7b9093503a4aefc5d\",\n                                    \"type\": \"prevention\"\n                                }\n                            ]\n                        }\n                    }\n                ],\n                \"installed_software\": null,\n                \"ad_info\": {\n                    \"org_unit\": null,\n                    \"site_name\": null,\n                    \"domain\": \"integrations.test\",\n                    \"device_id\": null\n                },\n                \"cloud_metadata\": null,\n                \"tags\": null,\n                \"identities\": [],\n                \"vendor_data\": null\n            },\n            \"mitre\": [\n                {\n                    \"tactic_name\": \"Execution\",\n                    \"tactic_id\": \"TA0002\",\n                    \"tactic_source\": null,\n                    \"techniques\": [\n                        {\n                            \"technique_name\": \"PowerShell\",\n                            \"technique_id\": \"T1059.001\",\n                            \"technique_link\": null\n                        }\n                    ]\n                }\n            ],\n            \"observables\": []\n        },\n        {\n            \"id\": \"d69a07ff-d100-418a-8aae-f2b03e476e61\",\n            \"vendor_id\": \"ldt:bbcfbb080f6e4e16b87e8f21c62f9dbf:1432735\",\n            \"title\": \"PShellDownloadRun\",\n            \"description\": \"A PowerShell process downloaded and launched a remote file. This is often the result of a malicious macro designed to drop a variety of second stage payloads. Review the command line.\",\n            \"assigned_user\": null,\n            \"severity\": \"high\",\n            \"vendor_severity\": \"High\",\n            \"status\": \"new\",\n            \"vendor_status\": \"new\",\n            \"first_event_time\": \"2025-01-28T23:02:26Z\",\n            \"last_event_time\": \"2025-01-28T23:02:26Z\",\n            \"resolved_time\": null,\n            \"vendor\": \"crowdstrike\",\n            \"pid\": \"pid:bbcfbb080f6e4e16b87e8f21c62f9dbf:963556652\",\n            \"process_created_at\": null,\n            \"process_filename\": \"powershell.exe\",\n            \"process_command_line\": \"powershell  -NoExit -ExecutionPolicy Bypass -WindowStyle Hidden $ErrorActionPreference = 'silentlycontinue' -ScriptBlock { (New-Object System.Net.WebClient).DownloadFile('http://127.0.0.1/1.exe', 'C:\\\\\\\\test-MDATP-test\\\\\\\\invoice.exe');Start-Process 'C:\\\\\\\\test-MDATP-test\\\\\\\\invoice.exe' }\",\n            \"process_filepath\": \"\\\\Device\\\\HarddiskVolume2\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe\",\n            \"process_sha1\": null,\n            \"process_sha256\": \"9f914d42706fe215501044acd85a32d58aaef1419d404fddfa5d3b48f66ccd9f\",\n            \"process_md5\": \"04029e121a0cfa5991749937dd22a1d9\",\n            \"parent_pid\": \"pid:bbcfbb080f6e4e16b87e8f21c62f9dbf:960268498\",\n            \"user_name\": \"Administrator\",\n            \"windows_sid\": null,\n            \"active_directory_user_id\": null,\n            \"active_directory_domain\": null,\n            \"device\": {\n                \"id\": \"cbde8926-1eb0-4841-931c-2f5fa7776255\",\n                \"status\": \"active\",\n                \"platform\": \"windows\",\n                \"hostnames\": [\n                    \"WS03\"\n                ],\n                \"os_version\": \"Windows 10\",\n                \"os_major_version\": \"10\",\n                \"os_minor_version\": \"0\",\n                \"fqdns\": [\n                    \"integrations.test\"\n                ],\n                \"ipv4s\": [\n                    \"10.168.17.11\",\n                    \"10.168.17.1\",\n                    \"54.243.127.149\",\n                    \"10.168.17.11\"\n                ],\n                \"ipv6s\": null,\n                \"mac_addresses\": [\n                    \"0e:04:64:ff:fe:67:44:e1\",\n                    \"0e:04:64:ff:fe:67:44:e1\"\n                ],\n                \"last_seen\": \"2025-03-07T00:59:07Z\",\n                \"first_seen\": \"2025-01-28T21:32:47Z\",\n                \"source_vendors\": [\n                    {\n                        \"vendor\": \"CROWDSTRIKE\",\n                        \"vendor_id\": \"bbcfbb080f6e4e16b87e8f21c62f9dbf\",\n                        \"agent_info\": {\n                            \"agent_version\": \"7.22.19406.0\",\n                            \"signature_version\": \"198386\",\n                            \"policies\": [\n                                {\n                                    \"id\": \"8fc67007b78445579480bd92317667d0\",\n                                    \"type\": \"prevention\"\n                                }\n                            ]\n                        }\n                    }\n                ],\n                \"installed_software\": null,\n                \"ad_info\": {\n                    \"org_unit\": null,\n                    \"site_name\": null,\n                    \"domain\": \"integrations.test\",\n                    \"device_id\": null\n                },\n                \"cloud_metadata\": null,\n                \"tags\": null,\n                \"identities\": [],\n                \"vendor_data\": null\n            },\n            \"mitre\": [\n                {\n                    \"tactic_name\": \"Execution\",\n                    \"tactic_id\": \"TA0002\",\n                    \"tactic_source\": null,\n                    \"techniques\": [\n                        {\n                            \"technique_name\": \"PowerShell\",\n                            \"technique_id\": \"T1059.001\",\n                            \"technique_link\": null\n                        }\n                    ]\n                }\n            ],\n            \"observables\": []\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Alert",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/edr/alerts/{{alertId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"edr",
+								"alerts",
+								"{{alertId}}"
+							]
+						},
+						"description": "Get details of a specific EDR alert"
+					},
+					"response": []
+				},
+				{
+					"name": "List Policies",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/edr/policies",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"edr",
+								"policies"
+							]
+						},
+						"description": "List EDR policies"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "VMS",
+			"item": [
+				{
+					"name": "List Vulnerabilities",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/vms/vulnerabilities",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"vms",
+								"vulnerabilities"
+							]
+						},
+						"description": "List vulnerabilities"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vulnerability",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/vms/vulnerabilities/{{vulnId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"vms",
+								"vulnerabilities",
+								"{{vulnId}}"
+							]
+						},
+						"description": "Get details of a specific vulnerability"
+					},
+					"response": []
+				},
+				{
+					"name": "List Scan Configurations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/vms/scan-configurations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"vms",
+								"scan-configurations"
+							]
+						},
+						"description": "List scan configurations"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Scan Configuration",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/vms/scan-configurations/{{scanId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"vms",
+								"scan-configurations",
+								"{{scanId}}"
+							]
+						},
+						"description": "Get details of a specific scan configuration"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Devices",
+			"item": [
+				{
+					"name": "List Devices",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/devices",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices"
+							]
+						},
+						"description": "List devices"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Device",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/devices/{{deviceId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"{{deviceId}}"
+							]
+						},
+						"description": "Get details of a specific device"
+					},
+					"response": []
+				},
+				{
+					"name": "List Device Groups",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/device-groups",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"device-groups"
+							]
+						},
+						"description": "List device groups"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://api.armado.app/v1",
+			"type": "string"
+		},
+		{
+			"key": "organization_id",
+			"value": "055f1134-e9aa-4010-ad02-f68018d5a2ad",
+			"type": "string"
+		},
+		{
+			"key": "alertId",
+			"value": "497be19d-86a9-4bc5-bf8b-00a0cdf9a224",
+			"type": "default"
+		}
+	]
+}

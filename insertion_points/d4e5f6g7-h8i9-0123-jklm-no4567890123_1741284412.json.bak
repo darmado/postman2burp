@@ -6,17 +6,13 @@
       "key": "account_id",
       "value": "ACC123456789",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "amount",
       "value": "100.00",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "base_url",
@@ -28,121 +24,91 @@
       "key": "currency",
       "value": "USD",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "device_id",
       "value": "device123456",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "from_account_id",
       "value": "ACC123456789",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "from_date",
       "value": "2023-01-01",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "limit",
       "value": "20",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "otp_code",
       "value": "123456",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "page",
       "value": "1",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "password",
       "value": "securepassword",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "session_id",
       "value": "session789012",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "to_account_id",
       "value": "ACC987654321",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "to_date",
       "value": "2023-12-31",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "transaction_id",
       "value": "TRX987654321",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "transfer_description",
       "value": "Payment for services",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "transfer_id",
       "value": "TRF123456789",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     },
     {
       "key": "username",
       "value": "bankuser",
       "type": "string",
-      "enabled": true,
-      "encoding": "unicode",
-      "encoding_iterations": 3
+      "enabled": true
     }
   ],
   "_postman_variable_scope": "environment",

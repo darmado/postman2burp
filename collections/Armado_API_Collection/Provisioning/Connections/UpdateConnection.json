@@ -1,0 +1,36 @@
+{
+  "name": "Update Connection",
+  "request": {
+    "method": "PATCH",
+    "header": [
+      {
+        "key": "X-API-Key",
+        "value": "{{api_key}}",
+        "type": "text"
+      }
+    ],
+    "body": {
+      "mode": "raw",
+      "raw": "{\n  \"name\": \"Updated Connection\"\n}",
+      "options": {
+        "raw": {
+          "language": "json"
+        }
+      }
+    },
+    "url": {
+      "raw": "{{base_url}}/provisioning/organizations/{{organization_id}}/connections/{{connectionId}}",
+      "host": [
+        "{{base_url}}"
+      ],
+      "path": [
+        "provisioning",
+        "organizations",
+        "{{organization_id}}",
+        "connections",
+        "{{connectionId}}"
+      ]
+    },
+    "description": "Update a connection"
+  }
+}

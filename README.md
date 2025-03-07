@@ -75,38 +75,19 @@ curl -L https://raw.githubusercontent.com/darmado/repl/refs/heads/main/install.s
 | **Basic** | `--collection [COLLECTION]` | Specify the Postman collection to test. Leave empty to select interactively. |
 | | `--banner` | Display the tool banner |
 | **Insertion Points** | `--insertion-point INSERTION_POINT` | Insert values into API request variables  |
-| | `--extract-keys [OUTPUT_FILE]` | Extract variables from collections to create insertion point templates. |
-| **Encoding** | `--encode-url VALUE` | URL encode a string |
-| | `--encode-double-url VALUE` | Double URL encode a string |
-| | `--encode-html VALUE` | HTML encode a string |
-| | `--encode-xml VALUE` | XML encode a string |
-| | `--encode-unicode VALUE` | Unicode escape a string |
-| | `--encode-hex VALUE` | Hex escape a string |
-| | `--encode-octal VALUE` | Octal escape a string |
-| | `--encode-base64 VALUE` | Base64 encode a string |
-| | `--encode-sql-char VALUE` | SQL CHAR() encode a string |
-| | `--encode-js VALUE` | JavaScript escape a string |
-| | `--encode-css VALUE` | CSS escape a string |
+| | `--extract-keys [COLLECTION]` | Extract variables and  parameters from a `collection` to create insertion point templates. |
+| **Encoding** | `--encode-[METHOD] VALUE` | Wrap paylooad in quotes. Supports url, double-url, html, xml, unicode, hex, octal, base64, sql-char, js, css |
 | **Authentication** | `--auth [AUTH]` | Load saved authentication profile. Leave empty to select interactively. |
-| | `--list-auth` | Display all saved authentication profiles |
-| | `--create-auth` | Create a new authentication profile interactively |
-| | `--auth-basic USERNAME PASSWORD` | Authenticate with Basic Auth credentials |
-| | `--auth-bearer TOKEN` | Authenticate with Bearer token |
-| | `--auth-api-key KEY LOCATION` | Authenticate with API key in header, query, or cookie |
-| | `--auth-api-key-name NAME` | Set custom API key parameter name (default: X-API-Key) |
-| | `--auth-oauth1 CONSUMER_KEY CONSUMER_SECRET` | Authenticate with OAuth1 credentials |
-| | `--auth-oauth1-token TOKEN TOKEN_SECRET` | Add OAuth1 token pair |
-| | `--auth-oauth1-signature SIGNATURE` | Configure OAuth1 signature method (default: HMAC-SHA1) |
-| | `--auth-oauth2 CLIENT_ID CLIENT_SECRET` | Authenticate with OAuth2 credentials |
-| | `--auth-oauth2-token-url URL` | Set OAuth2 token endpoint |
-| | `--auth-oauth2-refresh-url URL` | Set OAuth2 refresh endpoint |
-| | `--auth-oauth2-grant GRANT_TYPE` | Configure OAuth2 grant type (default: client_credentials) |
-| | `--auth-oauth2-username USERNAME` | Add username for password grant |
-| | `--auth-oauth2-password PASSWORD` | Add password for password grant |
-| | `--auth-oauth2-scope SCOPE` | Set OAuth2 permission scopes |
+| | `--auth-type TYPE` | Set authentication type (basic, bearer, api-key, oauth1, oauth2) |
+| | `--auth-credentials KEY VALUE` | Set auth credentials (varies by type: username/password, token, api-key, etc.) |
+| | `--auth-location LOCATION` | Specify where to place auth data (header, query, cookie) |
+| | `--auth-param NAME` | Set custom parameter name for auth (default varies by type) |
+| | `--auth-url URL` | Set auth endpoint (token URL, refresh URL) |
+| | `--auth-method METHOD` | Set auth method (signature method, grant type) |
+| | `--auth-scope SCOPE` | Set permission scopes for OAuth2 |
 | **Proxy** | `--proxy PROXY` | Direct traffic through specified proxy (format: host:port) |
-| | `--proxy-host HOST` | Configure proxy hostname |
-| | `--proxy-port PORT` | Configure proxy port |
+| | `--proxy-host HOST` | Set proxy hostname |
+| | `--proxy-port PORT` | Set proxy port |
 | | `--verify-ssl` | Enable SSL certificate validation |
 | | `--proxy-profile [PROFILE]` | Load saved proxy settings |
 | **Output** | `--log` | Record request/response data for analysis |
@@ -126,7 +107,7 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/
 | 🔄 Custom Proxy Configuration | `--proxy host:port` | Direct traffic through any proxy tool or intercepting middleware |
 | 💾 Proxy Profile Management | `--proxy-profile [PROFILE]` | Load and save proxy configurations for different environments |
 | 🔑 Variable Extraction | `--extract-keys [OUTPUT_FILE]` | Extract API keys, tokens, and variables from collections for testing |
-| 🔐 Variable Insertion | `--insertion-point PROFILE` | Insert values at specific points in API requests from template files |
+| 🔐 Payload Insertion | `--insertion-point PROFILE` | Insert values at specific points in API requests from template files |
 | 🔒 Multi-auth Support | `--auth`, `--auth-basic`, `--auth-bearer` | Support for Basic Auth, Bearer Token, API Key, OAuth1, and OAuth2 |
 | 📊 Logging | `--log`, `--verbose` | Record detailed request/response data for analysis and reporting |
 | 🧩 Interactive Mode | `--collection` | Navigate through interactive prompts |
@@ -138,21 +119,6 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/
 ##
 
 ### 🎯 Use Cases
-
-| Scenario | Challenge | Solution | Example Command |
-|----------|-----------|----------|-----------------|
-| **Client-Provided API Collection** | Client provides a 200+ endpoint Postman collection for an enterprise API during a time-limited assessment | Replay all endpoints through any proxy while maintaining request sequence and context | `python3 repl.py --collection "enterprise_api.json" --extract-keys` |
-| **Privilege Escalation Testing** | Need to test API endpoints with admin, user, and guest credentials to identify authorization flaws | Execute the same collection with different insertion point files containing various privilege levels | `python3 repl.py --collection "user_api.json" --insertion-point "admin_profile.json"` |
-| **OAuth2 Token Capture** | Need to capture and reuse OAuth tokens that expire during testing | Extract tokens from responses and apply them to subsequent requests automatically | `python3 repl.py --collection "oauth_flow.json" --insertion-point "oauth_creds.json" --verbose` |
-| **API Key Rotation** | API uses rotating keys that must be captured and reused | Record all requests with key rotation before using Burp Intruder for attacks | `python3 repl.py --collection "key_rotation_api.json" --log --verbose` |
-| **Multi-Step API Workflows** | API Logic vulnerabilities require specific request sequencing | Execute requests in the exact defined sequence while sending through Burp for inspection | `python3 repl.py --collection "workflow.json" --insertion-point "attack_vectors.json"` |
-| **GraphQL Security Testing** | GraphQL endpoints with nested queries require specific formatting | Maintain query structure and variables while testing through Burp | `python3 repl.py --collection "graphql_api.json" --insertion-point "graphql_vars.json"` |
-| **Report Documentation** | Need to document request/response pairs for vulnerability reports | Generate structured logs of all requests and responses in a reportable format | `python3 repl.py --collection "vulnerable_api.json" --log --verbose` |
-| **Large API Assessment** | Need to efficiently test hundreds of endpoints in a time-constrained engagement | Execute all requests through any proxy while preserving the exact sequence and context | `python3 repl.py --collection "large_api.json" --verbose` |
-| **Token Context Preservation** | Need to maintain authentication state across multiple API calls | Extract and reuse tokens across requests in the correct sequence | `python3 repl.py --collection "stateful_api.json" --log` |
-| **Evidence Sharing** | Need to provide reproducible evidence to clients | Generate logs in Postman Collection format that clients can replay | `python3 repl.py --collection "evidence.json" --log --verbose` |
-| **XSS Payload Testing** | Need to test XSS payloads with proper encoding for different contexts | Encode payloads using appropriate methods for the target context | `python3 repl.py --encode-html "<script>alert(1)</script>"` |
-| **WAF Bypass Testing** | Need to test WAF bypass techniques with various encoding methods | Apply multiple encoding layers to test WAF evasion techniques | `python3 repl.py --encode-double-url "SELECT * FROM users"` |
 
 For complete examples with code samples and technical details, see our [Use Cases Documentation](https://github.com/darmado/repl/wiki/Use-Cases).
 

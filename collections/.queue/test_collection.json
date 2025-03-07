@@ -1,0 +1,22 @@
+{
+    "info": {
+        "_postman_id": "test-id",
+        "name": "Test Collection",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Test Request",
+            "request": {
+                "method": "GET",
+                "url": "https://example.com/api/{{endpoint}}",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ]
+            }
+        }
+    ]
+}
