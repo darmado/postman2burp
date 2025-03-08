@@ -1,6 +1,0 @@
-{
-  "label": "Bearer Token Example",
-  "type": "bearer",
-  "token": "example_token_12345",
-  "is_dynamic": false
-} 

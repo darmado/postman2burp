@@ -96,44 +96,88 @@ def save_results_to_file(results, collection_path, target_insertion_point, proxy
     if logger is None:
         logger = logging.getLogger('repl')
     
-    print(f"Debug: Saving results to directory: {output_dir}")
-    
     # Create output directory if it doesn't exist
     if not ensure_log_directory(output_dir):
-        print(f"Debug: Failed to create directory: {output_dir}")
+        logger.error(f"Failed to create directory: {output_dir}")
         return None
     
-    # Generate filename based on collection name and timestamp
+    # Generate collection-specific log directory
     collection_name = os.path.splitext(os.path.basename(collection_path))[0]
+    collection_log_dir = os.path.join(output_dir, collection_name)
+    
+    # Create collection-specific log directory if it doesn't exist
+    if not ensure_log_directory(collection_log_dir):
+        logger.error(f"Failed to create collection log directory: {collection_log_dir}")
+        return None
+    
+    # Generate timestamp for the log file
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Create a structured directory based on the collection hierarchy
+    try:
+        # Group requests by folder
+        folder_requests = {}
+        for request in results.get('requests', []):
+            folder = request.get('folder', '')
+            if folder not in folder_requests:
+                folder_requests[folder] = []
+            folder_requests[folder].append(request)
+        
+        # Create folder structure and save requests
+        for folder, requests in folder_requests.items():
+            folder_path = collection_log_dir
+            
+            # Create nested folders if needed
+            if folder:
+                folder_parts = folder.split('/')
+                for part in folder_parts:
+                    folder_path = os.path.join(folder_path, part)
+                    if not ensure_log_directory(folder_path):
+                        logger.error(f"Failed to create folder: {folder_path}")
+                        continue
+            
+            # Save each request in its own file
+            for request in requests:
+                request_name = request.get('name', 'unknown_request')
+                # Sanitize filename
+                request_name = request_name.replace(' ', '_').replace('/', '_').replace('\\', '_')
+                request_filename = f"{request_name}_{timestamp}.json"
+                request_path = os.path.join(folder_path, request_filename)
+                
+                # Add request ID if not present
+                if 'id' not in request:
+                    request['id'] = f"req_{timestamp}_{hash(request_name) % 10000:04d}"
+                
+                # Save individual request
+                try:
+                    with open(request_path, 'w') as f:
+                        json.dump(request, f, indent=2)
+                    logger.info(f"Saved request to {request_path}")
+                except Exception as e:
+                    logger.error(f"Failed to save request to {request_path}: {e}")
+    except Exception as e:
+        logger.error(f"Failed to create structured log: {e}")
+    
+    # Also save the complete results file for backward compatibility
     filename = f"{collection_name}_{timestamp}.json"
     output_path = os.path.join(output_dir, filename)
     
-    print(f"Debug: Output path: {output_path}")
-    
-    # Extract proxy information
-    proxy_host, proxy_port = proxy_info if proxy_info else (None, None)
-    
-    # Add metadata to results
-    results_copy = results.copy()
-    results_copy["metadata"] = {
+    # Add metadata
+    metadata = {
         "collection": os.path.basename(collection_path),
-        "insertion_point": os.path.basename(target_insertion_point) if target_insertion_point else None,
-        "proxy": f"{proxy_host}:{proxy_port}" if proxy_host and proxy_port else "None",
-        "timestamp": datetime.now().isoformat(),
-        "total_requests": len(results_copy["requests"]),
-        "successful_requests": sum(1 for r in results_copy["requests"] if r.get("success", False)),
-        "failed_requests": sum(1 for r in results_copy["requests"] if not r.get("success", False))
+        "timestamp": timestamp,
+        "proxy": f"{proxy_info[0]}:{proxy_info[1]}" if proxy_info else None,
+        "insertion_point": os.path.basename(target_insertion_point) if target_insertion_point else None
     }
     
-    # Save results
+    results["metadata"] = metadata
+    
+    # Save to file
     try:
         with open(output_path, 'w') as f:
-            json.dump(results_copy, f, indent=2)
-        print(f"Debug: Successfully saved results to {output_path}")
+            json.dump(results, f, indent=2)
         logger.info(f"Results saved to {output_path}")
         return output_path
     except Exception as e:
-        print(f"Debug: Error saving results: {e}")
-        logger.error(f"Could not save results: {e}")
+        logger.error(f"Failed to save results: {e}")
         return None 

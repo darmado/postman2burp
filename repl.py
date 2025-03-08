@@ -49,6 +49,27 @@ import urllib.parse
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple, Union, Any
 
+# Import third-party libraries
+import requests
+import urllib3
+from urllib3.exceptions import InsecureRequestWarning
+from colorama import Fore, Style, init
+
+# Suppress InsecureRequestWarning
+urllib3.disable_warnings(InsecureRequestWarning)
+
+# Initialize colorama
+init()
+
+# Import custom modules
+from modules.logman import setup_logging, get_logger, ensure_log_directory, save_results_to_file
+from modules.encoder import Encoder
+from modules.config import handle_list_command, handle_show_command
+from modules.collections import resolve_collection_path, select_collection_file, list_collections, extract_collection_id
+
+# Setup logging
+logger = setup_logging()
+
 # Import custom modules
 from modules.logman import setup_logging, get_logger, ensure_log_directory, save_results_to_file
 
@@ -123,7 +144,7 @@ except ImportError:
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Constants
-VERSION = "1.0.0"
+VERSION = "0.7.0-alpha"
 DEFAULT_CONFIG = {
     "proxy_host": "localhost",
     "proxy_port": 8080,
@@ -202,7 +223,7 @@ BANNER_TEXT = """
                                                               ████           
 
               Replace, Load, and Replay Postman Collections | Author: @daramdo
-                      Version 1.0.0 | Apache License, Version 2.0
+                      Version 0.7.0-alpha | Apache License, Version 2.0
 """
 
 # Define colored banner (will be used if terminal supports colors)
@@ -385,153 +406,12 @@ def generate_variables_template(collection_path: str, output_path: str) -> None:
         logger.error(f"Error saving template: {e}")
         print(f"Error: Could not save template: {e}")
 
-def select_collection_file() -> str:
-    """
-    List all JSON collection files in the collections directory and allow the user to select one.
-    Returns the path to the selected collection file.
-    """
-    logger.info("Listing available collection files")
-    
-    # Create collections directory if it doesn't exist
-    if not os.path.exists(COLLECTIONS_DIR):
-        try:
-            os.makedirs(COLLECTIONS_DIR)
-            logger.debug(f"Created collections directory at {COLLECTIONS_DIR}")
-        except Exception as e:
-            logger.error(f"Could not create collections directory: {e}")
-            print(f"Error: Could not create collections directory: {e}")
-            return ""
-    
-    # Get all JSON files in the collections directory
-    collection_files = []
-    try:
-        for file in os.listdir(COLLECTIONS_DIR):
-            if file.endswith('.json'):
-                collection_files.append(file)
-    except Exception as e:
-        logger.error(f"Error listing collections directory: {e}")
-        print(f"Error: Could not list collections directory: {e}")
-        return ""
-    
-    # If no collection files found, prompt user to specify a path
-    if not collection_files:
-        logger.info("No collection files found in collections directory")
-        print(f"No collection files found in {COLLECTIONS_DIR}")
-        collection_path = input("Enter path to collection file: ")
-        if not collection_path:
-            logger.warning("No collection path provided")
-            return ""
-        return collection_path
-    
-    # If only one collection file found, use it without prompting
-    if len(collection_files) == 1:
-        collection_path = os.path.join(COLLECTIONS_DIR, collection_files[0])
-        logger.info(f"Using collection file: {collection_files[0]}")
-        print(f"Using collection file: {collection_files[0]}")
-        return collection_path
-    
-    # Multiple collection files found, prompt user to select
-    print("\nSelect collection file:")
-    for i, file in enumerate(collection_files, 1):
-        print(f"{i}. {file}")
-    print("0. Enter a different path")
-    
-    while True:
-        try:
-            choice = input("\nSelect file (0-{0}): ".format(len(collection_files)))
-            choice_num = int(choice)
-            
-            if choice_num == 0:
-                collection_path = input("Enter path to collection file: ")
-                if not collection_path:
-                    logger.warning("No collection path provided")
-                    continue
-                return collection_path
-            
-            if 1 <= choice_num <= len(collection_files):
-                collection_path = os.path.join(COLLECTIONS_DIR, collection_files[choice_num-1])
-                logger.info(f"User selected collection file: {collection_files[choice_num-1]}")
-                return collection_path
-            
-            print(f"Invalid choice. Enter a number between 0 and {len(collection_files)}.")
-        except ValueError:
-            print("Invalid input. Enter a number.")
-
-def resolve_collection_path(collection_path: str) -> str:
-    """
-    Resolve the collection path. If the path is not absolute and the file doesn't exist,
-    check if it exists in the collections directory.
-    
-    Args:
-        collection_path: Path to the collection file
-        
-    Returns:
-        str: Resolved path to the collection file
-    """
-    logger.debug(f"resolve_collection_path called with: {collection_path}")
-    logger.debug(f"Current working directory: {os.getcwd()}")
-    logger.debug(f"Collections directory: {COLLECTIONS_DIR}")
-    
-    # If the path is empty, prompt the user to select a collection
-    if not collection_path:
-        return select_collection_file()
-    
-    # Check if the path is absolute
-    if os.path.isabs(collection_path):
-        if os.path.exists(collection_path):
-            return collection_path
-        else:
-            logger.warning(f"Collection file not found at absolute path: {collection_path}")
-    
-    # Check if the file exists in the current directory
-    if os.path.exists(collection_path):
-        return os.path.abspath(collection_path)
-    
-    # Check if the file exists in the collections directory
-    collections_path = os.path.join(COLLECTIONS_DIR, collection_path)
-    if os.path.exists(collections_path):
-        return collections_path
-    
-    # Check if the file exists in the collections directory with .json extension
-    if not collection_path.endswith('.json'):
-        collections_path_with_ext = os.path.join(COLLECTIONS_DIR, collection_path + '.json')
-        if os.path.exists(collections_path_with_ext):
-            return collections_path_with_ext
-    
-    logger.warning(f"Collection file not found: {collection_path}")
-    return collection_path
-
-def extract_collection_id(collection_path: str) -> Optional[str]:
-    """
-    Extract the collection ID from a Postman collection file.
-    
-    Args:
-        collection_path: Path to the collection file
-        
-    Returns:
-        Optional[str]: Collection ID if found, None otherwise
-    """
-    logger.debug(f"extract_collection_id called with path: {collection_path}")
-    
-    # Validate the collection file
-    is_valid, collection_data = validate_json_file(collection_path)
-    
-    if not is_valid or not collection_data:
-        logger.error(f"Invalid collection file: {collection_path}")
-        return None
-    
-    # Extract collection ID
-    if "info" in collection_data and "_postman_id" in collection_data["info"]:
-        return collection_data["info"]["_postman_id"]
-    
-    return None
-
 def encode_insertion_point_variables(insertion_point_path=None):
     """
-    Apply encoding to variables in an insertion point file.
+    Encode variables in an insertion point file.
     
     Args:
-        insertion_point_path (str, optional): Path to the insertion point file. If None, user will be prompted to select one.
+        insertion_point_path: Path to the insertion point file
         
     Returns:
         bool: True if successful, False otherwise
@@ -1068,8 +948,15 @@ class Repl:
         # Extract request details
         request = request_data["request"]
         
+        # Generate a unique request ID if not present
+        if 'id' not in request_data:
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            request_name = request_data.get("name", "unknown")
+            request_data['id'] = f"req_{timestamp}_{hash(request_name) % 10000:04d}"
+        
         # Initialize prepared request
         prepared_request = {
+            "id": request_data['id'],
             "name": request_data["name"],
             "folder": request_data.get("folder", ""),
             "method": request.get("method", "GET"),
@@ -1137,16 +1024,20 @@ class Repl:
         # Process headers
         if "header" in request and isinstance(request["header"], list):
             for header in request["header"]:
-                if isinstance(header, dict) and "key" in header and "value" in header:
-                    key = self.replace_variables(header["key"])
+                if not header.get("disabled", False):
+                    key = header["key"]
                     value = self.replace_variables(header["value"])
                     prepared_request["headers"][key] = value
         
         # Add custom headers
-        for header in self.custom_headers:
-            if ":" in header:
-                key, value = header.split(":", 1)
-                prepared_request["headers"][key.strip()] = value.strip()
+        if self.custom_headers:
+            for header in self.custom_headers:
+                if ":" in header:
+                    key, value = header.split(":", 1)
+                    prepared_request["headers"][key.strip()] = value.strip()
+        
+        # Add request ID header
+        prepared_request["headers"]["REPL-Request-ID"] = prepared_request["id"]
         
         # Process body
         if "body" in request and isinstance(request["body"], dict):
@@ -1404,63 +1295,66 @@ class Repl:
         Returns:
             bool: True if the proxy is running, False otherwise
         """
+        # If user specified a proxy, check if it's running
+        if self.proxy_host and self.proxy_port:
+            if check_proxy_connection(self.proxy_host, self.proxy_port):
+                logger.info(f"Using user-specified proxy at {self.proxy_host}:{self.proxy_port}")
+                # Verify proxy with a test request
+                if verify_proxy_with_request(self.proxy_host, self.proxy_port):
+                    logger.info(f"Verified proxy at {self.proxy_host}:{self.proxy_port}")
+                    return True
+                else:
+                    logger.warning(f"Could not verify proxy at {self.proxy_host}:{self.proxy_port}")
+            else:
+                logger.warning(f"Could not connect to user-specified proxy at {self.proxy_host}:{self.proxy_port}")
+        
+        # Always try to auto-detect proxies and show them to the user
+        logger.info("Detecting available proxies...")
+        
+        # Common proxy ports
+        common_ports = [8080, 8081, 8082, 8888, 8889]
+        
+        detected_proxies = []
+        
+        # Try localhost first
+        host = "localhost"
+        for port in common_ports:
+            if check_proxy_connection(host, port):
+                logger.info(f"Found proxy at {host}:{port}")
+                # Verify proxy with a test request
+                if verify_proxy_with_request(host, port):
+                    logger.info(f"Verified proxy at {host}:{port}")
+                    detected_proxies.append((host, port))
+        
+        # Try 127.0.0.1
+        host = "127.0.0.1"
+        for port in common_ports:
+            if check_proxy_connection(host, port):
+                logger.info(f"Found proxy at {host}:{port}")
+                # Verify proxy with a test request
+                if verify_proxy_with_request(host, port):
+                    logger.info(f"Verified proxy at {host}:{port}")
+                    detected_proxies.append((host, port))
+        
+        # If user specified a proxy but it's not working, and we found other proxies
+        if self.proxy_host and self.proxy_port and detected_proxies:
+            logger.info(f"User-specified proxy at {self.proxy_host}:{self.proxy_port} is not working.")
+            logger.info(f"Found {len(detected_proxies)} other proxies. Use one of these instead:")
+            for host, port in detected_proxies:
+                logger.info(f"  - {host}:{port}")
+            return False
+        
+        # If no user-specified proxy, use the first detected one
         if not self.proxy_host or not self.proxy_port:
-            return False
+            if detected_proxies:
+                self.proxy_host, self.proxy_port = detected_proxies[0]
+                logger.info(f"Using auto-detected proxy at {self.proxy_host}:{self.proxy_port}")
+                return True
         
-        # Check if proxy is running
-        if not check_proxy_connection(self.proxy_host, self.proxy_port):
-            logger.warning(f"Could not connect to proxy at {self.proxy_host}:{self.proxy_port}")
-            
-            if self.auto_detect_proxy:
-                # Try to auto-detect proxy
-                logger.info("Trying to auto-detect proxy...")
-                
-                # Common proxy ports
-                # TODO: convert to global variable
-                common_ports = [8080, 8081, 8082, 8888, 8889]
-                
-                # Try localhost first
-                host = "localhost"
-                for port in common_ports:
-                    if port == self.proxy_port:
-                        continue
-                    
-                    if check_proxy_connection(host, port):
-                        logger.info(f"Found proxy at {host}:{port}")
-                        
-                        # Verify proxy with a test request
-                        if verify_proxy_with_request(host, port):
-                            logger.info(f"Verified proxy at {host}:{port}")
-                            self.proxy_host = host
-                            self.proxy_port = port
-                            return True
-                
-                # Try 127.0.0.1
-                host = "127.0.0.1"
-                for port in common_ports:
-                    if port == self.proxy_port:
-                        continue
-                    
-                    if check_proxy_connection(host, port):
-                        logger.info(f"Found proxy at {host}:{port}")
-                        
-                        # Verify proxy with a test request
-                        if verify_proxy_with_request(host, port):
-                            logger.info(f"Verified proxy at {host}:{port}")
-                            self.proxy_host = host
-                            self.proxy_port = port
-                            return True
-                
-                logger.warning("Could not auto-detect proxy")
-            
-            return False
+        # No working proxy found
+        if not detected_proxies:
+            logger.warning("No working proxies detected")
         
-        # Verify proxy with a test request
-        if verify_proxy_with_request(self.proxy_host, self.proxy_port):
-            logger.info(f"Verified proxy at {self.proxy_host}:{self.proxy_port}")
-            return True
-        
-        logger.warning(f"Could not verify proxy at {self.proxy_host}:{self.proxy_port}")
         return False
 
 def main():
@@ -1494,123 +1388,116 @@ def main():
         
         def __call__(self, parser, namespace, values, option_string=None):
             # Extract the encoding method from the option string
-            method = option_string.replace('--encode-', '')
-            setattr(namespace, self.dest, (method, values))
+            encoding_method = option_string.split('-')[-1]
+            setattr(namespace, self.dest, encoding_method)
+            setattr(namespace, 'encoding_input', values)
     
-    # Parse command line arguments with improved formatting
+    class SearchAction(argparse.Action):
+        """Custom action for search argument to provide better error messages."""
+        def __init__(self, option_strings, dest, **kwargs):
+            super().__init__(option_strings, dest, **kwargs)
+        
+        def __call__(self, parser, namespace, values, option_string=None):
+            if not values:
+                parser.error(f"{option_string} requires a search query. Examples:\n"
+                             f"  {option_string} 'api'            - Search for 'api' in all requests and responses\n"
+                             f"  {option_string} 'status:200'     - Search for status code 200\n"
+                             f"  {option_string} 'req123'         - Search for a specific request ID\n"
+                             f"Use --collection-filter and --folder-filter to narrow down your search.")
+            setattr(namespace, self.dest, values)
+    
+    # Create argument parser
     parser = argparse.ArgumentParser(
-        description="Replace, Load, and Replay Postman collections through any proxy tool",
-        formatter_class=CustomHelpFormatter,
-        add_help=True
+        description="Replace, Load, and Replay Postman Collections",
+        formatter_class=CustomHelpFormatter
     )
     
-    # Basic options
-    basic_group = parser.add_argument_group("BASIC OPTIONS")
-    basic_group.add_argument("--collection", nargs="?", 
-                           help="Path to Postman collection file. Use without value to select interactively")
-    basic_group.add_argument("--banner", action="store_true", 
-                           help="Print the banner")
+    # IMPORT section
+    import_group = parser.add_argument_group("IMPORT")
+    import_group.add_argument("--import", dest="import_collection", nargs="?", const=True, metavar="OUTPUT_DIR",
+                          help="Import Postman collection and extract to a directory structure in the 'collections' folder. Creates request files and variables template for easy configuration.")
     
-    # Configuration management options
-    config_group = parser.add_argument_group("CONFIGURATION OPTIONS")
-    config_group.add_argument("--list", nargs='+', choices=['auth', 'proxies', 'insertion_points', 'workflows', 'collections'],
-                          help="List available configurations")
-    config_group.add_argument("--show", nargs=2, metavar=('TYPE', 'NAME'),
-                    help='Show details of a specific configuration. TYPE can be auth, proxies, insertion_points, or workflows')
+    # CONFIGURE section - Variables
+    variables_group = parser.add_argument_group("CONFIGURE - Variables")
+    variables_group.add_argument("--extract-keys", nargs="?", const=True, metavar="OUTPUT_FILE",
+                          help="Extract variables from collection for configuration. Use without value to print variables, or specify a file path to save template")
     
-    # Insertion Point options
-    env_group = parser.add_argument_group("VARIABLE OPTIONS")
-    env_group.add_argument("--insertion-point", 
-                          help="Path to insertion_point file with variable values")
-    env_group.add_argument("--extract-keys", nargs="?", const=True, metavar="OUTPUT_FILE",
-                          help="Extract variables from collection. Use without value to print variables, or specify a file path to save template")
-    env_group.add_argument("--import-collection", dest="import_collection", nargs="?", const=True, metavar="OUTPUT_DIR",
-                          help="Import Postman collection and extract to a directory structure in the 'collections' folder. Use without value to use collection name as base directory, or specify a subdirectory name")
+    # CONFIGURE section - Encoding
+    encoding_group = parser.add_argument_group("CONFIGURE - Encoding")
+    encoding_group.add_argument("--encode-base64", dest="encoding", action=EncodingAction, nargs="?", const="base64", metavar="INPUT",
+                          help="Encode input as base64. Use without value to encode interactively")
+    encoding_group.add_argument("--encode-url", dest="encoding", action=EncodingAction, nargs="?", const="url", metavar="INPUT",
+                          help="URL-encode input. Use without value to encode interactively")
+    encoding_group.add_argument("--encode-hex", dest="encoding", action=EncodingAction, nargs="?", const="hex", metavar="INPUT",
+                          help="Encode input as hex. Use without value to encode interactively")
+    encoding_group.add_argument("--encode-jwt", dest="encoding", action=EncodingAction, nargs="?", const="jwt", metavar="INPUT",
+                          help="Decode JWT token. Use without value to decode interactively")
+    encoding_group.add_argument("--encode-payloads", metavar="VARIABLES_FILE",
+                          help="Encode variables in an insertion point file")
     
-    # Encoding options - simplified and grouped
-    encoding_group = parser.add_argument_group("ENCODING OPTIONS")
-    encoding_group.add_argument("--encode-payloads", nargs="?", metavar="FILE",
-                              help="Encode variables in an insertion point file. Use without value to select interactively")
+    # EXECUTE section - Requests
+    requests_group = parser.add_argument_group("EXECUTE - Requests")
+    requests_group.add_argument("--collection", nargs="?", const=True, metavar="COLLECTION_PATH",
+                          help="Path to Postman collection file. This is the primary input for most operations. Use without value to select interactively")
+    requests_group.add_argument("--request-id", metavar="ID",
+                          help="Replay a specific request by its ID. Use with --collection")
+    requests_group.add_argument("--proxy", nargs=2, metavar=("HOST", "PORT"),
+                          help="Specify proxy server for requests. Format: --proxy host port. Takes precedence over auto-detected system proxies")
+    requests_group.add_argument("--header", "-H", action="append", metavar="HEADER",
+                          help="Add custom header to requests. Format: 'Name: Value'. Can be used multiple times")
+    requests_group.add_argument("--user-agent", metavar="USER_AGENT",
+                          help="Set custom User-Agent header for all requests")
+    requests_group.add_argument("--no-verify-ssl", action="store_true",
+                          help="Disable SSL certificate verification for HTTPS requests")
     
-    # Add a single help entry for all encoding methods
-    encoding_group.add_argument("--encode-METHOD", metavar="VALUE", dest="encode_value",
-                              help="Encode a string using METHOD (url, double-url, html, xml, unicode, hex, octal, base64, sql-char, js, css)")
+    # EXECUTE section - Authentication
+    auth_group = parser.add_argument_group("EXECUTE - Authentication")
+    auth_group.add_argument("--auth-basic", nargs=2, metavar=("USERNAME", "PASSWORD"),
+                          help="Use HTTP Basic Authentication. Format: --auth-basic username password")
+    auth_group.add_argument("--auth-bearer", metavar="TOKEN",
+                          help="Use Bearer Token Authentication. Format: --auth-bearer token")
+    auth_group.add_argument("--auth-apikey", nargs=3, metavar=("KEY", "VALUE", "IN"),
+                          help="Use API Key Authentication. Format: --auth-apikey key value in (header|query)")
     
-    # Add the actual encoding options
-    encoding_group.add_argument("--encode-url", metavar="VALUE", help=argparse.SUPPRESS)
-    encoding_group.add_argument("--encode-double-url", metavar="VALUE", help=argparse.SUPPRESS)
-    encoding_group.add_argument("--encode-html", metavar="VALUE", help=argparse.SUPPRESS)
-    encoding_group.add_argument("--encode-xml", metavar="VALUE", help=argparse.SUPPRESS)
-    encoding_group.add_argument("--encode-unicode", metavar="VALUE", help=argparse.SUPPRESS)
-    encoding_group.add_argument("--encode-hex", metavar="VALUE", help=argparse.SUPPRESS)
-    encoding_group.add_argument("--encode-octal", metavar="VALUE", help=argparse.SUPPRESS)
-    encoding_group.add_argument("--encode-base64", metavar="VALUE", help=argparse.SUPPRESS)
-    encoding_group.add_argument("--encode-sql-char", metavar="VALUE", help=argparse.SUPPRESS)
-    encoding_group.add_argument("--encode-js", metavar="VALUE", help=argparse.SUPPRESS)
-    encoding_group.add_argument("--encode-css", metavar="VALUE", help=argparse.SUPPRESS)
+    # ANALYSIS section
+    analysis_group = parser.add_argument_group("ANALYSIS")
+    analysis_group.add_argument("--list", choices=["collections", "variables", "insertion-points", "results", "auth"], 
+                          nargs='?',  # Ensure it's treated as a single value
+                          help="List available configurations. Choices: collections, variables, insertion-points, results, auth")
+    analysis_group.add_argument("--show", nargs=2, metavar=("TYPE", "NAME"),
+                          help="Show details of a specific configuration. Format: --show [proxy|variable] name")
+    analysis_group.add_argument("--search", action=SearchAction, nargs="?", metavar="QUERY",
+                          help="Search logs for requests and responses. QUERY is required (e.g., --search 'api' or --search 'status:200')")
+    analysis_group.add_argument("--collection-filter", metavar="COLLECTION",
+                          help="Filter search results to a specific collection")
+    analysis_group.add_argument("--folder-filter", metavar="FOLDER",
+                          help="Filter search results to a specific folder within a collection")
     
-    # Proxy options
-    proxy_group = parser.add_argument_group("PROXY OPTIONS")
-    proxy_group.add_argument("--proxy", metavar="HOST:PORT", 
-                           help="Proxy to use in format host:port")
-    proxy_group.add_argument("--proxy-host", 
-                           help="Proxy hostname")
-    proxy_group.add_argument("--proxy-port", type=int, 
-                           help="Proxy port")
-    proxy_group.add_argument("--verify-ssl", action="store_true", 
-                           help="Verify SSL certificates")
-    proxy_group.add_argument("--no-verify-ssl", action="store_true", 
-                           help="Do not verify SSL certificates")
-    proxy_group.add_argument("--save-proxy", action="store_true", 
-                           help="Save proxy settings for future use")
-    proxy_group.add_argument("--proxy-profile", nargs="?",
-                           help="Use a saved proxy profile. Use without value to select interactively")
+    # GENERAL section
+    general_group = parser.add_argument_group("GENERAL")
+    general_group.add_argument("--banner", action="store_true",
+                          help="Display the banner")
+    general_group.add_argument("--verbose", "-v", action="store_true",
+                          help="Enable verbose output for debugging")
+    general_group.add_argument("--version", action="version", version="0.7.0-alpha",
+                          help="Show program version and exit")
     
-    # Output options
-    output_group = parser.add_argument_group("OUTPUT OPTIONS")
-    output_group.add_argument("--output", metavar="DIR",
-                             help="Specify custom output directory for results")
-    output_group.add_argument("--verbose", action="store_true", 
-                             help="Show verbose output")
+    # COLLECTION MANAGEMENT
+    collection_group = parser.add_argument_group("COLLECTION MANAGEMENT")
+    # --collection is already defined in the requests group
+    # collection_group.add_argument("--collection", metavar="FILE",
+    #                        help="Specify a collection file to use")
+    collection_group.add_argument("--extract-structure", action="store_true",
+                            help="Extract collection to a directory structure")
     
-    # Header options
-    header_group = parser.add_argument_group("HEADER OPTIONS")
-    header_group.add_argument("--header", action="append", metavar="KEY:VALUE",
-                             help="Add custom header. Can be specified multiple times")
-    
-    # Authentication options
-    auth_group = parser.add_argument_group("AUTHENTICATION OPTIONS")
-    auth_group.add_argument("--auth", nargs="?", 
-                          help="Use a saved auth profile. Use without value to select interactively")
-    auth_group.add_argument("--auth-METHOD", metavar="PARAMS", dest="auth_method",
-                          help="Set authentication with METHOD (basic, bearer, api-key)")
-    
-    # Hide the actual auth options from help but still make them available
-    auth_group.add_argument("--auth-basic", nargs=2, metavar=("USERNAME", "PASSWORD"), help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-bearer", metavar="TOKEN", help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-api-key", nargs=2, metavar=("KEY", "LOCATION"), help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-api-key-name", metavar="NAME", help=argparse.SUPPRESS)
-    
-    # Add a single help entry for OAuth options
-    auth_group.add_argument("--auth-oauth-OPTIONS", dest="oauth_options",
-                          help="OAuth authentication options (see documentation)")
-    
-    # Hide the actual OAuth options from help but still make them available
-    auth_group.add_argument("--auth-oauth1", nargs=2, metavar=("CONSUMER_KEY", "CONSUMER_SECRET"), help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-oauth1-token", nargs=2, metavar=("TOKEN", "TOKEN_SECRET"), help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-oauth1-signature", metavar="METHOD", help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-oauth2", nargs=2, metavar=("CLIENT_ID", "CLIENT_SECRET"), help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-oauth2-token-url", metavar="URL", help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-oauth2-refresh-url", metavar="URL", help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-oauth2-grant", metavar="TYPE", help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-oauth2-username", metavar="USERNAME", help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-oauth2-password", metavar="PASSWORD", help=argparse.SUPPRESS)
-    auth_group.add_argument("--auth-oauth2-scope", metavar="SCOPE", help=argparse.SUPPRESS)
+    # Enable argcomplete if available
+    if ARGCOMPLETE_AVAILABLE:
+        argcomplete.autocomplete(parser)
     
     args = parser.parse_args()
     
     # Ensure all required directories exist
-    for directory in [COLLECTIONS_DIR, VARIABLES_DIR, RESULTS_DIR, INSERTION_POINTS_DIR, AUTH_DIR, PROXY_DIR, LOGS_DIR]:
+    for directory in [COLLECTIONS_DIR, VARIABLES_DIR, RESULTS_DIR, INSERTION_POINTS_DIR, PROXY_DIR, LOGS_DIR]:
         ensure_log_directory(directory)
     
     # Update logging level based on verbose flag
@@ -1618,62 +1505,98 @@ def main():
         # Re-setup logging with verbose flag
         logger = setup_logging(verbose=True)
     
-    # Handle list argument if specified
+    # Handle list command
     if args.list:
-        for list_type in args.list:
-            if list_type == 'collections':
-                list_collections()
-            else:
-                handle_list_command(list_type)
-            # Add a newline between different list types for better readability
-            if list_type != args.list[-1]:
-                print()
-        return
+        # args.list should be treated as a single value, not iterated through
+        handle_list_command(args.list)
+        sys.exit(0)
     
-    # Handle show argument if specified
+    # Handle show command
     if args.show:
-        config_type, config_name = args.show
-        if config_type not in ['auth', 'proxies', 'insertion_points', 'workflows']:
-            print(f"Error: Unknown configuration type '{config_type}'")
-            print("Available configuration types: auth, proxies, insertion_points, workflows")
-            return
-        handle_show_command(config_type, config_name)
-        return
+        handle_show_command(args.show[0], args.show[1])
+        sys.exit(0)
+    
+    # Handle search command
+    if args.search:
+        logger.debug(f"Searching for: {args.search}")
+        try:
+            from modules.search import search_logs, get_available_collections, get_available_folders
+            
+            # If no query is provided, show available collections
+            if not args.search:
+                print("Please provide a search query. Examples:")
+                print("  --search 'api'            - Search for 'api' in all requests and responses")
+                print("  --search 'status:200'     - Search for status code 200")
+                print("  --search 'req123'         - Search for a specific request ID")
+                
+                # Show available collections
+                collections = get_available_collections()
+                if collections:
+                    print("\nAvailable collections:")
+                    for collection in collections:
+                        print(f"  - {collection}")
+                
+                sys.exit(1)
+            
+            search_logs(args.search, args.collection_filter, args.folder_filter)
+            sys.exit(0)
+        except ImportError:
+            logger.error("Search module not found. Please make sure modules/search.py exists.")
+            sys.exit(1)
     
     # Handle encoding commands if any are specified
-    encoding_args = {
-        'url': args.encode_url,
-        'double_url': args.encode_double_url,
-        'html': args.encode_html,
-        'xml': args.encode_xml,
-        'unicode': args.encode_unicode,
-        'hex': args.encode_hex,
-        'octal': args.encode_octal,
-        'base64': args.encode_base64,
-        'sql_char': args.encode_sql_char,
-        'js_escape': args.encode_js,
-        'css_escape': args.encode_css
-    }
+    if hasattr(args, 'encoding') and args.encoding:
+        encoding_type = args.encoding
+        input_value = getattr(args, 'encoding_input', None)
+        
+        # Handle the encoding
+        if encoding_type == 'jwt':
+            # Special case for JWT which is a decoder, not an encoder
+            if input_value:
+                try:
+                    decoded = Encoder.decode_jwt(input_value)
+                    print(f"Decoded JWT token:")
+                    print(json.dumps(decoded, indent=2))
+                except Exception as e:
+                    logger.error(f"JWT decoding error: {e}")
+            else:
+                # Interactive mode
+                jwt_token = input("Enter JWT token to decode: ")
+                try:
+                    decoded = Encoder.decode_jwt(jwt_token)
+                    print(f"Decoded JWT token:")
+                    print(json.dumps(decoded, indent=2))
+                except Exception as e:
+                    logger.error(f"JWT decoding error: {e}")
+        else:
+            # Regular encoders
+            if input_value:
+                try:
+                    encoded = Encoder.encode(input_value, encoding_type)
+                    print(f"Original: {input_value}")
+                    print(f"Encoded ({encoding_type}): {encoded}")
+                except Exception as e:
+                    logger.error(f"Encoding error: {e}")
+            else:
+                # Interactive mode
+                value = input(f"Enter value to {encoding_type}-encode: ")
+                try:
+                    encoded = Encoder.encode(value, encoding_type)
+                    print(f"Original: {value}")
+                    print(f"Encoded ({encoding_type}): {encoded}")
+                except Exception as e:
+                    logger.error(f"Encoding error: {e}")
+        
+        sys.exit(0)
     
-    # Check if any encoding option was specified
-    for encoding_type, value in encoding_args.items():
-        if value:
-            try:
-                encoded = Encoder.encode(value, encoding_type)
-                print(f"Original: {value}")
-                print(f"Encoded ({encoding_type}): {encoded}")
-                return
-            except Exception as e:
-                logger.error(f"Encoding error: {e}")
-                return
-    
-    # Handle insertion point encoding
+    # Handle encode_payloads option
     if args.encode_payloads:
         if encode_insertion_point_variables(args.encode_payloads):
-            return
+            logger.info("Successfully encoded insertion point variables")
+            sys.exit(0)
         else:
             logger.error("Failed to encode insertion point variables")
-            return
+            sys.exit(1)
     
     # Handle extract keys without collection specified
     if args.extract_keys is not None and not args.collection:
@@ -1705,44 +1628,44 @@ def main():
     
     # Handle import without collection specified
     if args.import_collection is not None and not args.collection:
-        logger.error("No collection specified. Please provide a collection with --collection when using --import-collection.")
+        logger.error("No collection specified. Please provide a collection with --collection when using --import.")
         sys.exit(1)
     
     # Handle import with collection specified
     if args.import_collection is not None:
-        # Import the importman module
+        # Import the import module
         try:
             import importlib
-            importman_module = importlib.import_module('modules.importman')
-            extract_collection_to_structure = getattr(importman_module, 'extract_collection_to_structure')
+            import_module = importlib.import_module('modules.importman')
+            import_collection_to_structure = getattr(import_module, 'import_collection_to_structure')
         except ImportError:
-            logger.error("Could not import the importman module. Import features will not be available.")
+            logger.error("Could not import the import module. Import features will not be available.")
             sys.exit(1)
         except AttributeError:
-            logger.error("The importman module does not contain the required function.")
+            logger.error("The import module does not contain the required function.")
             sys.exit(1)
         
-        collection_path = resolve_collection_path(args.collection)
-        if not collection_path:
-            logger.error(f"Could not resolve collection path: {args.collection}")
-            sys.exit(1)
-        
-        logger.debug(f"Resolved collection path: {collection_path}")
-        
-        # Extract collection to structure
-        output_dir = args.import_collection if args.import_collection is not True else None
-        
-        # Ensure output is in the collections directory
-        if output_dir is not None:
-            # If output_dir is an absolute path, make it relative to collections
-            if os.path.isabs(output_dir):
-                output_dir = os.path.join('collections', os.path.basename(output_dir))
-            else:
-                output_dir = os.path.join('collections', output_dir)
-        else:
-            output_dir = 'collections'
+        # If no collection is specified, use the import_collection value as the collection name
+        if not args.collection:
+            collection_path = args.import_collection if isinstance(args.import_collection, str) else None
+            if not collection_path:
+                logger.error("No collection specified. Please provide a collection name or path.")
+                sys.exit(1)
             
-        success = extract_collection_to_structure(collection_path, output_dir)
+            # Add .json extension if not provided
+            if not collection_path.endswith('.json'):
+                collection_path += '.json'
+        else:
+            # Resolve the collection path
+            collection_path = resolve_collection_path(args.collection)
+            if not collection_path:
+                logger.error("Could not resolve collection path")
+                sys.exit(1)
+        
+        # Extract the collection to a directory structure
+        output_dir = None  # Use default (collection name)
+        
+        success = import_collection_to_structure(collection_path, output_dir)
         
         # Exit after extraction
         sys.exit(0 if success else 1)
@@ -1940,7 +1863,7 @@ def main():
         proxy_host=proxy_host,
         proxy_port=proxy_port,
         verify_ssl=args.verify_ssl or proxy.get("verify_ssl", False),
-        auto_detect_proxy=True,  # Always enable auto-detection
+        auto_detect_proxy=True,  # Always auto-detect, but user-specified proxy takes precedence
         verbose=args.verbose or proxy.get("verbose", False),
         custom_headers=args.header,
         auth_method=auth_method
@@ -1995,52 +1918,145 @@ def main():
             else:
                 logger.error("Failed to save proxy")
 
-def list_collections():
-    """
-    List all available collection files.
-    """
-    logger.info("Listing available collection files")
-    
-    # Check if collections directory exists
-    if not os.path.exists(COLLECTIONS_DIR):
+    # Handle collection with request ID
+    if args.collection and args.request_id:
+        logger.debug(f"Replaying specific request with ID: {args.request_id}")
+        
+        # Create Repl instance
+        repl_instance = Repl(
+            collection_path=args.collection,
+            target_insertion_point=args.insertion_point,
+            proxy_host=proxy_host,
+            proxy_port=proxy_port,
+            verify_ssl=not args.no_verify_ssl,
+            auto_detect_proxy=True,  # Always auto-detect, but user-specified proxy takes precedence
+            verbose=args.verbose,
+            custom_headers=args.header,
+            auth_method=auth_method
+        )
+        
+        # Load collection
+        if not repl_instance.load_collection():
+            logger.error("Failed to load collection")
+            sys.exit(1)
+        
+        # Find and replay the specific request
+        found = False
+        for request in repl_instance.extract_all_requests(repl_instance.collection):
+            if 'id' in request and str(request['id']) == args.request_id:
+                logger.info(f"Found request with ID: {args.request_id}")
+                prepared_request = repl_instance.prepare_request(request)
+                response = repl_instance.send_request(prepared_request)
+                
+                # Print request and response details
+                print(f"\n{Fore.MAGENTA}REQUEST:{Style.RESET_ALL}")
+                print(f"  Method: {prepared_request['method']} {prepared_request['url']}")
+                print("  Headers:")
+                for header, value in prepared_request['headers'].items():
+                    print(f"    {header}: {value}")
+                if prepared_request.get('body'):
+                    print("  Body:")
+                    print(f"    {prepared_request['body']}")
+                
+                print(f"\n{Fore.MAGENTA}RESPONSE:{Style.RESET_ALL}")
+                print(f"  Status: {response.get('status_code', 'N/A')}")
+                print("  Headers:")
+                for header, value in response.get('headers', {}).items():
+                    print(f"    {header}: {value}")
+                print("  Body:")
+                print(f"    {response.get('body', '')}")
+                
+                found = True
+                break
+        
+        if not found:
+            logger.error(f"Request with ID {args.request_id} not found in collection")
+            sys.exit(1)
+        
+        sys.exit(0)
+
+    # Handle --process-queue
+    # This functionality has been removed
+    # if args.process_queue:
+    #     try:
+    #         from modules.importman import process_queue_collections
+    #         process_queue_collections()
+    #     except ImportError:
+    #         logger.error("Could not import process_queue_collections from modules.importman")
+    #         print("Error: Could not import process_queue_collections from modules.importman")
+    #         print("Please make sure the modules/importman.py file is in the same directory as repl.py.")
+    #     sys.exit(0)
+
+    # Handle --extract-structure argument
+    if args.extract_structure:
+        # Import the import_collection_to_structure function from modules.importman
         try:
-            os.makedirs(COLLECTIONS_DIR)
-            logger.debug(f"Created collections directory at {COLLECTIONS_DIR}")
-        except Exception as e:
-            logger.error(f"Could not create collections directory: {e}")
-            return
-    
-    # Get all JSON files in the collections directory
-    try:
-        collection_files = [f for f in os.listdir(COLLECTIONS_DIR) if f.endswith('.json')]
-    except Exception as e:
-        logger.error(f"Could not list collections directory: {e}")
-        return
-    
-    if not collection_files:
-        print("No collection files found.")
-        print(f"Place your Postman collection JSON files in the {COLLECTIONS_DIR} directory.")
-        return
-    
-    # Print the list of collection files
-    print(f"\nAvailable collection files ({len(collection_files)}):")
-    for i, file in enumerate(sorted(collection_files), 1):
-        print(f"  {i}. {file}")
+            import importlib
+            import_module = importlib.import_module('modules.importman')
+            import_collection_to_structure = getattr(import_module, 'import_collection_to_structure')
+        except (ImportError, AttributeError) as e:
+            logger.error(f"Could not import import_collection_to_structure: {e}")
+            sys.exit(1)
+        
+        # Resolve the collection path
+        collection_path = resolve_collection_path(args.collection)
+        if not collection_path:
+            logger.error("No collection specified")
+            sys.exit(1)
+        
+        # Import the collection to a directory structure
+        output_dir = None  # Use default (collection name)
+        success = import_collection_to_structure(collection_path, output_dir)
+        
+        # Exit after import
+        sys.exit(0 if success else 1)
 
 def handle_list_command(list_type):
     """
-    Handle the --list command based on the specified type.
+    Handle the list command.
     
     Args:
-        list_type (str): Type of configuration to list
+        list_type: Type of list to display
     """
+    # Check if list_type is a string and handle it as a single value
     if list_type == 'collections':
         list_collections()
-        return
-        
-    # Fallback function if config module is not available
-    print(f"Error: Cannot list {list_type}. The config module is not available.")
-    print("Please make sure the modules/config.py file is in the same directory as repl.py.")
+    elif list_type == 'variables':
+        try:
+            from modules.config import list_variables
+            list_variables()
+        except ImportError:
+            logger.error("Cannot list variables. The config module is not available.")
+            print("Error: Cannot list variables. The config module is not available.")
+            print("Please make sure the modules/config.py file is in the same directory as repl.py.")
+    elif list_type == 'insertion-points':
+        try:
+            from modules.config import list_insertion_points
+            list_insertion_points()
+        except ImportError:
+            logger.error("Cannot list insertion-points. The config module is not available.")
+            print("Error: Cannot list insertion-points. The config module is not available.")
+            print("Please make sure the modules/config.py file is in the same directory as repl.py.")
+    elif list_type == 'results':
+        try:
+            from modules.config import list_results
+            list_results()
+        except ImportError:
+            logger.error("Cannot list results. The config module is not available.")
+            print("Error: Cannot list results. The config module is not available.")
+            print("Please make sure the modules/config.py file is in the same directory as repl.py.")
+    elif list_type == 'auth':
+        try:
+            from modules.list import list_auth
+            list_auth()
+        except ImportError:
+            logger.error("Cannot list auth methods. The list module is not available.")
+            print("Error: Cannot list auth methods. The list module is not available.")
+            print("Please make sure the modules/list.py file is in the same directory as repl.py.")
+    else:
+        logger.error(f"Unknown list type: {list_type}")
+        print(f"Error: Unknown list type: {list_type}")
+        print("Available list types: collections, variables, insertion-points, results, auth")
 
 if __name__ == "__main__":
     main() 

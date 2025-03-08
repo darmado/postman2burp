@@ -1,8 +1,0 @@
-{
-  "type": "apikey",
-  "label": "armado_api",
-  "key": "8481b8a5-36db-432a-bbe7-9b93a5c0a1b7",
-  "location": "header",
-  "param_name": "X-API-Key",
-  "is_dynamic": false
-} 

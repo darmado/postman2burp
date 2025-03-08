@@ -6,8 +6,10 @@
 tests/
 run_tests.py
 activate
-.json
-.DS_Store
+*.json
+*.json.bak
+*DS_Store
+*.bak
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

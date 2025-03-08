@@ -1,9 +1,0 @@
-{
-    "proxy": "proxies/burp.json",
-    "collection": "collections/banking_api.json",
-    "insertion_point": "profiles/banking_profile.json",
-    "save_config": false,
-    "verbose": false,
-    "log": true,
-    "auth": "auth/banking_auth.json"
-} 

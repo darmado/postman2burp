@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "49dce74c-76f8-4016-bc64-f1413627bf87",
-		"name": "Armado API Collection",
-		"description": "Collection for Armado API endpoints",
+		"name": "LEEN.DEV API Collection",
+		"description": "Collection for LEEN.DEV API endpoints",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "42799722"
 	},

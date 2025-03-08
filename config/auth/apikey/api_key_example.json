@@ -1,8 +1,0 @@
-{
-  "label": "API Key Example",
-  "type": "apikey",
-  "key": "example_api_key_12345",
-  "location": "header",
-  "param_name": "X-API-Key",
-  "is_dynamic": false
-} 
