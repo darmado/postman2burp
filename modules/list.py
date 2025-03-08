@@ -206,3 +206,12 @@ def _collect_auth_files_with_path(directory_path, current_path, auth_files):
         elif os.path.isdir(item_path):
             new_path = current_path + [item]
             _collect_auth_files_with_path(item_path, new_path, auth_files)
+
+def get_list_types():
+    """
+    Get all available list types for autocomplete.
+    
+    Returns:
+        List[str]: List of available list types
+    """
+    return ["collections", "variables", "insertion-points", "results", "auth"]

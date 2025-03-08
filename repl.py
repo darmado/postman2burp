@@ -50,6 +50,12 @@ from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple, Union, Any
 
 # Import third-party libraries
+try:
+    import argcomplete
+    ARGCOMPLETE_AVAILABLE = True
+except ImportError:
+    ARGCOMPLETE_AVAILABLE = False
+
 import requests
 import urllib3
 from urllib3.exceptions import InsecureRequestWarning
@@ -1460,10 +1466,17 @@ def main():
                           help="Use API Key Authentication. Format: --auth-apikey key value in (header|query)")
     
     # ANALYSIS section
+    # Import list types if available
+    try:
+        from modules.list import get_list_types
+        list_choices = get_list_types()
+    except ImportError:
+        list_choices = ["collections", "variables", "insertion-points", "results", "auth"]
+    
     analysis_group = parser.add_argument_group("ANALYSIS")
-    analysis_group.add_argument("--list", choices=["collections", "variables", "insertion-points", "results", "auth"], 
+    analysis_group.add_argument("--list", choices=list_choices, 
                           nargs='?',  # Ensure it's treated as a single value
-                          help="List available configurations. Choices: collections, variables, insertion-points, results, auth")
+                          help=f"List available configurations. Choices: {', '.join(list_choices)}")
     analysis_group.add_argument("--show", nargs=2, metavar=("TYPE", "NAME"),
                           help="Show details of a specific configuration. Format: --show [proxy|variable] name")
     analysis_group.add_argument("--search", action=SearchAction, nargs="?", metavar="QUERY",
@@ -1494,6 +1507,10 @@ def main():
     if ARGCOMPLETE_AVAILABLE:
         argcomplete.autocomplete(parser)
     
+        # Enable argcomplete if available
+    if ARGCOMPLETE_AVAILABLE:
+        argcomplete.autocomplete(parser)
+
     args = parser.parse_args()
     
     # Ensure all required directories exist

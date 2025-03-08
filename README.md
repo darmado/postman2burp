@@ -5,7 +5,7 @@
 </h1>
 <div align="center">
 
-<h1>Modify, load, and replay Postman collections through any proxy tool in seconds.
+<h1>Replay Postman collections through Burp, ZAP, and any other proxy tool.
 </h1>
 
 [![Python](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/)
@@ -15,7 +15,7 @@
 [![Postman Collections](https://img.shields.io/badge/Postman%20Collections-v2.1-orange.svg)](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
 
 
-Repl sends Postman collections through proxy tools like Burp Suite or ZAP for efficient API testing.
+Repl makes it easy to customize and replay API collections from Postman to BurpSuite, ZAP, and any other proxy tool during API security assessments.
 
 </div>
 
@@ -25,7 +25,7 @@ Repl sends Postman collections through proxy tools like Burp Suite or ZAP for ef
 
 <div align="center">
 
-| [🎯 Purpose](#-purpose)  | [✨ Features](#-features) | [🎯 Use Cases](#-use-cases) |  [📚 Documentation](#-documentation) | 
+| [Purpose](#-purpose)  | [✨ Features](#-features) | [🎯 Use Cases](#-use-cases) |  [📚 Documentation](#-documentation) | 
 |:----------------------:|:------------------------------:|:-------------------------:|:----------------------------:|
 | [⚠️ Limitations](#️-limitations) | [📜 License](#-license) | [👥 Contributing](#-contributing) || 
 
@@ -39,7 +39,7 @@ Repl sends Postman collections through proxy tools like Burp Suite or ZAP for ef
 ### Installation
 
 ```bash
-curl -L https://raw.githubusercontent.com/darmado/repl/refs/heads/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/darmado/repl/refs/heads/main/install.sh | sh
 ```
 
 ##
@@ -48,23 +48,23 @@ curl -L https://raw.githubusercontent.com/darmado/repl/refs/heads/main/install.s
 
 1. **Launch your proxy tool** (Burp Suite, ZAP, etc.)
 
-2. **Export your Postman collection** (Use Schema 2.1) [from Postman](https://learning.postman.com/docs/getting-started/importing-and-exporting/exporting-data/)
-
-3. **Move your Postman collection to the repl directory**
+2. **Export your Postman collection** (Use Collection Format v2.1)
    ```bash
-   mv postman_collection.json ./repl/collections/
+   # Save your collection from Postman as a JSON file
    ```
 
-4. **Extract variables from the collection**
+3. **Run repl with your collection**
    ```bash
-   python3 repl.py --collection postmanCollection.json --extract-keys
+   # Extract variables from the collection to a template file
+   python repl.py --collection your_collection.json --extract-keys variables.json
+   
+   # Edit the variables.json file to add your values
+   
+   # Execute the collection through your proxy
+   python repl.py --collection your_collection.json --insertion-point variables.json --proxy 127.0.0.1 8080
    ```
-   This creates templates with placeholders for API keys, tokens, and other variables.
 
-5. **Execute the collection**
-   ```bash
-   python3 repl.py --collection "postman_collection.json" --insertion-point "variables.json"
-   ```
+4. **Analyze the results in your proxy tool**
 
 ##
 
@@ -72,28 +72,30 @@ curl -L https://raw.githubusercontent.com/darmado/repl/refs/heads/main/install.s
 
 | Category | Argument | Description |
 |----------|----------|-------------|
-| **Basic** | `--collection [COLLECTION]` | Specify the Postman collection to test. Leave empty to select interactively. |
-| | `--banner` | Display the tool banner |
-| **Insertion Points** | `--insertion-point INSERTION_POINT` | Insert values into API request variables  |
-| | `--extract-keys [COLLECTION]` | Extract variables and  parameters from a `collection` to create insertion point templates. |
-| **Encoding** | `--encode-[METHOD] VALUE` | Wrap paylooad in quotes. Supports url, double-url, html, xml, unicode, hex, octal, base64, sql-char, js, css |
-| **Authentication** | `--auth [AUTH]` | Load saved authentication profile. Leave empty to select interactively. |
-| | `--auth-type TYPE` | Set authentication type (basic, bearer, api-key, oauth1, oauth2) |
-| | `--auth-credentials KEY VALUE` | Set auth credentials (varies by type: username/password, token, api-key, etc.) |
-| | `--auth-location LOCATION` | Specify where to place auth data (header, query, cookie) |
-| | `--auth-param NAME` | Set custom parameter name for auth (default varies by type) |
-| | `--auth-url URL` | Set auth endpoint (token URL, refresh URL) |
-| | `--auth-method METHOD` | Set auth method (signature method, grant type) |
-| | `--auth-scope SCOPE` | Set permission scopes for OAuth2 |
-| **Proxy** | `--proxy PROXY` | Direct traffic through specified proxy (format: host:port) |
-| | `--proxy-host HOST` | Set proxy hostname |
-| | `--proxy-port PORT` | Set proxy port |
-| | `--verify-ssl` | Enable SSL certificate validation |
-| | `--proxy-profile [PROFILE]` | Load saved proxy settings |
-| **Output** | `--log` | Record request/response data for analysis |
-| | `--verbose` | Display detailed request information during execution |
-| | `--save-proxy` | Save current proxy settings for future use |
-| **Headers** | `--header HEADER` | Add custom headers to all requests (format: 'Key:Value') |
+| **Collection Management** | `--collection [FILE]` | Specify Postman collection file. If no file provided, shows a selection menu. |
+| | `--import` | Import collection and create directory structure in 'collections' folder. |
+| | `--extract-structure` | Extract collection to a directory structure. |
+| **Variables & Configuration** | `--extract-keys [FILE]` | Extract variables from collection. If no file provided, prints to console. |
+| | `--insertion-point FILE` | Insert values into API request variables from specified file. |
+| **Encoding** | `--encode-base64 [VALUE]` | Encode input as base64. If no value provided, prompts for input. |
+| | `--encode-url [VALUE]` | URL-encode input. If no value provided, prompts for input. |
+| | `--encode-hex [VALUE]` | Encode input as hex. If no value provided, prompts for input. |
+| | `--encode-payloads` | Encode variables in an insertion point file using methods specified in the file. |
+| **Request Execution** | `--request-id ID` | Replay a specific request by its ID. Use with --collection. |
+| | `--proxy HOST PORT` | Specify proxy server for requests (e.g., 127.0.0.1 8080). |
+| | `--header, -H HEADER` | Add custom header to requests. Format: 'Name: Value'. Can be used multiple times. |
+| **Authentication** | `--auth [PROFILE]` | Load saved authentication profile. If no profile provided, shows a selection menu. |
+| | `--auth-basic USERNAME PASSWORD` | Use HTTP Basic Authentication. |
+| | `--auth-bearer TOKEN` | Use Bearer Token Authentication. |
+| | `--auth-apikey KEY VALUE IN` | Use API Key Authentication. IN must be 'header' or 'query'. |
+| **Analysis** | `--list [TYPE]` | List available configurations. Types: collections, variables, insertion-points, results, auth. |
+| | `--show TYPE NAME` | Show details of a specific configuration. Example: --show auth basic/myauth |
+| | `--search [QUERY]` | Search logs for requests and responses. Example: --search "status:200" |
+| | `--collection-filter COLLECTION` | Filter search results to a specific collection. |
+| | `--folder-filter FOLDER` | Filter search results to a specific folder within a collection. |
+| **General** | `--banner` | Display the tool banner. |
+| | `--verbose, -v` | Enable verbose output for debugging. |
+| | `--version` | Show program version and exit. |
 
 For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/wiki).
 
@@ -101,26 +103,20 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/
 
 ### ✨ Features
 
-| Feature | Command-line Arguments | Use Case |
-|---------|------------------------|-------------|
-| 🔍 Proxy Auto-detection | `--proxy-host`, `--proxy-port` | Detect running proxy tools on common ports (8080, 8081, 8082) |
-| 🔄 Custom Proxy Configuration | `--proxy host:port` | Direct traffic through any proxy tool or intercepting middleware |
-| 💾 Proxy Profile Management | `--proxy-profile [PROFILE]` | Load and save proxy configurations for different environments |
-| 🔑 Variable Extraction | `--extract-keys [OUTPUT_FILE]` | Extract API keys, tokens, and variables from collections for testing |
-| 🔐 Payload Insertion | `--insertion-point PROFILE` | Insert values at specific points in API requests from template files |
-| 🔒 Multi-auth Support | `--auth`, `--auth-basic`, `--auth-bearer` | Support for Basic Auth, Bearer Token, API Key, OAuth1, and OAuth2 |
-| 📊 Logging | `--log`, `--verbose` | Record detailed request/response data for analysis and reporting |
-| 🧩 Interactive Mode | `--collection` | Navigate through interactive prompts |
-| 🔍 Proxy Verification | Automatic | Verify proxy connection before sending requests |
-| 🔤 Header Customization | `--header KEY:VALUE` | Add or modify headers in all requests |
-| 🔒 SSL Configuration | `--verify-ssl` | Enable or disable SSL certificate validation |
-| 🔄 Encode your payloads | `--encode-` | Encode values using various encoding methods: URL, double URL, HTML, base64, SQL CHAR(), JavaScript, and CSS encoding |
+| Feature | Description | Command Example |
+|---------|-------------|-----------------|
+| 🔍 **Proxy Integration** | Send requests through any proxy tool (Burp, ZAP, etc.) | `--proxy 127.0.0.1 8080` |
+| 🔑 **Variable Extraction** | Extract variables from collections to create templates | `--extract-keys variables.json` |
+| 🔐 **Variable Insertion** | Insert values at specific points in API requests | `--insertion-point variables.json` |
+| 📁 **Collection Management** | Import and organize Postman collections | `--import` |
+| 🔒 **Authentication Support** | Basic Auth, Bearer Token, API Key authentication | `--auth-bearer "token123"` |
+| 🔄 **Payload Encoding/Decoding** | Encode/decode values using various methods | `--encode-base64 "test"` or `--encode-jwt "token"` |
+| 📋 **Configuration Listing** | List available collections, auth methods, etc. | `--list collections` or `--list auth` |
+| 📊 **Request Details** | View detailed information about requests | `--verbose` |
+| 🧩 **Selection Menus** | Select from available collections and options | `--collection` (without file path) |
+| 🔍 **Search Capability** | Search through logs and results | `--search "status:200"` |
+| 🔤 **Header Customization** | Add or modify headers in all requests | `--header "X-API-Key: value"` |
 
-##
-
-### 🎯 Use Cases
-
-For complete examples with code samples and technical details, see our [Use Cases Documentation](https://github.com/darmado/repl/wiki/Use-Cases).
 
 ##
 
@@ -128,8 +124,11 @@ For complete examples with code samples and technical details, see our [Use Case
 
 | Limitation | Description | Workaround |
 |------------|-------------|------------|
-| File Uploads | Limited support for multipart/form-data file uploads | Use simple file uploads with base64-encoded content |
-| WebSocket Requests | No support for WebSocket requests | Use separate WebSocket testing tools |
+| **File Uploads** | Limited support for multipart/form-data file uploads | Use base64-encoded content for simple file uploads |
+| **WebSocket** | No support for WebSocket connections | Use dedicated WebSocket testing tools |
+| **GraphQL** | Basic support for GraphQL queries | Structure GraphQL queries as regular POST requests |
+| **OAuth Flows** | Limited support for complex OAuth flows | Use pre-generated tokens when possible |
+| **Dynamic Scripts** | No support for Postman pre-request and test scripts | Prepare requests with necessary values beforehand |
 
 ##
 
@@ -171,10 +170,12 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/
 ##
 
 ### References
-- Portswigger https://portswigger.net/burp/documentation/desktop/running-scans/api-scans/
-- Postman https://learning.postman.com/docs/postman-cli/postman-cli-run-collection
-- Python Auth: https://datagy.io/python-requests-authentication/
-- 
+- [Portswigger](https://portswigger.net/burp/documentation/desktop/running-scans/api-scans/)
+- [Postman Integration](https://github.com/portswigger/postman-integration)
+- [Postman](https://learning.postman.com/docs/postman-cli/postman-cli-run-collection)
+- [Python Auth](https://datagy.io/python-requests-authentication/)
+- [API Clients List](https://github.com/stepci/awesome-api-clients)
+
 
 
 ### 📜 License

@@ -6,6 +6,7 @@
 tests/
 run_tests.py
 activate
+.queue/*.json
 *.json
 *.json.bak
 *DS_Store

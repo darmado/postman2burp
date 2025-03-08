@@ -43,6 +43,7 @@ else
     echo "No requirements.txt found. No packages installed."
 fi
 
+
 echo ""
 echo "Setup complete! Virtual environment is ready."
 echo ""
