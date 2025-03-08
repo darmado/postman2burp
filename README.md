@@ -152,11 +152,11 @@ For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/
 ##
 
 ### References
-- [Portswigger](https://portswigger.net/burp/documentation/desktop/running-scans/api-scans/)
-- [Postman Integration](https://github.com/portswigger/postman-integration)
-- [Postman](https://learning.postman.com/docs/postman-cli/postman-cli-run-collection)
-- [Python Auth](https://datagy.io/python-requests-authentication/)
-- [API Clients List](https://github.com/stepci/awesome-api-clients)
+- [API Security Testing - Burp Suite](https://portswigger.net/burp/documentation/desktop/running-scans/api-scans/)
+- [Burp Suite Postman Integration](https://github.com/portswigger/postman-integration)
+- [Postman CLI Collection Runner](https://learning.postman.com/docs/postman-cli/postman-cli-run-collection)
+- [Python Request Authentication Guide](https://datagy.io/python-requests-authentication/)
+- [Awesome API Clients Directory](https://github.com/stepci/awesome-api-clients)
 
 
 
