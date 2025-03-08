@@ -14,6 +14,7 @@
 [![Postman](https://img.shields.io/badge/Postman-v11.35.0-orange.svg)](https://www.postman.com/)
 [![Postman Collections](https://img.shields.io/badge/Postman%20Collections-v2.1-orange.svg)](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
 
+> ⚠️ **Warning**: This tool is currently unstable and under active development. Features may change without notice, and unexpected behavior may occur. Use at your own risk in production environments.
 
 Repl makes it easy to customize and replay API collections from Postman to BurpSuite, ZAP, and any other proxy tool during API security assessments.
 
@@ -98,25 +99,6 @@ curl -fsSL https://raw.githubusercontent.com/darmado/repl/refs/heads/main/instal
 | | `--version` | Show program version and exit. |
 
 For detailed usage instructions, see the [Wiki](https://github.com/darmado/repl/wiki).
-
-##
-
-### ✨ Features
-
-| Feature | Description | Command Example |
-|---------|-------------|-----------------|
-| 🔍 **Proxy Integration** | Send requests through any proxy tool (Burp, ZAP, etc.) | `--proxy 127.0.0.1 8080` |
-| 🔑 **Variable Extraction** | Extract variables from collections to create templates | `--extract-keys variables.json` |
-| 🔐 **Variable Insertion** | Insert values at specific points in API requests | `--insertion-point variables.json` |
-| 📁 **Collection Management** | Import and organize Postman collections | `--import` |
-| 🔒 **Authentication Support** | Basic Auth, Bearer Token, API Key authentication | `--auth-bearer "token123"` |
-| 🔄 **Payload Encoding/Decoding** | Encode/decode values using various methods | `--encode-base64 "test"` or `--encode-jwt "token"` |
-| 📋 **Configuration Listing** | List available collections, auth methods, etc. | `--list collections` or `--list auth` |
-| 📊 **Request Details** | View detailed information about requests | `--verbose` |
-| 🧩 **Selection Menus** | Select from available collections and options | `--collection` (without file path) |
-| 🔍 **Search Capability** | Search through logs and results | `--search "status:200"` |
-| 🔤 **Header Customization** | Add or modify headers in all requests | `--header "X-API-Key: value"` |
-
 
 ##
 
